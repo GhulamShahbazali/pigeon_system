@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Home (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+<style>
+  .brandbar{display:flex;align-items:center;gap:9px;padding:4px 20px 14px;}
+  .brandbar .lm{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#4C86FF,#2F6BFF 55%,#1E49B8);display:flex;align-items:center;justify-content:center;}
+  .brandbar h2{font-size:21px;font-weight:800;letter-spacing:-.04em;flex:1;}
+  .lstrip{display:flex;gap:15px;padding:2px 20px 16px;overflow:auto;}
+  .lstrip::-webkit-scrollbar{display:none;}
+  .lav{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:60px;}
+  .lav .ring{width:58px;height:58px;border-radius:50%;padding:2.5px;background:conic-gradient(from -45deg,#12B76A,#51E39A,#12B76A);}
+  .lav .ring.off{background:var(--line);}
+  .lav .ring .inner{width:100%;height:100%;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;overflow:hidden;}
+  .lav .nm{font-size:10.5px;font-weight:600;color:var(--ink-2);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lav.me .inner{background:var(--soft);color:var(--brand);border-color:var(--brand-100);border-style:dashed;}
+  .compose{margin:0 20px 14px;display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 13px;box-shadow:var(--sh-xs);}
+  .compose .ph{flex:1;color:var(--mut);font-size:13.5px;font-weight:500;}
+  .ttrow{margin:0 20px 10px;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:var(--sh-xs);}
+  .ttrow .thumb{width:54px;height:54px;border-radius:13px;flex-shrink:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .ttrow .thumb svg{width:26px;height:26px;color:rgba(255,255,255,.9);}
+  .ttrow .nm{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+  .ttrow .mt{font-size:11.5px;color:var(--mut);font-weight:500;margin-top:2px;}
+  .ttrow .rt{margin-left:auto;text-align:right;}
+  .ttrow .rt b{color:var(--brand);font-weight:800;font-size:14px;}
+  .ttrow .rt small{display:block;font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .livetag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;color:var(--ok);background:var(--ok-50);border-radius:20px;padding:2px 7px;}
+  .livetag i{width:5px;height:5px;border-radius:50%;background:var(--ok);}
+  .sg{margin:0 20px 10px;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 13px;box-shadow:var(--sh-xs);}
+  .caught{text-align:center;color:var(--mut);font-size:12.5px;font-weight:600;padding:16px 0 4px;}
+  .caught svg{width:30px;height:30px;color:var(--ok);margin:0 auto 6px;}
+  /* content map */
+  .map{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin:0 0 30px;box-shadow:var(--sh-sm);}
+  .map h3{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:14px;}
+  .maprow{display:flex;align-items:flex-start;gap:13px;padding:9px 0;}
+  .maprow+.maprow{border-top:1px solid var(--hair);}
+  .maprow .n{width:26px;height:26px;border-radius:8px;background:var(--brand-50);color:var(--brand);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .maprow .t{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+  .maprow .d{font-size:12.5px;color:var(--sub);font-weight:500;margin-top:1px;}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="home" viewBox="0 0 24 24"><path d="M3 10.6 12 3l9 7.6"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l1.8-3A8 8 0 1 1 21 12z"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 5.1a5.4 5.4 0 0 0-7.7 0l-1.1 1-1-1a5.4 5.4 0 1 0-7.7 7.6l1 1L12 21l7.8-7.7 1-1a5.4 5.4 0 0 0 0-7.2z"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 13.3 7.4 4.1M15.7 6.6 8.3 10.7"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="plusc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+<symbol id="image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 3.5L16 13l4 4"/></symbol>
+<symbol id="cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#home"/></svg></div>
+    <div>
+      <div class="crumb">Home · Mobile</div>
+      <h1>Home — full scroll</h1>
+      <div class="sub">The landing screen after sign-in. Below: exactly what shows, top → bottom, across the scroll.</div>
+    </div>
+  </div>
+
+  <!-- CONTENT MAP -->
+  <div class="map">
+    <h3>What's on Home (top → bottom)</h3>
+    <div class="maprow"><span class="n">1</span><div><div class="t">Header</div><div class="d">PigeonFly logo · search · notifications bell</div></div></div>
+    <div class="maprow"><span class="n">2</span><div><div class="t">Live now</div><div class="d">A row of people flying live right now (＋ "Go live" first). Tap an avatar → watch their live record.</div></div></div>
+    <div class="maprow"><span class="n">3</span><div><div class="t">Featured tournament</div><div class="d">The top live / trending tournament as a big card · "See all" → Tournaments.</div></div></div>
+    <div class="maprow"><span class="n">4</span><div><div class="t">Trending tournaments</div><div class="d">A few more tournaments as compact rows (avg · live badge).</div></div></div>
+    <div class="maprow"><span class="n">5</span><div><div class="t">From people you follow</div><div class="d">Compose bar + the posts feed (text / image · like · share · view). This is the main scroll.</div></div></div>
+    <div class="maprow"><span class="n">6</span><div><div class="t">Suggested to follow</div><div class="d">A few people to discover, with Follow buttons.</div></div></div>
+    <div class="maprow"><span class="n">7</span><div><div class="t">You're all caught up</div><div class="d">End-of-feed marker.</div></div></div>
+  </div>
+
+  <div class="screens">
+
+  <!-- SCROLL 1 -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="brandbar"><div class="lm"><svg style="width:20px;height:20px;color:#fff"><use href="#dove"/></svg></div><h2>PigeonFly</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div><a class="gbtn dotbadge" href="messages-wireframes.html"><svg class="i s"><use href="#chat"/></svg></a><a class="gbtn dotbadge" href="notifications-wireframes.html"><svg class="i s"><use href="#bell"/></svg></a></div>
+          <div class="section-h"><span class="lbl">① Live now</span><a class="more" href="records-wireframes.html">See all</a></div>
+          <div class="lstrip">
+            <a href="records-wireframes.html" class="lav me"><div class="ring off"><div class="inner"><svg class="i s"><use href="#plus"/></svg></div></div><span class="nm">Go live</span></a>
+            <a href="records-wireframes.html" class="lav"><div class="ring"><div class="inner" style="background:linear-gradient(145deg,#8FB4FF,#2F6BFF)">A</div></div><span class="nm">Ahmed</span></a>
+            <a href="records-wireframes.html" class="lav"><div class="ring"><div class="inner" style="background:linear-gradient(145deg,#B79BFF,#6D4CE6)">K</div></div><span class="nm">Kashif</span></a>
+            <a href="records-wireframes.html" class="lav"><div class="ring"><div class="inner" style="background:linear-gradient(145deg,#FFC48F,#F5A524)">U</div></div><span class="nm">Usman</span></a>
+            <a href="records-wireframes.html" class="lav"><div class="ring"><div class="inner" style="background:linear-gradient(145deg,#7BE0C3,#12B76A)">S</div></div><span class="nm">Sara</span></a>
+          </div>
+          <div class="section-h"><span class="lbl">② Featured tournament</span><a class="more" href="tournaments-wireframes.html">See all</a></div>
+          <a class="tcard" href="tournaments-wireframes.html" style="text-decoration:none;color:inherit;display:block">
+            <div class="cover mesh-dusk grain" style="height:120px"><svg class="wm"><use href="#dove"/></svg><div class="pill live"><i></i> LIVE · Day 2</div><div class="z" style="max-width:100%"><h3>City Loft Championship</h3><div class="by">by Ahmed Loft</div></div></div>
+            <div class="tbody">
+              <div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 3 days<span class="dot"></span>Alternate<span class="dot"></span><span class="pg"><svg class="i xs"><use href="#trophy"/></svg> 20 pigeons</span></div>
+              <div class="engage"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">318</span></span><span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.2k</span></span><span class="e"><svg class="i s"><use href="#share"/></svg></span><span class="owner"><span class="ava s">A</span></span></div>
+            </div>
+          </a>
+        </div>
+        <div class="nav">
+          <a class="on"><svg class="i s"><use href="#home"/></svg>Home</a><a href="tournaments-wireframes.html"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a><a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a><a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a><a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>Scroll 1 — Top</b><span>header · live now · featured tournament</span></div>
+  </div>
+
+  <!-- SCROLL 2 -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="section-h" style="padding-top:14px"><span class="lbl">③ Trending tournaments</span><a class="more" href="tournaments-wireframes.html">See all</a></div>
+          <div class="ttrow"><div class="thumb mesh-dusk grain"><svg><use href="#trophy"/></svg></div><div style="flex:1"><div class="nm">City Loft Championship</div><div class="mt"><span class="livetag"><i></i> LIVE</span> Day 2 · 20 pigeons</div></div><div class="rt"><b class="num">14:32</b><small>avg</small></div></div>
+          <div class="ttrow"><div class="thumb mesh-sky grain"><svg><use href="#trophy"/></svg></div><div style="flex:1"><div class="nm">Spring Open Flyers</div><div class="mt">1 day · 12 pigeons</div></div><div class="rt"><b class="num">11:08</b><small>avg</small></div></div>
+          <div class="ttrow"><div class="thumb mesh-dawn grain"><svg><use href="#trophy"/></svg></div><div style="flex:1"><div class="nm">Valley Race Cup</div><div class="mt">5 days · 30 pigeons</div></div><div class="rt"><b class="num">12:44</b><small>avg</small></div></div>
+          <div class="section-h" style="padding-top:8px"><span class="lbl">④ From people you follow</span></div>
+          <div class="compose"><span class="ava s">A</span><span class="ph">Share something about your loft…</span><svg class="i s" style="color:var(--brand)"><use href="#image"/></svg></div>
+          <div class="post" style="padding-top:2px"><div class="ph"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="tm">2h ago · Public</div></div><div class="btn sm ghost">Following</div></div><div class="cap">Morning kit flew beautifully today.</div></div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg class="i s"><use href="#home"/></svg>Home</a><a href="tournaments-wireframes.html"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a><a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a><a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a><a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>Scroll 2 — Tournaments + feed start</b><span>trending rows · compose bar</span></div>
+  </div>
+
+  <!-- SCROLL 3 -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="post" style="padding-top:12px"><div class="ph"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="tm">2h ago · Public</div></div><div class="btn sm ghost">Following</div></div><div class="cap">Morning kit flew beautifully today. 18 birds, all back by noon.</div><div class="media mesh-sky grain"><svg class="wm"><use href="#dove"/></svg></div><div class="acts"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">214</span></span><span class="e"><svg class="i s"><use href="#share"/></svg> <span class="num">12</span></span><span class="e" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.3k</span></span></div></div>
+          <div class="sep"></div>
+          <div class="post"><div class="ph"><span class="ava m g2">K</span><div style="flex:1"><div class="nm">Kashif Pigeons</div><div class="tm">5h ago · Public</div></div><div class="btn sm">Follow</div></div><div class="cap">Who's joining the City Loft Championship this week?</div><div class="acts"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">63</span></span><span class="e"><svg class="i s"><use href="#share"/></svg> <span class="num">4</span></span><span class="e" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">540</span></span></div></div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg class="i s"><use href="#home"/></svg>Home</a><a href="tournaments-wireframes.html"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a><a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a><a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a><a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>Scroll 3 — Feed</b><span>posts · like · share · view</span></div>
+  </div>
+
+  <!-- SCROLL 4 -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="post" style="padding-top:12px"><div class="ph"><span class="ava m g4">S</span><div style="flex:1"><div class="nm">Sohail Khan</div><div class="tm">7h ago · Public</div></div><div class="btn sm ghost">Following</div></div><div class="cap">New young birds settling in well.</div><div class="acts"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">88</span></span><span class="e"><svg class="i s"><use href="#share"/></svg> <span class="num">3</span></span><span class="e" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">410</span></span></div></div>
+          <div class="section-h" style="padding-top:8px"><span class="lbl">⑤ Suggested to follow</span></div>
+          <div class="sg"><span class="ava m g3">R</span><div style="flex:1"><div class="nm">Rashid Lofts</div><div class="mt" style="font-size:11.5px;color:var(--mut)">Followed by Ahmed +3</div></div><div class="btn sm"><svg class="i xs" style="color:#fff"><use href="#plusc"/></svg> Follow</div></div>
+          <div class="sg"><span class="ava m">N</span><div style="flex:1"><div class="nm">Naveed Pigeons</div><div class="mt" style="font-size:11.5px;color:var(--mut)">Multan · 540 followers</div></div><div class="btn sm"><svg class="i xs" style="color:#fff"><use href="#plusc"/></svg> Follow</div></div>
+          <div class="caught"><svg class="i"><use href="#check"/></svg>You're all caught up</div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg class="i s"><use href="#home"/></svg>Home</a><a href="tournaments-wireframes.html"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a><a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a><a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a><a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>Scroll 4 — Discover + end</b><span>suggested to follow · caught up</span></div>
+  </div>
+
+  </div>
+  <div class="note"><b>Home = one continuous scroll.</b> Top → bottom: ① header, ② Live now, ③ featured tournament, ④ trending tournaments, ⑤ posts feed (the main part), ⑥ suggested to follow, ⑦ caught-up. The 4 frames above are the same screen at different scroll positions. Bottom nav stays fixed: <b>Home · Tournaments · ＋ · Records · Profile</b>.</div>
+</div>
+</body>
+</html>

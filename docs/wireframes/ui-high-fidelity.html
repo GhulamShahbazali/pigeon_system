@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — UI Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===================== THEME TOKENS (swap once → re-skins everything) ===================== */
+:root{
+  --brand:#2F6BFF; --brand-ink:#1E49B8; --brand-600:#2D62E6; --brand-50:#EEF3FF; --brand-100:#DCE6FF;
+  --amber:#F5A524; --amber-50:#FEF3E0;
+  --ink:#0B1020; --ink-2:#394153; --sub:#6B7280; --mut:#A4ABB8;
+  --line:#ECEEF2; --hair:#F3F4F7; --soft:#F6F7F9; --bg:#F4F5F8; --card:#FFFFFF;
+  --ok:#12B76A; --ok-50:#E7F8F0; --danger:#F04438; --danger-50:#FEECEB;
+  --sh-xs:0 1px 2px rgba(16,24,40,.05);
+  --sh-sm:0 1px 2px rgba(16,24,40,.04),0 2px 6px rgba(16,24,40,.06);
+  --sh:0 2px 4px rgba(16,24,40,.04),0 14px 30px rgba(16,24,40,.10);
+  --sh-lg:0 30px 70px rgba(16,24,40,.22);
+  --r:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"ss01","cv11";}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+.wrap{max-width:1200px;margin:0 auto;padding:48px 24px 80px;}
+
+/* grain overlay for rich surfaces */
+.grain::after{content:"";position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");opacity:.06;mix-blend-mode:overlay;pointer-events:none;}
+
+/* ---------- page header ---------- */
+.masthead{display:flex;align-items:center;gap:16px;margin-bottom:34px;}
+.logomark{width:52px;height:52px;border-radius:15px;background:linear-gradient(145deg,#4C86FF,#2F6BFF 55%,#1E49B8);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(47,107,255,.35),inset 0 1px 0 rgba(255,255,255,.4);position:relative;overflow:hidden;}
+.masthead h1{font-size:28px;font-weight:800;letter-spacing:-.04em;}
+.masthead .sub{color:var(--sub);font-size:14px;font-weight:500;margin-top:1px;}
+.kbd{font-size:11px;font-weight:700;color:var(--brand-ink);background:var(--brand-50);border:1px solid var(--brand-100);padding:3px 9px;border-radius:7px;}
+
+/* ---------- token strip ---------- */
+.tokens{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-bottom:40px;box-shadow:var(--sh-sm);}
+.tokrow{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start;}
+.tokcol h3{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:12px;}
+.dots{display:flex;gap:10px;}
+.dotw{text-align:center;}
+.dotw .d{width:40px;height:40px;border-radius:12px;box-shadow:var(--sh-xs);border:1px solid rgba(16,24,40,.06);}
+.dotw .l{font-size:10px;font-weight:600;color:var(--sub);margin-top:6px;}
+.dotw .h{font-size:9px;color:var(--mut);font-weight:500;}
+.spec .big{font-size:30px;font-weight:800;letter-spacing:-.045em;line-height:1.05;}
+.spec .mid{font-size:15px;font-weight:600;color:var(--ink-2);margin-top:6px;}
+.spec .low{font-size:12px;font-weight:500;color:var(--sub);}
+.vline{width:1px;align-self:stretch;background:var(--line);}
+
+/* ---------- phone grid ---------- */
+.screens{display:grid;grid-template-columns:repeat(auto-fill,minmax(312px,1fr));gap:36px 30px;}
+.slot{display:flex;flex-direction:column;align-items:center;}
+.slot .cap{margin-top:16px;text-align:center;}
+.slot .cap b{font-size:13px;font-weight:700;letter-spacing:-.01em;}
+.slot .cap span{display:block;font-size:11.5px;color:var(--mut);font-weight:500;margin-top:2px;}
+
+.device{width:312px;height:664px;background:#05070f;border-radius:52px;padding:7px;box-shadow:var(--sh-lg);position:relative;}
+.device::before{content:"";position:absolute;inset:7px;border-radius:46px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);pointer-events:none;z-index:50;}
+.scr{width:100%;height:100%;background:var(--card);border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:92px;height:27px;background:#05070f;border-radius:16px;z-index:60;}
+.sbar{height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;font-size:13px;font-weight:700;flex-shrink:0;position:relative;z-index:40;}
+.sbar svg{width:17px;height:12px;}
+.view{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+/* icons */
+svg.i{width:22px;height:22px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block;}
+svg.i.s{width:17px;height:17px;}
+svg.i.xs{width:14px;height:14px;}
+svg.i.fill{fill:currentColor;stroke:none;}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:12px;padding:4px 20px 14px;flex-shrink:0;}
+.bar h2{font-size:23px;font-weight:800;letter-spacing:-.04em;flex:1;}
+.gbtn{width:40px;height:40px;border-radius:13px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
+.ava{border-radius:50%;background:linear-gradient(145deg,#8FB4FF,#2F6BFF);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--sh-xs);}
+.ava.s{width:34px;height:34px;font-size:13px;}.ava.m{width:40px;height:40px;font-size:15px;}.ava.lg{width:84px;height:84px;font-size:30px;}
+.ava.g2{background:linear-gradient(145deg,#B79BFF,#6D4CE6);}
+.ava.g3{background:linear-gradient(145deg,#FFC48F,#F5A524);}
+
+.scroll{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.scroll>*{flex-shrink:0;}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);}
+
+/* search + segmented */
+.search{margin:0 20px 16px;height:44px;background:var(--soft);border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 15px;color:var(--mut);font-size:14px;font-weight:500;}
+.seg{margin:0 20px 18px;background:var(--soft);border-radius:14px;padding:4px;display:flex;}
+.seg b{flex:1;text-align:center;font-size:13px;font-weight:700;color:var(--sub);padding:9px;border-radius:11px;letter-spacing:-.01em;}
+.seg b.on{background:#fff;color:var(--ink);box-shadow:var(--sh-xs);}
+
+/* tournament card */
+.tcard{margin:0 20px 14px;border-radius:22px;background:#fff;box-shadow:var(--sh);overflow:hidden;}
+.cover{height:132px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:14px;}
+.mesh-sky{background:radial-gradient(130% 120% at 0% 0%,#4F8BFF 0%,rgba(79,139,255,0) 52%),radial-gradient(120% 120% at 100% 0%,#73C0FF 0%,rgba(115,192,255,0) 46%),radial-gradient(150% 150% at 100% 120%,#143A86 0%,rgba(20,58,134,0) 60%),linear-gradient(150deg,#1E4FC2,#0E2A6B);}
+.mesh-dusk{background:radial-gradient(130% 120% at 0% 0%,#8A6CF0 0%,rgba(138,108,240,0) 52%),radial-gradient(120% 120% at 100% 0%,#F49ACB 0%,rgba(244,154,203,0) 44%),radial-gradient(150% 150% at 100% 120%,#2A1D63 0%,rgba(42,29,99,0) 60%),linear-gradient(150deg,#5536B8,#23134F);}
+.cover::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,15,0) 38%,rgba(5,7,15,.55));}
+.cover .wm{position:absolute;right:-14px;bottom:-24px;width:140px;height:140px;opacity:.14;color:#fff;}
+.cover .z{position:relative;z-index:3;color:#fff;max-width:86%;}
+.cover .z h3{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cover .z .by{font-size:12px;font-weight:600;opacity:.85;margin-top:2px;}
+.pill{position:absolute;z-index:4;font-size:11px;font-weight:700;letter-spacing:-.01em;}
+.pill.live{top:14px;left:14px;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);color:#fff;padding:5px 10px;border-radius:30px;display:flex;align-items:center;gap:6px;}
+.pill.live i{width:7px;height:7px;border-radius:50%;background:#51E39A;box-shadow:0 0 0 3px rgba(81,227,154,.3);}
+.avgtag{position:absolute;z-index:4;top:14px;right:14px;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-radius:14px;padding:7px 12px;text-align:center;box-shadow:var(--sh-sm);}
+.avgtag b{display:block;font-size:17px;font-weight:800;letter-spacing:-.03em;color:var(--ink);}
+.avgtag small{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);}
+.tbody{padding:12px 16px;}
+.metaline{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--sub);margin-bottom:10px;white-space:nowrap;overflow:hidden;}
+.metaline .dot{width:3px;height:3px;border-radius:50%;background:var(--mut);}
+.metaline .pg{color:#9A6208;display:flex;align-items:center;gap:5px;}
+.engage{display:flex;align-items:center;gap:18px;padding-top:10px;border-top:1px solid var(--hair);font-size:14px;font-weight:700;color:var(--sub);}
+.engage .e{display:flex;align-items:center;gap:7px;}
+.engage .e.like{color:#F04438;}
+.engage .owner{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.chip{font-size:12px;font-weight:600;color:var(--ink-2);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:6px 11px;display:flex;align-items:center;gap:6px;}
+.chip.amber{background:var(--amber-50);border-color:#F6E2BE;color:#9A6208;}
+.tfoot{display:flex;align-items:center;gap:18px;color:var(--sub);font-size:13px;font-weight:600;}
+.stat{display:flex;align-items:center;gap:6px;}
+.stat.like{color:#F04438;}
+.who{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:600;}
+
+/* buttons */
+.btn{border-radius:15px;padding:14px;text-align:center;font-size:14.5px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--brand);color:#fff;box-shadow:0 10px 20px rgba(47,107,255,.28);}
+.btn:active{transform:translateY(1px);}
+.btn.block{margin:0 20px;}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:var(--sh-xs);}
+.btn.dark{background:var(--ink);box-shadow:var(--sh-sm);}
+.btn.sm{padding:9px 16px;font-size:13px;border-radius:12px;box-shadow:none;}
+.btn.icon{width:52px;flex:none;}
+.btn.google{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:var(--sh-sm);}
+
+/* bottom nav */
+.nav{height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding-bottom:12px;flex-shrink:0;}
+.nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--mut);font-size:10px;font-weight:600;}
+.nav a.on{color:var(--brand);}
+.nav .fab{width:50px;height:50px;border-radius:17px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 12px 22px rgba(47,107,255,.42);}
+
+/* tournament detail */
+.hero{padding:52px 20px 20px;color:#fff;position:relative;overflow:hidden;}
+.hero .topnav{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;position:relative;z-index:3;}
+.hero h2{font-size:25px;font-weight:800;letter-spacing:-.04em;position:relative;z-index:3;line-height:1.1;}
+.hero .by{font-size:13px;font-weight:600;opacity:.82;margin-top:6px;position:relative;z-index:3;}
+.herostats{display:flex;gap:18px;margin-top:14px;position:relative;z-index:3;color:#fff;font-size:13px;font-weight:700;}
+.herostats .e{display:flex;align-items:center;gap:7px;opacity:.95;}
+.herostats .e.like svg{color:#FF8A95;}
+.hero .wm{position:absolute;right:-30px;top:10px;width:200px;height:200px;opacity:.1;color:#fff;}
+.actions{display:flex;gap:10px;padding:16px 20px;}
+.daytabs{display:flex;gap:9px;padding:0 20px 16px;overflow:auto;}
+.dtab{flex-shrink:0;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:9px 15px;text-align:center;color:var(--sub);}
+.dtab small{font-size:9px;font-weight:700;letter-spacing:.1em;display:block;opacity:.9;}
+.dtab b{font-size:14px;font-weight:800;letter-spacing:-.02em;}
+.dtab.on{background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:var(--sh-sm);}
+.rank{margin:0 20px 10px;display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:17px;padding:12px 14px;box-shadow:var(--sh-xs);}
+.medal{width:32px;height:32px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.m1{background:linear-gradient(145deg,#FFD66B,#E6A100);}.m2{background:linear-gradient(145deg,#D7DEE6,#9AA8B6);}.m3{background:linear-gradient(145deg,#F0B98C,#C07A4C);}
+.rank .nm{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+.rank .mt{font-size:12px;color:var(--mut);font-weight:500;}
+.rank .rv{margin-left:auto;text-align:right;}
+.rank .rv b{font-size:16px;font-weight:800;letter-spacing:-.03em;color:var(--brand);}
+.rank .rv small{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);}
+.total{margin:8px 20px 20px;background:var(--ink);color:#fff;border-radius:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
+.total .glow{position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(47,107,255,.6),transparent 70%);}
+.total small{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.65;}
+.total .v{font-size:26px;font-weight:800;letter-spacing:-.04em;margin-top:2px;}
+
+/* post */
+.post{padding:14px 0 2px;}
+.post .ph{display:flex;align-items:center;gap:11px;padding:0 20px 11px;}
+.post .ph .nm{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+.post .ph .tm{font-size:11.5px;color:var(--mut);font-weight:500;}
+.post .cap{padding:0 20px 12px;font-size:14px;color:var(--ink-2);font-weight:500;}
+.media{height:230px;position:relative;overflow:hidden;}
+.media .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:108px;height:108px;color:rgba(255,255,255,.9);filter:drop-shadow(0 8px 16px rgba(5,7,15,.25));}
+.post .acts{display:flex;align-items:center;gap:24px;padding:13px 20px 16px;color:var(--sub);font-size:14px;font-weight:600;}
+
+/* live record table */
+.livebar{margin:0 20px 15px;background:var(--ok-50);border:1px solid #BEEAD3;color:var(--ok);border-radius:14px;padding:11px 15px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;}
+.livebar i{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(18,183,106,.18);}
+.tbl{margin:0 20px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--sh-xs);}
+.tbl .h,.tbl .r{display:grid;grid-template-columns:1.5fr 1fr .8fr;align-items:center;padding:12px 16px;}
+.tbl .h{background:var(--soft);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);}
+.tbl .r{border-top:1px solid var(--hair);font-size:14px;}
+.tbl .r .pn{font-weight:700;letter-spacing:-.01em;}
+.tbl .r .tt{color:var(--sub);font-weight:500;}
+.tbl .r .av{font-weight:800;color:var(--brand);letter-spacing:-.02em;}
+.tbl .r.new{background:var(--ok-50);}.tbl .r.new .av{color:var(--ok);}
+
+/* profile */
+.pcover{height:120px;position:relative;overflow:hidden;}
+.pavwrap{display:flex;justify-content:center;margin-top:-44px;position:relative;z-index:3;}
+.pavwrap .ava{border:4px solid #fff;}
+.pname{text-align:center;margin-top:12px;}
+.pname h3{font-size:20px;font-weight:800;letter-spacing:-.03em;}
+.pname p{font-size:12.5px;color:var(--mut);font-weight:500;margin-top:2px;}
+.pstats{display:flex;margin:18px 20px;background:var(--soft);border:1px solid var(--line);border-radius:18px;}
+.pstats div{flex:1;text-align:center;padding:13px 0;}
+.pstats b{display:block;font-size:18px;font-weight:800;letter-spacing:-.03em;}
+.pstats small{font-size:11px;color:var(--sub);font-weight:600;}
+.pstats div+div{border-left:1px solid var(--line);}
+.lrow{margin:0 20px 11px;display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;font-size:14.5px;font-weight:600;letter-spacing:-.01em;color:var(--ink);box-shadow:var(--sh-xs);}
+.lrow .ic{width:36px;height:36px;border-radius:11px;background:var(--brand-50);color:var(--brand);display:flex;align-items:center;justify-content:center;}
+.lrow .tr{margin-left:auto;color:var(--mut);display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;}
+
+/* login */
+.lhero{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:34px 28px 30px;color:#fff;}
+.lhero .wm{position:absolute;top:44px;right:-26px;width:230px;height:230px;opacity:.16;color:#fff;}
+.lhero .lg{width:58px;height:58px;border-radius:17px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;margin-bottom:20px;position:relative;z-index:3;}
+.lhero h1{font-size:33px;font-weight:800;letter-spacing:-.045em;line-height:1.08;position:relative;z-index:3;}
+.lhero p{font-size:14.5px;font-weight:500;opacity:.9;margin-top:10px;position:relative;z-index:3;max-width:250px;}
+.lsheet{background:#fff;padding:26px 24px 30px;display:flex;flex-direction:column;gap:12px;flex-shrink:0;border-radius:28px 28px 0 0;margin-top:-28px;position:relative;z-index:4;}
+.lsheet .t{font-size:13px;font-weight:600;color:var(--sub);text-align:center;margin-bottom:4px;}
+.gmark{width:20px;height:20px;border-radius:50%;background:conic-gradient(from -45deg,#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0 100%);position:relative;flex-shrink:0;}
+.gmark::after{content:"";position:absolute;inset:4.5px;background:#fff;border-radius:50%;}
+.terms{font-size:11px;color:var(--mut);text-align:center;line-height:1.55;font-weight:500;margin-top:6px;}
+.terms b{color:var(--brand);font-weight:700;}
+
+.note{margin-top:40px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 22px;font-size:13.5px;color:var(--sub);font-weight:500;line-height:1.7;box-shadow:var(--sh-sm);}
+.note b{color:var(--ink);font-weight:700;}
+.note code{background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- icon + logo sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- custom dove logomark -->
+  <symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 5.1a5.4 5.4 0 0 0-7.7 0l-1.1 1-1-1a5.4 5.4 0 1 0-7.7 7.6l1 1L12 21l7.8-7.7 1-1a5.4 5.4 0 0 0 0-7.2z"/></symbol>
+  <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 13.3 7.4 4.1M15.7 6.6 8.3 10.7"/></symbol>
+  <symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+  <symbol id="feed" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8.5h10M7 12h10M7 15.5h6"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+  <symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.2 1.8"/></symbol>
+  <symbol id="cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="plusc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+  <symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="logomark grain"><svg style="width:30px;height:30px;color:#fff"><use href="#dove"/></svg></div>
+    <div>
+      <h1>PigeonFly</h1>
+      <div class="sub">High-fidelity UI · Manrope type system · built global-first (LTR + RTL)</div>
+    </div>
+    <div style="margin-left:auto;" class="kbd">theme = CSS tokens</div>
+  </div>
+
+  <div class="tokens">
+    <div class="tokrow">
+      <div class="tokcol">
+        <h3>Palette</h3>
+        <div class="dots">
+          <div class="dotw"><div class="d" style="background:var(--brand)"></div><div class="l">Brand</div><div class="h">#2F6BFF</div></div>
+          <div class="dotw"><div class="d" style="background:var(--ink)"></div><div class="l">Ink</div><div class="h">#0B1020</div></div>
+          <div class="dotw"><div class="d" style="background:var(--amber)"></div><div class="l">Amber</div><div class="h">#F5A524</div></div>
+          <div class="dotw"><div class="d" style="background:var(--ok)"></div><div class="l">Live</div><div class="h">#12B76A</div></div>
+          <div class="dotw"><div class="d" style="background:var(--soft);border:1px solid var(--line)"></div><div class="l">Soft</div><div class="h">#F6F7F9</div></div>
+        </div>
+      </div>
+      <div class="vline"></div>
+      <div class="tokcol spec">
+        <h3>Type — Manrope</h3>
+        <div class="big">Fly higher</div>
+        <div class="mid">City Loft Championship · Day 1</div>
+        <div class="low num">18 pigeons · avg 13:10 · 1,204 views</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screens">
+
+    <!-- 1 LOGIN -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar" style="color:#fff;"><span class="num">9:41</span><span style="display:flex;gap:6px;color:#fff"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="lhero mesh-sky grain">
+            <svg class="wm"><use href="#dove"/></svg>
+            <div class="lg"><svg style="width:30px;height:30px;color:#fff"><use href="#dove"/></svg></div>
+            <h1>Fly higher,<br>together.</h1>
+            <p>Run tournaments, follow the flights live, and share your loft — anywhere.</p>
+          </div>
+          <div class="lsheet">
+            <div class="t">Sign in to continue</div>
+            <div class="btn google"><span class="gmark"></span> Continue with Google</div>
+            <div class="btn dark">Continue with Apple</div>
+            <div class="terms">By continuing you agree to our <b>Terms</b> &amp; <b>Privacy Policy</b></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>1 · Sign in</b><span>Google / Apple · passwordless</span></div>
+    </div>
+
+    <!-- 2 TOURNAMENTS LIST -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar"><span class="num">9:41</span><span style="display:flex;gap:6px"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="scroll">
+            <div class="bar"><h2>Tournaments</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div><div class="gbtn"><svg class="i s"><use href="#bell"/></svg></div></div>
+            <div class="seg"><b class="on">All</b><b>Following</b><b>Mine</b></div>
+            <div class="tcard">
+              <div class="cover mesh-dusk grain">
+                <svg class="wm"><use href="#dove"/></svg>
+                <div class="pill live"><i></i> LIVE · Day 2</div>
+                <div class="avgtag"><b class="num">14:32</b><small>Avg</small></div>
+                <div class="z"><h3>City Loft Championship</h3><div class="by">by Ahmed Loft</div></div>
+              </div>
+              <div class="tbody">
+                <div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 3 days<span class="dot"></span>Alternate<span class="dot"></span><span class="pg"><svg class="i xs"><use href="#trophy"/></svg> 20 pigeons</span></div>
+                <div class="engage">
+                  <span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">318</span></span>
+                  <span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.2k</span></span>
+                  <span class="e"><svg class="i s"><use href="#share"/></svg></span>
+                  <span class="owner"><span class="ava s">A</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="tcard">
+              <div class="cover mesh-sky grain">
+                <svg class="wm"><use href="#dove"/></svg>
+                <div class="avgtag"><b class="num">11:08</b><small>Avg</small></div>
+                <div class="z"><h3>Spring Open Flyers</h3><div class="by">by Kashif</div></div>
+              </div>
+              <div class="tbody">
+                <div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 1 day<span class="dot"></span><span class="pg"><svg class="i xs"><use href="#trophy"/></svg> 12 pigeons</span></div>
+                <div class="engage">
+                  <span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">97</span></span>
+                  <span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">640</span></span>
+                  <span class="e"><svg class="i s"><use href="#share"/></svg></span>
+                  <span class="owner"><span class="ava s g2">K</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav">
+            <a class="on"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a>
+            <a><svg class="i s"><use href="#feed"/></svg>Posts</a>
+            <a><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a>
+            <a><svg class="i s"><use href="#list"/></svg>Records</a>
+            <a><svg class="i s"><use href="#user"/></svg>Profile</a>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>2 · Tournaments</b><span>public feed · live counts</span></div>
+    </div>
+
+    <!-- 3 DETAIL -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar" style="color:#fff;"><span class="num">9:41</span><span style="display:flex;gap:6px;color:#fff"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="scroll">
+            <div class="hero mesh-dusk grain">
+              <svg class="wm"><use href="#dove"/></svg>
+              <div class="topnav"><svg class="i" style="color:#fff"><use href="#back"/></svg><svg class="i" style="color:#fff"><use href="#more"/></svg></div>
+              <h2>City Loft<br>Championship</h2>
+              <div class="by">by Ahmed Loft · 20 pigeons</div>
+              <div class="herostats"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">318</span></span><span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.2k</span> views</span><span class="e"><svg class="i s"><use href="#user"/></svg> <span class="num">64</span> following</span></div>
+            </div>
+            <div class="actions">
+              <div class="btn" style="flex:1;box-shadow:none;"><svg class="i s" style="color:#fff"><use href="#plusc"/></svg> Follow</div>
+              <div class="btn ghost icon"><svg class="i s"><use href="#heart"/></svg></div>
+              <div class="btn ghost icon"><svg class="i s"><use href="#share"/></svg></div>
+            </div>
+            <div class="daytabs">
+              <div class="dtab on"><small>DAY 1</small><b>16 Oct</b></div>
+              <div class="dtab"><small>DAY 2</small><b>18 Oct</b></div>
+              <div class="dtab"><small>DAY 3</small><b>20 Oct</b></div>
+            </div>
+            <div class="rank"><div class="medal m1">1</div><div><div class="nm">Shaheen · Bilal</div><div class="mt num">Landed 12:40 PM</div></div><div class="rv"><b class="num">12:40</b><small>avg</small></div></div>
+            <div class="rank"><div class="medal m2">2</div><div><div class="nm">Toofan · Kashif</div><div class="mt num">Landed 01:05 PM</div></div><div class="rv"><b class="num">13:05</b><small>avg</small></div></div>
+            <div class="rank"><div class="medal m3">3</div><div><div class="nm">Noori · Usman</div><div class="mt num">Landed 01:20 PM</div></div><div class="rv"><b class="num">13:20</b><small>avg</small></div></div>
+            <div class="total"><div class="glow"></div><div><small>Overall total average</small><div class="v num">13:10</div></div><svg class="i" style="width:26px;height:26px;color:#fff;position:relative;z-index:2"><use href="#trophy"/></svg></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>3 · Tournament detail</b><span>day tabs · ranking · overall avg</span></div>
+    </div>
+
+    <!-- 4 POSTS -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar"><span class="num">9:41</span><span style="display:flex;gap:6px"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="scroll">
+            <div class="bar"><h2>Posts</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div><div class="gbtn"><svg class="i s"><use href="#bell"/></svg></div></div>
+            <div class="post">
+              <div class="ph"><span class="ava m">A</span><div style="flex:1;"><div class="nm">Ahmed Loft</div><div class="tm">2h ago · Public</div></div><div class="btn sm">Follow</div></div>
+              <div class="cap">Morning kit flew beautifully today. 18 birds, all back by noon.</div>
+              <div class="media mesh-sky grain"><svg class="wm"><use href="#dove"/></svg></div>
+              <div class="acts"><span class="stat like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">214</span></span><span class="stat"><svg class="i s"><use href="#share"/></svg> <span class="num">12</span></span><span class="stat" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.3k</span></span></div>
+            </div>
+            <div class="post" style="border-top:7px solid var(--soft);">
+              <div class="ph"><span class="ava m g2">K</span><div style="flex:1;"><div class="nm">Kashif Pigeons</div><div class="tm">5h ago · Public</div></div><div class="btn sm ghost">Following</div></div>
+              <div class="cap">Who's joining the City Loft Championship this week?</div>
+              <div class="acts"><span class="stat like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">63</span></span><span class="stat"><svg class="i s"><use href="#share"/></svg> <span class="num">4</span></span><span class="stat" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">540</span></span></div>
+            </div>
+          </div>
+          <div class="nav">
+            <a><svg class="i s"><use href="#trophy"/></svg>Tournaments</a>
+            <a class="on"><svg class="i s"><use href="#feed"/></svg>Posts</a>
+            <a><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a>
+            <a><svg class="i s"><use href="#list"/></svg>Records</a>
+            <a><svg class="i s"><use href="#user"/></svg>Profile</a>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>4 · Posts feed</b><span>like · share · view</span></div>
+    </div>
+
+    <!-- 5 LIVE RECORD -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar"><span class="num">9:41</span><span style="display:flex;gap:6px"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="scroll">
+            <div class="bar"><svg class="i"><use href="#back"/></svg><h2 style="font-size:18px;">Ahmed's loft</h2><div class="gbtn"><svg class="i s"><use href="#heart"/></svg></div></div>
+            <div class="livebar"><i></i> LIVE · updating now</div>
+            <div class="tbl">
+              <div class="h"><div>Pigeon</div><div>Landed</div><div>Avg</div></div>
+              <div class="r"><div class="pn">Shaheen</div><div class="tt num">12:40 PM</div><div class="av num">12:40</div></div>
+              <div class="r"><div class="pn">Toofan</div><div class="tt num">01:05 PM</div><div class="av num">13:05</div></div>
+              <div class="r new"><div class="pn">Noori</div><div class="tt num">01:12 PM</div><div class="av num">13:12</div></div>
+            </div>
+            <div class="total" style="margin-top:16px;"><div class="glow"></div><div><small>Total average · 12 of 18 landed</small><div class="v num">13:02</div></div></div>
+            <div style="display:flex;justify-content:space-around;margin:18px 20px 0;color:var(--sub);font-size:13.5px;font-weight:600;"><span class="stat like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">54</span></span><span class="stat"><svg class="i s"><use href="#eye"/></svg> <span class="num">870</span></span><span class="stat"><svg class="i s"><use href="#trophy"/></svg> <span class="num">18</span> flown</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>5 · Live record</b><span>landings stream in real time</span></div>
+    </div>
+
+    <!-- 6 PROFILE -->
+    <div class="slot">
+      <div class="device"><div class="scr"><div class="island"></div>
+        <div class="sbar" style="color:#fff;"><span class="num">9:41</span><span style="display:flex;gap:6px;color:#fff"><svg class="i"><use href="#signal"/></svg><svg class="i"><use href="#batt"/></svg></span></div>
+        <div class="view">
+          <div class="scroll">
+            <div class="pcover mesh-sky grain"><svg class="wm" style="position:absolute;right:-20px;bottom:-30px;width:150px;height:150px;opacity:.16;color:#fff"><use href="#dove"/></svg></div>
+            <div class="pavwrap"><div class="ava lg">A</div></div>
+            <div class="pname"><h3>Ahmed Raza</h3><p>@ahmed_loft · Lahore, PK</p></div>
+            <div class="pstats"><div><b class="num">12</b><small>Tournaments</small></div><div><b class="num">1.4k</b><small>Followers</small></div><div><b class="num">340</b><small>Following</small></div></div>
+            <div class="lrow"><div class="ic"><svg class="i s"><use href="#trophy"/></svg></div> My Tournaments<span class="tr"><svg class="i s"><use href="#chev"/></svg></span></div>
+            <div class="lrow"><div class="ic"><svg class="i s"><use href="#feed"/></svg></div> My Posts<span class="tr"><svg class="i s"><use href="#chev"/></svg></span></div>
+            <div class="lrow"><div class="ic"><svg class="i s"><use href="#list"/></svg></div> My Records<span class="tr"><svg class="i s"><use href="#chev"/></svg></span></div>
+            <div class="lrow"><div class="ic"><svg class="i s"><use href="#globe"/></svg></div> Language<span class="tr">English <svg class="i s"><use href="#chev"/></svg></span></div>
+          </div>
+          <div class="nav">
+            <a><svg class="i s"><use href="#trophy"/></svg>Tournaments</a>
+            <a><svg class="i s"><use href="#feed"/></svg>Posts</a>
+            <a><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a>
+            <a><svg class="i s"><use href="#list"/></svg>Records</a>
+            <a class="on"><svg class="i s"><use href="#user"/></svg>Profile</a>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><b>6 · Profile</b><span>my content · language</span></div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>Craft notes.</b> Type system is <b>Manrope</b> (400–800) with tight tracking on headings and <b>tabular numerals</b> for every stat. No emoji in the product UI — a custom dove logomark and a single line-icon set. Cards use layered <b>mesh gradients + a fine grain</b> and two-layer shadows for depth. Everything is driven by <b>CSS tokens</b> at the top — change <code>--brand</code> and the whole app re-skins. Built global-first: the layout mirrors cleanly for <b>Urdu / Arabic (RTL)</b>, numerals and times stay locale-aware. Placeholder content; open product questions (average formula, pigeon-vs-participant) still apply — see <code>../product/open-questions.md</code>.
+  </div>
+
+</div>
+</body>
+</html>

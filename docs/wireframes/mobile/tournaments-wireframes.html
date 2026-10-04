@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Tournaments (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="home" viewBox="0 0 24 24"><path d="M3 10.6 12 3l9 7.6"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 5.1a5.4 5.4 0 0 0-7.7 0l-1.1 1-1-1a5.4 5.4 0 1 0-7.7 7.6l1 1L12 21l7.8-7.7 1-1a5.4 5.4 0 0 0 0-7.2z"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 13.3 7.4 4.1M15.7 6.6 8.3 10.7"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="feed" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8.5h10M7 12h10M7 15.5h6"/></symbol>
+<symbol id="list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+<symbol id="cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+<symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.2 1.8"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="chevd" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="plusc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+<symbol id="edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="phone" viewBox="0 0 24 24"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 14l2 5v2a2 2 0 0 1-2 2A16 16 0 0 1 3 7a2 2 0 0 1 2-4z"/></symbol>
+<symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+<symbol id="timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6M12 5V2"/></symbol>
+<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M15 9V5.5A1.5 1.5 0 0 0 13.5 4H5.5A1.5 1.5 0 0 0 4 5.5v8A1.5 1.5 0 0 0 5.5 15H9"/></symbol>
+<symbol id="wa" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.7 13.7L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path d="M8.6 8.1c.15-.4.3-.4.5-.4h.4c.15 0 .35 0 .5.4l.6 1.4c.07.17.02.33-.08.5l-.4.5c-.12.15-.17.28 0 .5.3.45.7.95 1.2 1.3.45.3.63.27.8.17l.5-.4c.17-.15.33-.1.5 0l1.2.75c.17.1.27.25.27.42 0 .25-.17.85-.77 1.2-.5.35-1.35.45-2.55-.1a6.8 6.8 0 0 1-2.7-2.4c-.5-.75-.85-1.6-.85-2.4 0-.7.35-1.1.45-1.3z" fill="#fff" stroke="none"/></symbol>
+<symbol id="sheet" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9 4v16M15 4v16"/></symbol>
+<symbol id="file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4"/></symbol>
+<symbol id="filetext" viewBox="0 0 24 24"><path d="M6 3h8l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4M8.5 13h7M8.5 16.5h7"/></symbol>
+<symbol id="image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 3.5L16 13l4 4"/></symbol>
+<symbol id="link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
+<symbol id="lock" viewBox="0 0 24 24"><rect x="4.5" y="11" width="15" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="apple" viewBox="0 0 24 24"><path d="M16.2 12.8c0-2.4 1.9-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.15-2.8.85-3.5.85s-1.8-.83-3-.8c-1.5.02-2.9.9-3.7 2.2-1.6 2.7-.4 6.8 1.1 9 .75 1.1 1.6 2.3 2.8 2.25 1.1-.04 1.5-.72 2.9-.72 1.3 0 1.7.72 3 .7 1.2-.02 2-1.1 2.7-2.2.85-1.3 1.2-2.5 1.2-2.6-.02-.01-2.3-.9-2.3-3.5zM14 6c.6-.75 1-1.8.9-2.85-.9.04-2 .6-2.6 1.35-.55.65-1 1.7-.9 2.7 1 .08 2-.5 2.6-1.2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="play" viewBox="0 0 24 24"><path d="M5 3.5l13.5 8.5L5 20.5z" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#trophy"/></svg></div>
+    <div>
+      <div class="crumb">Module 1 · Mobile</div>
+      <h1>Tournaments</h1>
+      <div class="sub">Create · add participants · public viewing · day-by-day results · follow & like (live)</div>
+    </div>
+  </div>
+  <div class="flowmap">
+    <b>Browse:</b> List <span class="ar">→</span> Detail (Standings, day tabs) <span class="ar">→</span> Participants <span class="ar">→</span> Participant detail (that person's pigeons, per day).
+    &nbsp;·&nbsp; <b>Owner only</b> (the creator): Create <span class="ar">→</span> Add participants <span class="ar">→</span> open a participant <span class="ar">→</span> add / edit / delete their pigeon detail per day. No one else can edit.
+  </div>
+
+  <div class="screens">
+
+  <!-- 1 LIST -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><h2>Tournaments</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div><div class="gbtn dotbadge"><svg class="i s"><use href="#bell"/></svg></div></div>
+          <div class="seg"><b class="on">All</b><b>Following</b><b>Mine</b></div>
+          <div class="tcard">
+            <div class="cover mesh-dusk grain"><svg class="wm"><use href="#dove"/></svg><div class="pill live"><i></i> LIVE · Day 2</div><div class="z" style="max-width:100%"><h3>City Loft Championship</h3><div class="by">by Ahmed Loft</div></div></div>
+            <div class="tbody">
+              <div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 3 days<span class="dot"></span>Alternate<span class="dot"></span><span class="pg"><svg class="i xs"><use href="#trophy"/></svg> 20 pigeons</span></div>
+              <div class="engage"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">318</span></span><span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.2k</span></span><span class="e"><svg class="i s"><use href="#share"/></svg></span><span class="owner"><span class="ava s">A</span></span></div>
+            </div>
+          </div>
+          <div class="tcard">
+            <div class="cover mesh-sky grain"><svg class="wm"><use href="#dove"/></svg><div class="z" style="max-width:100%"><h3>Spring Open Flyers</h3><div class="by">by Kashif</div></div></div>
+            <div class="tbody">
+              <div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 1 day<span class="dot"></span><span class="pg"><svg class="i xs"><use href="#trophy"/></svg> 12 pigeons</span></div>
+              <div class="engage"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">97</span></span><span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">640</span></span><span class="e"><svg class="i s"><use href="#share"/></svg></span><span class="owner"><span class="ava s g2">K</span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <a href="home-wireframes.html"><svg class="i s"><use href="#home"/></svg>Home</a>
+          <a class="on"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a>
+          <a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a>
+          <a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a>
+          <a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Tournaments list</b><span>public feed · live like/view counts</span></div>
+  </div>
+
+  <!-- 2 CREATE -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">New Tournament</h2><span class="lbl">1 / 2</span></div>
+          <div class="form">
+            <div class="fg"><span class="flbl">Cover image <span style="color:var(--mut);font-weight:600;text-transform:none;letter-spacing:0">· optional</span></span>
+              <div class="coverpick">
+                <div class="pv mesh-dusk grain"><svg><use href="#dove"/></svg></div>
+                <div class="tx"><b>Add a cover photo</b><span>No photo? A gradient cover is used.</span></div>
+                <div class="camic"><svg class="i s"><use href="#cam"/></svg></div>
+              </div>
+            </div>
+            <div class="fg"><span class="flbl">Title</span><div class="field">City Loft Championship</div></div>
+            <div class="fg"><span class="flbl">Rules</span><div class="field area"><span class="ph">Describe the tournament rules…</span></div></div>
+            <div class="two">
+              <div class="fg"><span class="flbl">No. of days</span><div class="stepper"><span class="b"><svg class="i s"><use href="#minus"/></svg></span><span class="v num">3</span><span class="b"><svg class="i s"><use href="#plus"/></svg></span></div></div>
+              <div class="fg"><span class="flbl">Pigeons</span><div class="stepper"><span class="b"><svg class="i s"><use href="#minus"/></svg></span><span class="v num">20</span><span class="b"><svg class="i s"><use href="#plus"/></svg></span></div></div>
+            </div>
+            <div class="fg"><span class="flbl">Schedule</span><div class="seg inline"><b>Every day</b><b class="on">Alternate days</b></div></div>
+            <div class="two">
+              <div class="fg"><span class="flbl">Fly time</span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#clock"/></svg> 06:00 AM</div></div>
+              <div class="fg"><span class="flbl">Ending time</span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#clock"/></svg> 06:00 PM</div></div>
+            </div>
+            <div class="fg"><span class="flbl">Start date</span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#cal"/></svg> 16 Oct 2026</div></div>
+            <div class="fg"><span class="flbl">Your contact number</span><div class="field focus"><svg class="i s" style="color:var(--brand)"><use href="#phone"/></svg> +92 300 1234567</div><span style="font-size:11px;color:var(--mut);font-weight:500;margin-top:5px">Shown on the tournament — people reach you on WhatsApp or call.</span></div>
+          </div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0;"><div class="btn block">Next: Add participants <svg class="i s" style="color:#fff"><use href="#chev"/></svg></div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Create tournament</b><span>days · schedule · pigeons · times</span></div>
+  </div>
+
+  <!-- 3 PARTICIPANTS LIST -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Participants</h2><span class="lbl num">2 / 20</span></div>
+          <div class="btn soft block" style="margin:2px 20px 20px;padding:15px"><svg class="i s"><use href="#plus"/></svg> Add participant</div>
+          <div class="section-h"><span class="lbl">Added · 2</span><span class="more" style="color:var(--mut);font-weight:700">18 left</span></div>
+          <div class="prow" style="margin-bottom:12px;padding:14px"><span class="ava m">B</span><div style="flex:1"><div class="nm">Bilal Raza</div><div class="mt">0300-1234567 · Loft St.</div></div><div class="rowact"><svg class="i s"><use href="#edit"/></svg></div><div class="rowact del"><svg class="i s"><use href="#trash"/></svg></div></div>
+          <div class="prow" style="margin-bottom:12px;padding:14px"><span class="ava m g2">K</span><div style="flex:1"><div class="nm">Kashif Ali</div><div class="mt">Contact optional</div></div><div class="rowact"><svg class="i s"><use href="#edit"/></svg></div><div class="rowact del"><svg class="i s"><use href="#trash"/></svg></div></div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0;"><div class="btn block">Create tournament</div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>3 · Participants (list)</b><span>added flyers · edit / delete · add more</span></div>
+  </div>
+
+  <!-- 3b ADD PARTICIPANT (focused form) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#x"/></svg></div><h2 class="mid" style="flex:1">Add participant</h2></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0 22px">
+            <div class="photopick" style="width:104px;height:104px"><svg class="i lg"><use href="#cam"/></svg></div>
+            <span style="font-size:12.5px;font-weight:700;color:var(--brand)">Add photo</span>
+          </div>
+          <div class="form" style="gap:18px">
+            <div class="fg"><span class="flbl">Name *</span><div class="field">Enter participant name</div></div>
+            <div class="fg"><span class="flbl">Contact no <span style="color:var(--mut);font-weight:600;text-transform:none;letter-spacing:0">· optional</span></span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#chat"/></svg><span class="ph">e.g. WhatsApp number</span></div></div>
+            <div class="fg"><span class="flbl">Phone <span style="color:var(--mut);font-weight:600;text-transform:none;letter-spacing:0">· optional</span></span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#phone"/></svg><span class="ph">Phone number</span></div></div>
+            <div class="fg"><span class="flbl">Address <span style="color:var(--mut);font-weight:600;text-transform:none;letter-spacing:0">· optional</span></span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#pin"/></svg><span class="ph">City / loft address</span></div></div>
+          </div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0;"><div class="btn block">Save participant</div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>3b · Add participant</b><span class="tag">focused</span><span>one participant · photo + name · contact optional</span></div>
+  </div>
+
+  <!-- 4 DETAIL — STANDINGS (day tabs) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="hero mesh-dusk grain" style="padding-bottom:14px;">
+            <svg class="wm"><use href="#dove"/></svg>
+            <div class="topnav"><svg class="i"><use href="#back"/></svg><div style="display:flex;gap:16px"><svg class="i"><use href="#phone"/></svg><svg class="i"><use href="#more"/></svg></div></div>
+            <h2>City Loft Championship</h2>
+            <div class="by">by Ahmed Loft · 3 days · 20 pigeons</div>
+            <div class="herostats"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">318</span></span><span class="e"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.2k</span></span><span class="e"><svg class="i s"><use href="#users"/></svg> <span class="num">64</span></span></div>
+          </div>
+          <div class="actions"><div class="btn wide" style="box-shadow:none"><svg class="i s" style="color:#fff"><use href="#plusc"/></svg> Follow</div><div class="btn ghost icon"><svg class="i s"><use href="#heart"/></svg></div><div class="btn ghost icon"><svg class="i s"><use href="#share"/></svg></div></div>
+          <div class="seg inline" style="margin:0 20px 14px;"><b class="on">Standings</b><b>Participants</b><b>Rules</b></div>
+          <div class="daytabs"><div class="dtab on"><small>DAY 1</small><b>16 Oct</b></div><div class="dtab"><small>DAY 2</small><b>18 Oct</b></div><div class="dtab"><small>DAY 3</small><b>20 Oct</b></div></div>
+          <div class="rank"><div class="medal m1">1</div><div class="who2"><span class="ava s">B</span><div><div class="nm">Bilal Raza</div><div class="mt num">Shaheen · 12:40 PM</div></div></div><div class="rv"><b class="num">12:40</b><small>avg</small></div></div>
+          <div class="rank"><div class="medal m2">2</div><div class="who2"><span class="ava s g2">K</span><div><div class="nm">Kashif Ali</div><div class="mt num">Toofan · 01:05 PM</div></div></div><div class="rv"><b class="num">13:05</b><small>avg</small></div></div>
+          <div class="rank"><div class="medal m3">3</div><div class="who2"><span class="ava s g3">U</span><div><div class="nm">Usman Tariq</div><div class="mt num">Noori · 01:20 PM</div></div></div><div class="rv"><b class="num">13:20</b><small>avg</small></div></div>
+          <div class="subtotal"><span>Day 1 total average</span><span class="num">13:01</span></div>
+          <div class="total"><div class="glow"></div><div><small>Overall total average</small><div class="v num">13:10</div></div><svg class="i lg" style="color:#fff;position:relative;z-index:2"><use href="#trophy"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>4 · Tournament detail — Standings</b><span class="tag">per-day</span><span>day tabs · ranked · day total + overall</span></div>
+  </div>
+
+  <!-- 5 DETAIL — PARTICIPANTS -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="hero mesh-dusk grain" style="padding-bottom:14px;">
+            <svg class="wm"><use href="#dove"/></svg>
+            <div class="topnav"><svg class="i"><use href="#back"/></svg><div style="display:flex;gap:16px"><svg class="i"><use href="#phone"/></svg><svg class="i"><use href="#more"/></svg></div></div>
+            <h2>City Loft Championship</h2>
+            <div class="by">20 participants · tap a participant</div>
+          </div>
+          <div class="seg inline" style="margin:16px 20px 14px;"><b>Standings</b><b class="on">Participants</b><b>Rules</b></div>
+          <div class="prow"><span class="pos num">1</span><span class="ava m">B</span><div><div class="nm">Bilal Raza</div><div class="mt">3 pigeons · overall 13:10</div></div><svg class="i s chev"><use href="#chev"/></svg></div>
+          <div class="prow"><span class="pos num">2</span><span class="ava m g2">K</span><div><div class="nm">Kashif Ali</div><div class="mt">3 pigeons · overall 13:42</div></div><svg class="i s chev"><use href="#chev"/></svg></div>
+          <div class="prow"><span class="pos num">3</span><span class="ava m g3">U</span><div><div class="nm">Usman Tariq</div><div class="mt">2 pigeons · overall 14:05</div></div><svg class="i s chev"><use href="#chev"/></svg></div>
+          <div class="prow"><span class="pos num">4</span><span class="ava m g4">S</span><div><div class="nm">Sohail Khan</div><div class="mt">3 pigeons · overall 14:20</div></div><svg class="i s chev"><use href="#chev"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>5 · Tournament detail — Participants</b><span>tap → participant detail</span></div>
+  </div>
+
+  <!-- 6 PARTICIPANT DETAIL (per-day) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Bilal Raza</h2><div class="gbtn"><svg class="i s"><use href="#share"/></svg></div><div class="gbtn"><svg class="i s"><use href="#phone"/></svg></div></div>
+          <div class="rank" style="margin:0 20px 14px;"><div class="medal m1">1</div><div class="who2"><span class="ava m">B</span><div><div class="nm">Bilal Raza</div><div class="mt">Rank #1 · 3 pigeons</div></div></div><div class="rv"><b class="num">13:10</b><small>overall</small></div></div>
+          <div class="daytabs"><div class="dtab on"><small>DAY 1</small><b>16 Oct</b></div><div class="dtab"><small>DAY 2</small><b>18 Oct</b></div><div class="dtab"><small>DAY 3</small><b>20 Oct</b></div></div>
+          <div class="ptbl">
+            <div class="h"><div>Pigeon</div><div>Landing</div><div>Avg</div></div>
+            <div class="r"><div class="pn">Shaheen</div><div class="tt num">12:40 PM</div><div class="av num">12:40</div></div>
+            <div class="r"><div class="pn">Toofan</div><div class="tt num">01:05 PM</div><div class="av num">13:05</div></div>
+            <div class="r"><div class="pn">Noori</div><div class="tt num">01:20 PM</div><div class="av num">13:20</div></div>
+          </div>
+          <div class="subtotal" style="margin:12px 20px 10px;"><span>Day 1 total average</span><span class="num">13:01</span></div>
+          <div class="total"><div class="glow"></div><div><small>Overall average · all days</small><div class="v num">13:10</div></div><svg class="i lg" style="color:#fff;position:relative;z-index:2"><use href="#trophy"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6 · Participant detail</b><span class="tag">viewer</span><span>read-only · their pigeons each day · day + overall avg</span></div>
+  </div>
+
+  <!-- 6b PARTICIPANT DETAIL — OWNER (add/edit pigeon detail) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Bilal Raza</h2><span class="lbl" style="color:var(--brand)">Save</span></div>
+          <div class="subtotal" style="margin:0 20px 14px;background:var(--amber-50);border-color:#F6E2BE;color:var(--amber-ink)"><span><svg class="i xs" style="display:inline;vertical-align:-2px"><use href="#edit"/></svg> You created this — only you can edit</span></div>
+          <div class="daytabs"><div class="dtab on"><small>DAY 1</small><b>16 Oct</b></div><div class="dtab"><small>DAY 2</small><b>18 Oct</b></div><div class="dtab"><small>DAY 3</small><b>20 Oct</b></div></div>
+          <div class="section-h"><span class="lbl">Day 1 · pigeons</span><span class="more" style="color:var(--mut);font-weight:700">tap to edit</span></div>
+          <div class="prow"><div style="flex:1"><div class="nm">Shaheen</div><div class="mt num">Landed 12:40 PM</div></div><span style="color:var(--brand);font-weight:800;font-size:14px;margin-right:2px" class="num">12:40</span><div class="rowact"><svg class="i s"><use href="#edit"/></svg></div><div class="rowact del"><svg class="i s"><use href="#trash"/></svg></div></div>
+          <div class="prow"><div style="flex:1"><div class="nm">Toofan</div><div class="mt num">Landed 01:05 PM</div></div><span style="color:var(--brand);font-weight:800;font-size:14px;margin-right:2px" class="num">13:05</span><div class="rowact"><svg class="i s"><use href="#edit"/></svg></div><div class="rowact del"><svg class="i s"><use href="#trash"/></svg></div></div>
+          <div class="prow" style="border-color:var(--brand-100);background:var(--brand-50)"><div style="flex:1"><div class="nm" style="color:var(--brand)">＋ Add pigeon / landing</div><div class="mt">name · landing time → avg auto</div></div><div class="rowact" style="background:var(--brand);color:#fff"><svg class="i s"><use href="#plus"/></svg></div></div>
+          <div class="subtotal" style="margin:12px 20px 10px"><span>Day 1 total average</span><span class="num">13:01</span></div>
+          <div class="total"><div class="glow"></div><div><small>Overall average · all days</small><div class="v num">13:10</div></div><svg class="i lg" style="color:#fff;position:relative;z-index:2"><use href="#trophy"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6b · Participant detail — owner</b><span class="tag">owner</span><span>add / edit / delete this participant's pigeons · per day</span></div>
+  </div>
+
+  <!-- 6c CONTACT DIALOG (tap the ☎ icon) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="hero mesh-dusk grain" style="padding-bottom:16px"><svg class="wm"><use href="#dove"/></svg><div class="topnav"><svg class="i"><use href="#back"/></svg><div style="display:flex;gap:16px"><svg class="i" style="color:#fff"><use href="#phone"/></svg><svg class="i"><use href="#more"/></svg></div></div><h2>City Loft Championship</h2><div class="by">by Ahmed Loft</div></div>
+          <div class="actions"><div class="btn wide" style="box-shadow:none"><svg class="i s" style="color:#fff"><use href="#plusc"/></svg> Follow</div><div class="btn ghost icon"><svg class="i s"><use href="#heart"/></svg></div></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div style="display:flex;justify-content:center;margin-bottom:8px"><div class="ava m">A</div></div>
+          <div style="text-align:center;margin-bottom:6px"><div style="font-size:14px;font-weight:800">Ahmed Loft <span style="color:var(--mut);font-weight:600;font-size:12px">· Organizer</span></div><div class="num" style="font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:3px">+92 300 1234567</div></div>
+          <div class="opt"><div class="ic" style="background:#25D366;color:#fff"><svg class="i s"><use href="#wa"/></svg></div> WhatsApp</div>
+          <div class="opt"><div class="ic" style="background:#075E54;color:#fff"><svg class="i s"><use href="#wa"/></svg></div> WhatsApp Business</div>
+          <div class="opt"><div class="ic" style="background:var(--brand);color:#fff"><svg class="i s"><use href="#phone"/></svg></div> Call <span style="margin-left:auto;color:var(--mut);font-weight:600;font-size:12px">Dial pad</span></div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#copy"/></svg></div> Copy number</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6c · Contact dialog</b><span class="tag">☎ icon</span><span>WhatsApp · Business · Call (dial pad) · copy</span></div>
+  </div>
+
+  <!-- 6d SHARE DIALOG (tap the share icon) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Bilal Raza</h2><div class="gbtn"><svg class="i s"><use href="#share"/></svg></div><div class="gbtn"><svg class="i s"><use href="#phone"/></svg></div></div>
+          <div class="rank" style="margin:0 20px 14px;"><div class="medal m1">1</div><div class="who2"><span class="ava m">B</span><div><div class="nm">Bilal Raza</div><div class="mt">Rank #1 · 3 pigeons</div></div></div><div class="rv"><b class="num">13:10</b><small>overall</small></div></div>
+          <div class="daytabs"><div class="dtab on"><small>DAY 1</small><b>16 Oct</b></div><div class="dtab"><small>DAY 2</small><b>18 Oct</b></div></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div style="text-align:center;margin-bottom:8px"><div style="font-size:15px;font-weight:800;letter-spacing:-.02em">Share Bilal Raza's record</div><div style="font-size:12px;color:var(--mut);font-weight:500;margin-top:2px">Day-by-day landings &amp; averages · exported professionally</div></div>
+          <div class="opt"><div class="ic" style="background:#21A366;color:#fff"><svg class="i s"><use href="#sheet"/></svg></div> Excel spreadsheet <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">.xlsx</span></div>
+          <div class="opt"><div class="ic" style="background:#E23D3D;color:#fff"><svg class="i s"><use href="#file"/></svg></div> PDF report <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">.pdf</span></div>
+          <div class="opt"><div class="ic" style="background:var(--brand);color:#fff"><svg class="i s"><use href="#filetext"/></svg></div> Text summary <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">copy / send</span></div>
+          <div class="opt"><div class="ic" style="background:#6D4CE6;color:#fff"><svg class="i s"><use href="#image"/></svg></div> Image card <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">.png</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6d · Share dialog</b><span class="tag">share icon</span><span>Excel · PDF · Text · Image — pick a format, then share</span></div>
+  </div>
+
+  <!-- 6e SHARE TOURNAMENT (link) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="hero mesh-dusk grain" style="padding-bottom:16px"><svg class="wm"><use href="#dove"/></svg><div class="topnav"><svg class="i"><use href="#back"/></svg><div style="display:flex;gap:16px"><svg class="i" style="color:#fff"><use href="#phone"/></svg><svg class="i"><use href="#more"/></svg></div></div><h2>City Loft Championship</h2><div class="by">by Ahmed Loft</div></div>
+          <div class="actions"><div class="btn wide" style="box-shadow:none"><svg class="i s" style="color:#fff"><use href="#plusc"/></svg> Follow</div><div class="btn ghost icon"><svg class="i s"><use href="#share"/></svg></div></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div style="text-align:center;margin-bottom:8px"><div style="font-size:15px;font-weight:800;letter-spacing:-.02em">Share tournament</div><div style="font-size:12px;color:var(--mut);font-weight:500;margin-top:2px">Anyone can open it — in the app, or install first</div></div>
+          <div style="display:flex;align-items:center;gap:9px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:4px;font-size:12.5px;color:var(--ink-2);font-weight:700"><svg class="i s" style="color:var(--brand)"><use href="#link"/></svg> pigeonfly.app/t/city-loft <span style="margin-left:auto;color:var(--brand);font-weight:800">Copy</span></div>
+          <div class="opt"><div class="ic" style="background:var(--brand);color:#fff"><svg class="i s"><use href="#share"/></svg></div> Share link <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">WhatsApp · anywhere</span></div>
+          <div class="opt"><div class="ic" style="background:#21A366;color:#fff"><svg class="i s"><use href="#sheet"/></svg></div> Export standings <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">.xlsx</span></div>
+          <div class="opt"><div class="ic" style="background:#E23D3D;color:#fff"><svg class="i s"><use href="#file"/></svg></div> PDF report <span style="margin-left:auto;color:var(--mut);font-weight:700;font-size:12px">.pdf</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6e · Share tournament</b><span class="tag">link</span><span>copy / share link · export standings</span></div>
+  </div>
+
+  <!-- 6f SMART LINK LANDING (no app → install → open) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view" style="background:var(--soft)">
+        <div style="height:42px;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--sub);font-weight:700;flex-shrink:0;margin-top:4px"><svg class="i xs"><use href="#lock"/></svg> pigeonfly.app</div>
+        <div class="scroll" style="padding:16px 0">
+          <div class="tcard" style="margin:0 20px 16px">
+            <div class="cover mesh-dusk grain" style="height:120px"><svg class="wm"><use href="#dove"/></svg><div class="pill live"><i></i> LIVE · Day 2</div><div class="z" style="max-width:100%"><h3>City Loft Championship</h3><div class="by">by Ahmed Loft · 20 pigeons</div></div></div>
+            <div class="tbody"><div class="metaline"><svg class="i xs"><use href="#cal"/></svg> 3 days<span class="dot"></span>Alternate<span class="dot"></span><span class="pg">Avg 14:32</span></div></div>
+          </div>
+          <div style="text-align:center;font-size:15px;font-weight:800;letter-spacing:-.02em;padding:0 20px 12px">Open this tournament in PigeonFly</div>
+          <div class="btn block" style="margin-bottom:16px"><svg class="i s" style="color:#fff"><use href="#dove"/></svg> Open in app</div>
+          <div style="text-align:center;font-size:12.5px;color:var(--mut);font-weight:600;padding:0 20px 10px">Don't have the app?</div>
+          <div class="two" style="padding:0 20px"><div class="btn dark"><svg class="i s" style="color:#fff"><use href="#apple"/></svg> App&nbsp;Store</div><div class="btn dark"><svg class="i s" style="color:#fff"><use href="#play"/></svg> Google&nbsp;Play</div></div>
+          <div style="font-size:11px;color:var(--mut);font-weight:500;text-align:center;padding:12px 24px 0;line-height:1.5">After installing, this tournament opens automatically.</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6f · Shared link landing</b><span class="tag">deep link</span><span>have app → opens tournament · no app → install → opens it</span></div>
+  </div>
+
+  <!-- 7 RECORD DAY RESULT (owner) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Record — Day 2</h2><span class="lbl" style="color:var(--brand)">Save</span></div>
+          <div class="subtotal" style="margin:0 20px 14px;background:var(--amber-50);border-color:#F6E2BE;color:var(--amber-ink);"><span><svg class="i xs" style="display:inline;vertical-align:-2px"><use href="#timer"/></svg> Fly 06:00 AM · 18 Oct</span><span>20 pigeons</span></div>
+          <div class="form">
+            <div class="fg"><span class="flbl">Bilal Raza · Shaheen</span><div class="field focus"><svg class="i s" style="color:var(--brand)"><use href="#clock"/></svg> 12:40 PM</div></div>
+            <div class="fg"><span class="flbl">Kashif Ali · Toofan</span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#clock"/></svg> <span class="ph">Tap to set landing time</span></div></div>
+            <div class="fg"><span class="flbl">Usman Tariq · Noori</span><div class="field"><svg class="i s" style="color:var(--mut)"><use href="#clock"/></svg> <span class="ph">Tap to set landing time</span></div></div>
+          </div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0;"><div class="btn block">Save day 2 results</div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>7 · Record day result</b><span class="tag">owner</span><span>enter each landing time → averages auto</span></div>
+  </div>
+
+  <!-- 8 OWNER MENU -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="hero mesh-dusk grain" style="padding-bottom:14px;"><svg class="wm"><use href="#dove"/></svg><div class="topnav"><svg class="i"><use href="#back"/></svg><div style="display:flex;gap:16px"><svg class="i"><use href="#phone"/></svg><svg class="i"><use href="#more"/></svg></div></div><h2>City Loft Championship</h2><div class="by">You created this · 20 pigeons</div></div>
+          <div class="actions"><div class="btn wide"><svg class="i s" style="color:#fff"><use href="#plus"/></svg> Record Day 2</div><div class="btn ghost icon"><svg class="i s"><use href="#share"/></svg></div></div>
+          <div class="seg inline" style="margin:0 20px 14px;"><b class="on">Standings</b><b>Participants</b><b>Rules</b></div>
+          <div class="rank"><div class="medal m1">1</div><div class="who2"><span class="ava s">B</span><div><div class="nm">Bilal Raza</div><div class="mt num">Shaheen · 12:40 PM</div></div></div><div class="rv"><b class="num">12:40</b><small>avg</small></div></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#edit"/></svg></div> Edit tournament</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#users"/></svg></div> Manage participants</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#share"/></svg></div> Share</div>
+          <div class="opt danger"><div class="ic"><svg class="i s"><use href="#trash"/></svg></div> Delete tournament</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>8 · Owner menu</b><span class="tag">owner</span><span>edit · manage · share · delete</span></div>
+  </div>
+
+  </div>
+
+  <div class="note"><b>Day-by-day detail.</b> Both the <b>tournament detail</b> (Standings) and each <b>participant detail</b> use day tabs — select a day to see that day's landings and averages, with a <b>day total average</b> and the <b>overall total average</b> always pinned below. Open questions still apply: the exact <b>average formula</b> and whether a "pigeon" is per participant or many — see <code>../product/open-questions.md</code>.</div>
+</div>
+</body>
+</html>

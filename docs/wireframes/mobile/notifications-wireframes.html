@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Notifications (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 5.1a5.4 5.4 0 0 0-7.7 0l-1.1 1-1-1a5.4 5.4 0 1 0-7.7 7.6l1 1L12 21l7.8-7.7 1-1a5.4 5.4 0 0 0 0-7.2z"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></symbol>
+<symbol id="plusc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8.5v7M8.5 12h7"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></symbol>
+<symbol id="belloff" viewBox="0 0 24 24"><path d="M8.7 3.7A6 6 0 0 1 18 8c0 2.5.4 4.3.9 5.6M6 8c0 7-3 9-3 9h13M13.7 21a2 2 0 0 1-3.4 0M2 2l20 20"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#bell"/></svg></div>
+    <div>
+      <div class="crumb">Module 5 · Mobile</div>
+      <h1>Notifications</h1>
+      <div class="sub">Real-time — follows, likes, tournament updates, live records from people you follow</div>
+    </div>
+  </div>
+  <div class="flowmap"><b>Triggers:</b> new follower · like on your content · a tournament you follow posts a day's results · a live record update. Tapping opens the related screen.</div>
+
+  <div class="screens">
+
+  <!-- 1 NOTIFICATIONS -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 style="flex:1;font-size:20px">Notifications</h2><span class="lbl" style="color:var(--brand)">Mark all</span></div>
+          <div style="padding:0 20px 6px"><span class="lbl">New</span></div>
+          <div class="notif unread"><div class="ic trophy"><svg class="i s" style="color:#fff"><use href="#plusc"/></svg></div><div style="flex:1"><div class="tx"><b>Ahmed Loft</b> created a new tournament — <b>City Loft Championship</b>.</div><div class="tm">just now</div></div></div>
+          <div class="notif unread"><div class="ic fol"><svg class="i s" style="color:#fff"><use href="#users"/></svg></div><div style="flex:1"><div class="tx"><b>Bilal Raza</b> was added to <b>City Loft Championship</b>.</div><div class="tm">3m ago</div></div></div>
+          <div class="notif unread"><div class="ic trophy"><svg class="i s" style="color:#fff"><use href="#trophy"/></svg></div><div style="flex:1"><div class="tx"><b>City Loft Championship</b> posted Day 2 results. Bilal Raza leads at 12:40.</div><div class="tm">8m ago</div></div></div>
+          <div class="notif unread"><div class="ic live"><svg class="i s" style="color:#fff"><use href="#eye"/></svg></div><div style="flex:1"><div class="tx"><b>Ahmed's loft</b> is flying live — 12 of 18 landed.</div><div class="tm">8m ago</div></div></div>
+          <div class="notif unread"><div class="ic like"><svg class="i s fill" style="color:#fff"><use href="#heart"/></svg></div><div style="flex:1"><div class="tx"><b>+42 people</b> liked a tournament you follow.</div><div class="tm">20m ago</div></div></div>
+          <div style="padding:8px 20px 6px"><span class="lbl">Earlier</span></div>
+          <div class="notif"><div class="ic fol"><svg class="i s" style="color:#fff"><use href="#user"/></svg></div><div style="flex:1"><div class="tx"><b>Kashif Ali</b> started following you.</div><div class="tm">1h ago</div></div><div class="btn sm" style="align-self:center">Follow</div></div>
+          <div class="notif"><div class="ic like"><svg class="i s fill" style="color:#fff"><use href="#heart"/></svg></div><div style="flex:1"><div class="tx"><b>Sohail Khan</b> liked your post.</div><div class="tm">3h ago</div></div></div>
+          <div class="notif"><div class="ic trophy"><svg class="i s" style="color:#fff"><use href="#trophy"/></svg></div><div style="flex:1"><div class="tx"><b>Spring Open Flyers</b> has ended. Final average 11:08.</div><div class="tm">Yesterday</div></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Notifications</b><span>new + earlier · tap to open</span></div>
+  </div>
+
+  <!-- 2 EMPTY -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 style="flex:1;font-size:20px">Notifications</h2></div>
+        <div class="center-col" style="color:var(--mut)">
+          <div style="width:76px;height:76px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center"><svg style="width:34px;height:34px;color:var(--mut)" class="i"><use href="#belloff"/></svg></div>
+          <div style="font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.02em">No notifications yet</div>
+          <div style="font-size:13.5px;font-weight:500;max-width:220px">Follow tournaments and people to see live updates here.</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Empty state</b><span>before you follow anything</span></div>
+  </div>
+
+  </div>
+  <div class="note"><b>Notifications</b> are real-time (push + in-app). What exactly triggers a tournament notification (every flight vs once per day vs owner-published) is still open — <code>../product/open-questions.md</code> (Q7).</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Messages (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+<style>
+  .chbg{flex:1;display:flex;flex-direction:column;background:#E9EEF3;overflow:hidden;}
+  .crow{display:flex;align-items:center;gap:12px;padding:12px 18px;}
+  .crow+.crow{border-top:1px solid var(--hair);}
+  .crow .nm{font-size:14.5px;font-weight:700;letter-spacing:-.01em;}
+  .crow .last{font-size:12.5px;color:var(--mut);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;display:flex;align-items:center;gap:4px;}
+  .crow .rt{margin-left:auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+  .crow .tm{font-size:10.5px;color:var(--mut);font-weight:700;}
+  .b2{min-width:20px;height:20px;border-radius:20px;background:var(--brand);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+  .reqrow{display:flex;align-items:center;gap:12px;margin:0 18px 10px;background:var(--brand-50);border:1px solid var(--brand-100);border-radius:14px;padding:12px 14px;}
+  .reqrow .ic{width:38px;height:38px;border-radius:11px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;}
+
+  .msgs{flex:1;overflow:hidden;padding:14px 12px 10px;display:flex;flex-direction:column;gap:7px;}
+  .daychip{align-self:center;background:rgba(255,255,255,.85);color:var(--sub);font-size:10.5px;font-weight:800;padding:4px 12px;border-radius:20px;margin:2px 0 6px;}
+  .row{display:flex;max-width:80%;}
+  .row.out{align-self:flex-end;}
+  .row.in{align-self:flex-start;}
+  .bubble{padding:8px 11px 6px;border-radius:16px;font-size:13.5px;font-weight:500;line-height:1.35;box-shadow:var(--sh-xs);}
+  .bubble.in{background:#fff;color:var(--ink);border-bottom-left-radius:5px;}
+  .bubble.out{background:var(--brand);color:#fff;border-bottom-right-radius:5px;}
+  .meta{display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;margin-top:3px;justify-content:flex-end;}
+  .bubble.out .meta{color:rgba(255,255,255,.85);}
+  .bubble.in .meta{color:var(--mut);}
+  .tk{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .read{color:#86D2FF;}
+  .vnote{display:flex;align-items:center;gap:9px;min-width:158px;padding-top:2px;}
+  .vnote .play{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.22);}
+  .bubble.in .vnote .play{background:var(--brand-50);color:var(--brand);}
+  .wave{flex:1;height:22px;display:flex;align-items:center;gap:2px;}
+  .wave i{width:2.5px;border-radius:2px;background:currentColor;opacity:.55;}
+  .dur{font-size:10px;font-weight:700;opacity:.85;}
+  .imgmsg{width:172px;height:122px;border-radius:13px;overflow:hidden;position:relative;}
+  .imgmsg .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60px;height:60px;color:rgba(255,255,255,.9);}
+  .playbig{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  .playbig .c{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff;}
+  .vtag{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;}
+  .inputbar{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+  .inputbar .fieldx{flex:1;background:var(--soft);border-radius:22px;padding:11px 14px;color:var(--mut);font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:9px;}
+  .inputbar .ib{width:40px;height:40px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;}
+  .inputbar .mic{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 8px 16px rgba(47,107,255,.32);}
+  .blockbar{padding:13px 16px;background:#fff;border-top:1px solid var(--line);text-align:center;font-size:13px;font-weight:700;color:var(--danger);flex-shrink:0;}
+  .notdeliv{align-self:center;background:#FFF6E6;border:1px solid #F6E2BE;color:#9A6208;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;margin:4px 0;display:flex;align-items:center;gap:6px;}
+  .recbar{display:flex;align-items:center;gap:12px;padding:11px 14px;background:#fff;border-top:1px solid var(--line);flex-shrink:0;}
+  .recdot{width:11px;height:11px;border-radius:50%;background:var(--danger);}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--sub);font-weight:600;}
+  .legend .e{display:flex;align-items:center;gap:6px;}
+  .legend svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="tick" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+<symbol id="ticks" viewBox="0 0 24 24"><path d="M1.5 13l4.5 4.5L15 9"/><path d="M8.5 15.5l1.3 1.3M11 13l6.5-6.5"/></symbol>
+<symbol id="play" viewBox="0 0 24 24"><path d="M7 4.5l12 7.5-12 7.5z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+<symbol id="video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10l5-3v10l-5-3z"/></symbol>
+<symbol id="image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 3.5L16 13l4 4"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="phone" viewBox="0 0 24 24"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 14l2 5v2a2 2 0 0 1-2 2A16 16 0 0 1 3 7a2 2 0 0 1 2-4z"/></symbol>
+<symbol id="ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></symbol>
+<symbol id="flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="belloff" viewBox="0 0 24 24"><path d="M8.7 3.7A6 6 0 0 1 18 8c0 2.5.4 4.3.9 5.6M6 8c0 7-3 9-3 9h13M13.7 21a2 2 0 0 1-3.4 0M2 2l20 20"/></symbol>
+<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#edit"/></svg></div>
+    <div>
+      <div class="crumb">Module 6 · Mobile</div>
+      <h1>Messages &amp; Chat</h1>
+      <div class="sub">1-to-1 chat · voice / image / video · block · request-to-talk (TikTok-style) · WhatsApp ticks</div>
+    </div>
+  </div>
+  <div class="flowmap">
+    <b>First-message rule:</b> message someone new <span class="ar">→</span> only <b>one</b> message is sent as a <b>request</b> <span class="ar">→</span> they <b>Accept</b> to continue (like TikTok). Block any time <span class="ar">→</span> delivery stops instantly.
+    <div class="legend"><span class="e"><svg><use href="#tick"/></svg> Sent</span><span class="e"><svg><use href="#ticks"/></svg> Delivered</span><span class="e" style="color:#2F6BFF"><svg><use href="#ticks"/></svg> Read</span><span class="e">Blocked → stays single ✓ (never delivered)</span></div>
+  </div>
+
+  <div class="screens">
+
+  <!-- 1 INBOX -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 style="flex:1">Messages</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div></div>
+          <div class="reqrow"><div class="ic"><svg class="i s"><use href="#user"/></svg></div><div style="flex:1"><div style="font-size:13.5px;font-weight:800">Message requests</div><div style="font-size:11.5px;color:var(--sub);font-weight:500">2 people want to chat</div></div><svg class="i s" style="color:var(--brand)"><use href="#back"/></svg></div>
+          <div class="crow"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="last"><svg class="tk read" style="color:#2F6BFF"><use href="#ticks"/></svg> You: see you at the race!</div></div><div class="rt"><span class="tm">9:32</span></div></div>
+          <div class="crow"><span class="ava m g2">K</span><div style="flex:1"><div class="nm">Kashif Ali</div><div class="last">🎤 Voice message · 0:14</div></div><div class="rt"><span class="tm">8:10</span><span class="b2">2</span></div></div>
+          <div class="crow"><span class="ava m g4">S</span><div style="flex:1"><div class="nm">Sohail Khan</div><div class="last"><svg class="tk" style="color:var(--mut)"><use href="#ticks"/></svg> You: nice birds 👍</div></div><div class="rt"><span class="tm">Yest</span></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Inbox</b><span>chats + message requests · last-msg ticks</span></div>
+  </div>
+
+  <!-- 2 REQUESTS LIST -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Requests</h2></div>
+          <div style="padding:0 20px 12px;font-size:12.5px;color:var(--sub);font-weight:500">People who messaged you first. Accept to start chatting — they can only send more once you do.</div>
+          <div class="crow"><span class="ava m g3">U</span><div style="flex:1"><div class="nm">Usman Tariq</div><div class="last">Assalam o alaikum, loved your loft!</div></div><svg class="i s" style="color:var(--mut)"><use href="#back"/></svg></div>
+          <div class="crow"><span class="ava m">R</span><div style="flex:1"><div class="nm">Rashid Lofts</div><div class="last">Are you joining the Valley Cup?</div></div><svg class="i s" style="color:var(--mut)"><use href="#back"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Message requests</b><span>first-time senders · tap to review</span></div>
+  </div>
+
+  <!-- 3 REQUEST — ACCEPT/DECLINE -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><div style="flex:1;display:flex;align-items:center;gap:10px"><span class="ava s g3">U</span><div><div style="font-size:14px;font-weight:800;line-height:1.1">Usman Tariq</div><div style="font-size:11px;color:var(--mut);font-weight:600">Message request</div></div></div></div>
+        <div class="chbg">
+          <div class="msgs">
+            <div class="daychip">Today</div>
+            <div class="row in"><div class="bubble in">Assalam o alaikum! Loved your loft — the young Shaheen is brilliant. 🕊️</div></div>
+            <div class="notdeliv" style="background:var(--brand-50);border-color:var(--brand-100);color:var(--brand-ink)">They can send more only after you accept</div>
+          </div>
+          <div style="padding:12px;background:#fff;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:9px;flex-shrink:0">
+            <div class="btn block" style="margin:0">Accept &amp; reply</div>
+            <div style="display:flex;gap:9px"><div class="btn ghost wide"><svg class="i s"><use href="#trash"/></svg> Delete</div><div class="btn ghost wide" style="color:var(--danger);border-color:var(--danger-50)"><svg class="i s"><use href="#ban"/></svg> Block</div></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>3 · Request — accept / decline</b><span class="tag">TikTok rule</span><span>one message only · Accept to continue</span></div>
+  </div>
+
+  <!-- 4 CHAT THREAD -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar" style="padding-bottom:12px;border-bottom:1px solid var(--line)"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><div style="flex:1;display:flex;align-items:center;gap:10px"><span class="ava s">A</span><div><div style="font-size:14px;font-weight:800;line-height:1.1">Ahmed Loft</div><div style="font-size:11px;color:var(--ok);font-weight:700">online</div></div></div><div class="gbtn"><svg class="i s"><use href="#phone"/></svg></div><div class="gbtn"><svg class="i s"><use href="#more"/></svg></div></div>
+        <div class="chbg">
+          <div class="msgs">
+            <div class="daychip">Today</div>
+            <div class="row in"><div class="bubble in">Salam! Ready for the race tomorrow? 🕊️</div></div>
+            <div class="row out"><div class="bubble out">Walaikum salam! Yes, kit is in great shape.<div class="meta">9:30 <svg class="tk read"><use href="#ticks"/></svg></div></div></div>
+            <div class="row out"><div class="bubble out"><div class="vnote"><div class="play"><svg class="tk" style="width:14px;height:14px;fill:currentColor;stroke:none"><use href="#play"/></svg></div><div class="wave"><i style="height:7px"></i><i style="height:13px"></i><i style="height:18px"></i><i style="height:10px"></i><i style="height:16px"></i><i style="height:8px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:9px"></i><i style="height:12px"></i></div><span class="dur">0:12</span></div><div class="meta">9:31 <svg class="tk"><use href="#ticks"/></svg></div></div></div>
+            <div class="row in"><div class="bubble in">Here's my loft this morning:<div class="imgmsg mesh-sky grain" style="margin-top:6px"><svg class="wm"><use href="#dove"/></svg></div><div class="meta">9:33</div></div></div>
+            <div class="row out"><div class="bubble out" style="padding:4px"><div class="imgmsg mesh-dusk grain"><svg class="wm"><use href="#dove"/></svg><div class="playbig"><div class="c"><svg class="tk" style="width:20px;height:20px;fill:#fff;stroke:none"><use href="#play"/></svg></div></div><span class="vtag">0:45</span></div><div class="meta" style="padding:4px 4px 0">9:34 <svg class="tk read"><use href="#ticks"/></svg></div></div></div>
+          </div>
+          <div class="inputbar"><div class="ib"><svg class="i s"><use href="#plus"/></svg></div><div class="fieldx">Message…<svg class="i s" style="margin-left:auto;color:var(--mut)"><use href="#cam"/></svg></div><div class="mic"><svg class="i s" style="color:#fff"><use href="#mic"/></svg></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>4 · Chat thread</b><span>text · voice · image · video · ✓ ✓✓ read ticks</span></div>
+  </div>
+
+  <!-- 5 OPTIONS / ATTACH SHEET -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar" style="padding-bottom:12px;border-bottom:1px solid var(--line)"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><div style="flex:1;display:flex;align-items:center;gap:10px"><span class="ava s">A</span><div><div style="font-size:14px;font-weight:800;line-height:1.1">Ahmed Loft</div><div style="font-size:11px;color:var(--mut);font-weight:600">last seen 9:40</div></div></div><div class="gbtn"><svg class="i s"><use href="#phone"/></svg></div><div class="gbtn"><svg class="i s"><use href="#more"/></svg></div></div>
+        <div class="chbg"><div class="msgs"><div class="daychip">Today</div><div class="row in"><div class="bubble in">Salam! Ready for the race? 🕊️</div></div></div></div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#user"/></svg></div> View profile</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#folder"/></svg></div> Media, links &amp; files</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#belloff"/></svg></div> Mute notifications</div>
+          <div class="opt danger"><div class="ic"><svg class="i s"><use href="#ban"/></svg></div> Block Ahmed Loft</div>
+          <div class="opt danger"><div class="ic"><svg class="i s"><use href="#flag"/></svg></div> Report</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>5 · Chat options</b><span>profile · media · mute · block · report</span></div>
+  </div>
+
+  <!-- 6 BLOCKED STATE -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar" style="padding-bottom:12px;border-bottom:1px solid var(--line)"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><div style="flex:1;display:flex;align-items:center;gap:10px"><span class="ava s g2">K</span><div><div style="font-size:14px;font-weight:800;line-height:1.1">Kashif Ali</div><div style="font-size:11px;color:var(--mut);font-weight:600">blocked</div></div></div><div class="gbtn"><svg class="i s"><use href="#more"/></svg></div></div>
+        <div class="chbg">
+          <div class="msgs">
+            <div class="daychip">Today</div>
+            <div class="row out"><div class="bubble out">Are you coming to the race?<div class="meta">10:02 <svg class="tk"><use href="#tick"/></svg></div></div></div>
+            <div class="row out"><div class="bubble out">Hello?<div class="meta">10:05 <svg class="tk"><use href="#tick"/></svg></div></div></div>
+            <div class="notdeliv"><svg class="tk" style="width:14px;height:14px;color:#9A6208"><use href="#tick"/></svg> Single tick — messages not delivered</div>
+          </div>
+          <div class="blockbar">You blocked Kashif Ali · <span style="color:var(--brand)">Tap to unblock</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>6 · Blocked</b><span class="tag">block rule</span><span>only single ✓ · not delivered · tap to unblock</span></div>
+  </div>
+
+  <!-- 7 ATTACH + VOICE RECORD -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="bar" style="padding-bottom:12px;border-bottom:1px solid var(--line)"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><div style="flex:1;display:flex;align-items:center;gap:10px"><span class="ava s">A</span><div style="font-size:14px;font-weight:800">Ahmed Loft</div></div></div>
+        <div class="chbg">
+          <div class="msgs"><div class="daychip">Today</div><div class="row in"><div class="bubble in">Send me a clip of the flight!</div></div></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 16px;background:#fff;border-top:1px solid var(--line);flex-shrink:0">
+            <div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2)"><div style="width:52px;height:52px;border-radius:16px;background:var(--brand-50);color:var(--brand);display:flex;align-items:center;justify-content:center;margin:0 auto 5px"><svg class="i"><use href="#cam"/></svg></div>Camera</div>
+            <div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2)"><div style="width:52px;height:52px;border-radius:16px;background:#F0E9FF;color:#6D4CE6;display:flex;align-items:center;justify-content:center;margin:0 auto 5px"><svg class="i"><use href="#image"/></svg></div>Gallery</div>
+            <div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2)"><div style="width:52px;height:52px;border-radius:16px;background:#FFE9EE;color:#E23D6B;display:flex;align-items:center;justify-content:center;margin:0 auto 5px"><svg class="i"><use href="#video"/></svg></div>Video</div>
+            <div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2)"><div style="width:52px;height:52px;border-radius:16px;background:var(--ok-50);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 5px"><svg class="i"><use href="#mic"/></svg></div>Voice</div>
+          </div>
+          <div class="recbar"><span class="recdot"></span><span style="font-size:13px;font-weight:800;color:var(--danger)">0:08</span><div class="wave" style="flex:1;color:var(--mut)"><i style="height:8px"></i><i style="height:15px"></i><i style="height:20px"></i><i style="height:11px"></i><i style="height:17px"></i><i style="height:9px"></i><i style="height:14px"></i><i style="height:19px"></i><i style="height:10px"></i><i style="height:13px"></i><i style="height:18px"></i></div><div class="ib" style="background:var(--soft)"><svg class="i s"><use href="#trash"/></svg></div><div class="mic"><svg class="i s" style="color:#fff"><use href="#check"/></svg></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>7 · Attach + voice record</b><span>camera · gallery · video · voice note</span></div>
+  </div>
+
+  </div>
+  <div class="note"><b>Rules (locked).</b> First message to a new person goes as a <b>request</b> — one message only; the recipient <b>Accepts</b> to continue (TikTok-style). <b>Block</b> stops delivery instantly and the sender's messages stay on a <b>single tick</b> (never delivered), like WhatsApp. Ticks: <b>✓</b> sent · <b>✓✓</b> delivered · <b>✓✓ blue</b> read. Media: text, voice note, image, video. Entry point: the chat icon in the Home header. See <code>../product/locked-decisions.md</code> §Messages.</div>
+</div>
+</body>
+</html>

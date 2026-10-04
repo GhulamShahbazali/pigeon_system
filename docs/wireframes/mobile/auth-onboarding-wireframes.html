@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Auth & Onboarding (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#dove"/></svg></div>
+    <div>
+      <div class="crumb">Module 0 · Mobile</div>
+      <h1>Auth &amp; Onboarding</h1>
+      <div class="sub">Passwordless — Google sign-in (Apple on iOS) · quick profile setup for new users</div>
+    </div>
+  </div>
+  <div class="flowmap"><b>Flow:</b> Splash <span class="ar">→</span> Sign in (Google) <span class="ar">→</span> account chooser <span class="ar">→</span> <i>(new user)</i> Profile setup <span class="ar">→</span> Welcome <span class="ar">→</span> Home. Returning users skip setup.</div>
+
+  <div class="screens">
+
+  <!-- 1 SPLASH -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view mesh-sky grain" style="display:flex">
+        <div class="center-col" style="color:#fff">
+          <div style="width:88px;height:88px;border-radius:26px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center"><svg style="width:46px;height:46px;color:#fff"><use href="#dove"/></svg></div>
+          <div style="font-size:30px;font-weight:800;letter-spacing:-.045em;margin-top:6px">PigeonFly</div>
+          <div style="font-size:14px;opacity:.9;font-weight:500">The home ground for pigeon-flying</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Splash</b><span>checks existing session</span></div>
+  </div>
+
+  <!-- 2 SIGN IN -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar" style="color:#fff"><span class="num">9:41</span><span class="rt" style="color:#fff"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="lhero mesh-sky grain">
+          <svg class="wm"><use href="#dove"/></svg>
+          <div class="lg"><svg style="width:30px;height:30px;color:#fff"><use href="#dove"/></svg></div>
+          <h1>Fly higher,<br>together.</h1>
+          <p>Run tournaments, follow the flights live, and share your loft — anywhere.</p>
+        </div>
+        <div class="lsheet">
+          <div class="t">Sign in to continue</div>
+          <div class="btn google"><span class="gmark"></span> Continue with Google</div>
+          <div class="btn dark">Continue with Apple</div>
+          <div class="terms">By continuing you agree to our <b>Terms</b> &amp; <b>Privacy Policy</b></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Sign in</b><span class="tag">locked</span><span>Google · passwordless</span></div>
+  </div>
+
+  <!-- 3 GOOGLE CHOOSER -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div style="padding:16px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)"><span class="gmark"></span><b style="font-size:13px">Sign in with Google</b></div>
+        <div style="padding:18px">
+          <div style="font-size:13px;color:var(--sub);font-weight:500;margin-bottom:16px">Choose an account to continue to <b style="color:var(--ink)">PigeonFly</b></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--hair)"><span class="ava m">A</span><div><div style="font-size:13.5px;font-weight:700">Ahmed Raza</div><div style="font-size:12px;color:var(--mut)">ahmed@gmail.com</div></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--hair)"><span class="ava m g2">S</span><div><div style="font-size:13.5px;font-weight:700">Sara K</div><div style="font-size:12px;color:var(--mut)">sara.k@gmail.com</div></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 0"><div style="width:42px;height:42px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--sub)"><svg class="i s"><use href="#plus"/></svg></div><div style="font-size:13.5px;font-weight:600">Add another account</div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>3 · Google chooser</b><span>native · no password typed in-app</span></div>
+  </div>
+
+  <!-- 4 PROFILE SETUP -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><h2 class="mid" style="flex:1">Set up your profile</h2></div>
+          <div style="display:flex;justify-content:center;margin:4px 0 18px"><div style="position:relative"><div class="photopick" style="width:92px;height:92px"><svg class="i lg"><use href="#cam"/></svg></div></div></div>
+          <div class="form">
+            <div class="fg"><span class="flbl">Name</span><div class="field">Ahmed Raza</div></div>
+            <div class="fg"><span class="flbl">Username</span><div class="field">@ahmed_loft</div></div>
+            <div class="fg"><span class="flbl">Language</span>
+              <div class="chips"><span class="chip on">English</span><span class="chip">اردو</span><span class="chip">हिन्दी</span><span class="chip">العربية</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0"><div class="btn block">Continue</div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>4 · Profile setup</b><span>new users · photo · username · language</span></div>
+  </div>
+
+  <!-- 5 WELCOME -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="center-col">
+          <div style="width:88px;height:88px;border-radius:50%;background:var(--ok-50);display:flex;align-items:center;justify-content:center;color:var(--ok)"><svg style="width:44px;height:44px" class="i"><use href="#check"/></svg></div>
+          <div style="font-size:21px;font-weight:800;letter-spacing:-.03em">Welcome, Ahmed!</div>
+          <div style="font-size:14px;color:var(--sub);font-weight:500;max-width:230px">Your loft is ready. Explore tournaments or create your own.</div>
+        </div>
+        <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:11px;flex-shrink:0">
+          <div class="btn">Go to Tournaments</div>
+          <div class="btn ghost"><svg class="i s"><use href="#trophy"/></svg> Create my first tournament</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>5 · Welcome</b><span>new user lands here · returning users skip to Home</span></div>
+  </div>
+
+  </div>
+  <div class="note"><b>Auth locked:</b> Google sign-in (passwordless). Apple-on-iOS is optional and still open (Q1b). New users complete the short setup; returning users go straight to Home. See <code>../product/locked-decisions.md</code> §1.</div>
+</div>
+</body>
+</html>

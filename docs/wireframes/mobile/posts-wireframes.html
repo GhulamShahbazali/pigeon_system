@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Posts (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/><circle cx="14.4" cy="8.1" r=".7" fill="#1E49B8"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="home" viewBox="0 0 24 24"><path d="M3 10.6 12 3l9 7.6"/><path d="M5.5 9.5V20a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V9.5"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.8 5.1a5.4 5.4 0 0 0-7.7 0l-1.1 1-1-1a5.4 5.4 0 1 0-7.7 7.6l1 1L12 21l7.8-7.7 1-1a5.4 5.4 0 0 0 0-7.2z"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="eyeoff" viewBox="0 0 24 24"><path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6.5 0 10 6 10 6a16 16 0 0 1-3 3.6M6.3 6.3A15.8 15.8 0 0 0 2 12s3.5 6 10 6a9.6 9.6 0 0 0 3.6-.7M2 2l20 20M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 13.3 7.4 4.1M15.7 6.6 8.3 10.7"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="feed" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8.5h10M7 12h10M7 15.5h6"/></symbol>
+<symbol id="list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+<symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+<symbol id="image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 18l5-5 4 3.5L16 13l4 4"/></symbol>
+<symbol id="cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+<symbol id="flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+<symbol id="ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></symbol>
+<symbol id="link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
+<symbol id="chevd" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#feed"/></svg></div>
+    <div>
+      <div class="crumb">Module 2 · Mobile</div>
+      <h1>Posts</h1>
+      <div class="sub">Facebook-style public feed · image · like / share / view · follow · report · hide</div>
+    </div>
+  </div>
+  <div class="flowmap"><b>Flow:</b> Feed <span class="ar">→</span> Create post <span class="ar">→</span> Post detail. &nbsp;·&nbsp; ⋯ menu <span class="ar">→</span> hide / report (to admin) / unfollow.</div>
+
+  <div class="screens">
+
+  <!-- 1 FEED -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll fade-b">
+          <div class="bar"><h2>Posts</h2><div class="gbtn"><svg class="i s"><use href="#search"/></svg></div><div class="gbtn dotbadge"><svg class="i s"><use href="#bell"/></svg></div></div>
+          <div class="post">
+            <div class="ph"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="tm">2h ago · Public</div></div><div class="btn sm">Follow</div><svg class="i s" style="color:var(--mut);margin-left:4px"><use href="#more"/></svg></div>
+            <div class="cap">Morning kit flew beautifully today. 18 birds, all back by noon.</div>
+            <div class="media mesh-sky grain"><svg class="wm"><use href="#dove"/></svg></div>
+            <div class="acts"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">214</span></span><span class="e"><svg class="i s"><use href="#share"/></svg> <span class="num">12</span></span><span class="e" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">1.3k</span></span></div>
+          </div>
+          <div class="sep"></div>
+          <div class="post">
+            <div class="ph"><span class="ava m g2">K</span><div style="flex:1"><div class="nm">Kashif Pigeons</div><div class="tm">5h ago · Public</div></div><div class="btn sm ghost">Following</div><svg class="i s" style="color:var(--mut);margin-left:4px"><use href="#more"/></svg></div>
+            <div class="cap">Who's joining the City Loft Championship this week? 🏆</div>
+            <div class="acts"><span class="e like"><svg class="i s fill"><use href="#heart"/></svg> <span class="num">63</span></span><span class="e"><svg class="i s"><use href="#share"/></svg> <span class="num">4</span></span><span class="e" style="margin-left:auto;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> <span class="num">540</span></span></div>
+          </div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg class="i s"><use href="#home"/></svg>Home</a>
+          <a href="tournaments-wireframes.html"><svg class="i s"><use href="#trophy"/></svg>Tournaments</a>
+          <a href="tournaments-wireframes.html"><div class="fab"><svg class="i"><use href="#plus"/></svg></div></a>
+          <a href="records-wireframes.html"><svg class="i s"><use href="#list"/></svg>Records</a>
+          <a href="settings-profile-wireframes.html"><svg class="i s"><use href="#user"/></svg>Profile</a>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Posts feed</b><span>public · like / share / view</span></div>
+  </div>
+
+  <!-- 2 CREATE POST -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">New Post</h2><div class="btn sm">Publish</div></div>
+          <div class="form">
+            <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px;"><span class="ava m">A</span><div><div style="font-weight:800;font-size:14px;">Ahmed Loft</div><div class="rowline" style="padding:4px 10px;border-radius:20px;font-size:12px;margin-top:2px;display:inline-flex;gap:6px;"><svg class="i xs" style="color:var(--brand)"><use href="#eye"/></svg> Public <svg class="i xs" style="color:var(--mut)"><use href="#chevd"/></svg></div></div></div>
+            <div class="field area" style="min-height:120px;"><span class="ph">Share something about your loft…</span></div>
+            <div class="imgpick"><svg class="i lg"><use href="#image"/></svg> Add photo</div>
+          </div>
+        </div>
+        <div style="padding:12px 0 16px;flex-shrink:0;"><div class="btn block">Publish post</div></div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Create post</b><span>text + optional image · public</span></div>
+  </div>
+
+  <!-- 3 POST DETAIL -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Post</h2><div class="gbtn"><svg class="i s"><use href="#more"/></svg></div></div>
+          <div class="post" style="padding-top:0">
+            <div class="ph"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="tm">2h ago · Public</div></div><div class="btn sm">Follow</div></div>
+            <div class="cap">Morning kit flew beautifully today. 18 birds, all back by noon. Proud of the young Shaheen — first one home.</div>
+            <div class="media mesh-sky grain"><svg class="wm"><use href="#dove"/></svg></div>
+          </div>
+          <div style="display:flex;justify-content:space-around;padding:14px 20px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin-top:4px;color:var(--sub);font-weight:700;font-size:14px;">
+            <span style="display:flex;align-items:center;gap:8px;color:var(--danger)"><svg class="i s fill"><use href="#heart"/></svg> Like</span>
+            <span style="display:flex;align-items:center;gap:8px;"><svg class="i s"><use href="#share"/></svg> Share</span>
+            <span style="display:flex;align-items:center;gap:8px;color:var(--mut)"><svg class="i s"><use href="#eye"/></svg> 1.3k</span>
+          </div>
+          <div class="rowline" style="margin:14px 20px 0;border:none;background:var(--ok-50);color:var(--ok);font-size:12.5px;font-weight:800;padding:11px 14px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span> Likes &amp; views update in real time</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>3 · Post detail</b><span>live counts · follow author</span></div>
+  </div>
+
+  <!-- 4 REPORT / HIDE SHEET -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="scroll">
+          <div class="bar"><div class="gbtn"><svg class="i s"><use href="#back"/></svg></div><h2 class="mid" style="flex:1">Post</h2><div class="gbtn"><svg class="i s"><use href="#more"/></svg></div></div>
+          <div class="post" style="padding-top:0"><div class="ph"><span class="ava m">A</span><div style="flex:1"><div class="nm">Ahmed Loft</div><div class="tm">2h ago</div></div></div><div class="media mesh-sky grain"><svg class="wm"><use href="#dove"/></svg></div></div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#eyeoff"/></svg></div> Hide this post</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#ban"/></svg></div> Unfollow Ahmed Loft</div>
+          <div class="opt"><div class="ic"><svg class="i s"><use href="#link"/></svg></div> Copy link</div>
+          <div class="opt danger"><div class="ic"><svg class="i s"><use href="#flag"/></svg></div> Report post</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>4 · ⋯ menu</b><span>hide · unfollow · report (to admin)</span></div>
+  </div>
+
+  </div>
+  <div class="note"><b>Posts</b> mirror a familiar social feed. Open items: images per post, whether the author can edit/delete, and feed ordering — see <code>../product/open-questions.md</code> (Q11).</div>
+</div>
+</body>
+</html>

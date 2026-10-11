@@ -20,5 +20,6 @@ import { TOURNAMENT_REPOSITORY } from './domain/tournament.repository';
     TournamentQueries,
     { provide: TOURNAMENT_REPOSITORY, useClass: PrismaTournamentRepository },
   ],
+  exports: [CreateTournamentUseCase, AddParticipantUseCase, RecordFlightUseCase],
 })
 export class TournamentsModule {}

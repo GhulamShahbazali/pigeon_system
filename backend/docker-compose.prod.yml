@@ -1,0 +1,62 @@
+# PigeonFly — production compose (DigitalOcean Droplet).
+# One image, three roles: api (PM2 cluster) + workers + exactly-one scheduler.
+# Managed Postgres + Managed Redis are EXTERNAL (DO) — not in this file.
+#
+#   cp .env.production.example .env.production   # fill real DO values
+#   # one-time schema + indexes (DIRECT url):
+#   DATABASE_URL="$DATABASE_DIRECT_URL" npx prisma migrate deploy
+#   DATABASE_URL="$DATABASE_DIRECT_URL" npx prisma db execute --file prisma/sql/01-search-indexes.sql --schema prisma/schema.prisma
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+x-app: &app
+  build: .
+  env_file: .env.production
+  restart: unless-stopped
+  # Firebase service-account JSON mounted read-only (path from FIREBASE_ADMIN_SDK_KEY).
+  volumes:
+    - ./secrets:/app/secrets:ro
+
+services:
+  api:
+    <<: *app
+    environment:
+      PROCESS_ROLE: api
+    # PM2 cluster (-i max) from the image CMD uses all droplet cores.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/v1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    expose:
+      - "3000"
+
+  worker:
+    <<: *app
+    command: ["node", "dist/main.js"]
+    environment:
+      PROCESS_ROLE: worker
+    deploy:
+      replicas: 2
+
+  scheduler:
+    <<: *app
+    command: ["node", "dist/main.js"]
+    environment:
+      PROCESS_ROLE: scheduler
+      SCHEDULER_ENABLED: "true"
+    # EXACTLY ONE — never scale this service above 1 (duplicate repeatable jobs).
+    deploy:
+      replicas: 1
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # TLS: terminate at the DigitalOcean Load Balancer in front of this (with sticky
+    # sessions for Socket.io). If terminating here instead, mount certs + add a 443 server.

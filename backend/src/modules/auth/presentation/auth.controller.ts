@@ -7,11 +7,16 @@ import { PrismaAuthRepository } from '../data/prisma-auth.repository';
 import { SignInUseCase } from '../domain/sign-in.use-case';
 import { CompleteSignupUseCase } from '../domain/complete-signup.use-case';
 import { RedisService } from '../../../shared/redis/redis.service';
+import { PrismaService } from '../../../shared/prisma/prisma.service';
+import { JwtService } from '../../../shared/auth/jwt.service';
+import { verifyPassword } from '../../../shared/auth/password';
 import { toUserResponse } from './user.response';
-import { NotFoundError } from '../../../shared/errors/common-errors';
+import { NotFoundError, UnauthenticatedError } from '../../../shared/errors/common-errors';
 import {
+  AdminLoginSchema,
   CompleteSignupSchema,
   SessionSchema,
+  type AdminLoginDto,
   type CompleteSignupDto,
   type SessionDto,
 } from './auth.schemas';
@@ -23,7 +28,31 @@ export class AuthController {
     private readonly completeSignup: CompleteSignupUseCase,
     private readonly repo: PrismaAuthRepository,
     private readonly redis: RedisService,
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
   ) {}
+
+  /** Staff/admin login — username + password → session JWT (admin/superadmin only). */
+  @Public()
+  @Post('admin/login')
+  async adminLogin(@Body(new ZodValidationPipe(AdminLoginSchema)) body: AdminLoginDto) {
+    const user = await this.prisma.user.findFirst({
+      where: { username: body.username.toLowerCase(), deletedAt: null },
+      select: { id: true, role: true, passwordHash: true, displayName: true, username: true, isSuspended: true },
+    });
+    const okRole = user && user.role === 'superadmin';
+    if (!user || !okRole || user.isSuspended || !verifyPassword(body.password, user.passwordHash)) {
+      throw new UnauthenticatedError('Invalid username or password');
+    }
+    const { token, expiresAt } = this.jwt.sign({ sub: user.id, sid: 'admin', role: user.role, scope: 'session' });
+    return {
+      data: {
+        session_token: token,
+        expires_at: expiresAt.toISOString(),
+        user: { id: user.id, display_name: user.displayName, username: user.username, role: user.role },
+      },
+    };
+  }
 
   @Public()
   @Post('session')

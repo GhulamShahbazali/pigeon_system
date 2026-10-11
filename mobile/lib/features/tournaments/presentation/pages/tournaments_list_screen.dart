@@ -28,7 +28,9 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded, color: AppColors.ink),
-            onPressed: () {},
+            onPressed: () {
+              context.push('/tournaments/search');
+            },
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: AppColors.ink),

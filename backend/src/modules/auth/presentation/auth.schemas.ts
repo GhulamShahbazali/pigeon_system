@@ -32,3 +32,9 @@ export const CompleteSignupSchema = z.object({
   app_version: z.string().optional(),
 });
 export type CompleteSignupDto = z.infer<typeof CompleteSignupSchema>;
+
+export const AdminLoginSchema = z.object({
+  username: z.string().min(1).max(60),
+  password: z.string().min(1).max(200),
+});
+export type AdminLoginDto = z.infer<typeof AdminLoginSchema>;

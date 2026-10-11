@@ -13,8 +13,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit(): Promise<void> {
-    await this.$connect();
-    this.logger.log('Prisma connected');
+    // Don't crash-loop if the DB is briefly unreachable at boot — start anyway and
+    // let the readiness probe gate traffic; Prisma lazy-connects on the first query.
+    try {
+      await this.$connect();
+      this.logger.log('Prisma connected');
+    } catch (e) {
+      this.logger.error(`Prisma connect failed at boot (will retry lazily): ${(e as Error).message}`);
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

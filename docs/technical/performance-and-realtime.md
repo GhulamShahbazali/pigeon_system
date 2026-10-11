@@ -147,7 +147,8 @@ Idempotent processors (same end state if run twice) · destructive/stateful jobs
 | `rate_limit:api:{user_id}:{bucket}` | Counter | 1m | general per-endpoint-group limit |
 | `session:{jti}` | Hash | 1h | cached user context (id, role, is_suspended) — avoids a `users` read per request |
 | `user_sessions:{user_id}` | Set | — | tracks a user's `session:*` keys for bulk logout |
-| `tournament:standings:{id}:{day}` | String (JSON) | short / invalidate on write | hot standings cache (optional, if compute-on-read is heavy) |
+| `t:standings:{id}` | String (JSON) | 20s / warm-set on flight · del on participant add | **implemented** — hot standings cache (cache-aside via `CacheService`); sockets carry live deltas |
+| `disc:sugg:{user_id}:{limit}` | String (JSON) | 60s | **implemented** — Find-friends suggestions (approximate; TTL expiry, no invalidation) |
 | `blocked_by_me:{user_id}` / `blocked_me:{user_id}` | Set | until invalidation | block cache (Phase 2 — MVP queries DB) |
 | `idemp:{key}` | Hash | 24h | idempotency-key → first response |
 | `reference_data:etag:{table}` | String | until change | ETag for reference-data endpoints |
@@ -162,12 +163,14 @@ Idempotent processors (same end state if run twice) · destructive/stateful jobs
 | **Counts via sockets, not polling** | like/view/comment counts stream over the debounced count rooms; clients never poll an endpoint for them. |
 | **Denormalized counters** | follower/following, post counts, tournament participant count, averages stored as columns, incremented on write, **recomputed nightly** by cron to self-heal drift. Never `COUNT(*)` on a hot read path. |
 | **No N+1** | hydrate lists in batched queries (one query for rows + one for related, mapped in memory) — never a query per row. |
-| **Indexes** | every FK + every sort column (`created_at`); composite indexes for feed (`author_id, created_at`), standings (`tournament_id, day, avg`); GIN for full-text (user/tournament search). |
+| **Indexes** | every FK + every sort column (`created_at`); composite indexes for feed (`author_id, created_at`), standings (`tournament_id, day, avg`). **Search uses `pg_trgm` GIN indexes** (`backend/prisma/sql/01-search-indexes.sql`) so Prisma `contains`/`ILIKE '%q%'` on `users.display_name`, `users.username`, `tournaments.title` hits an index instead of a seq scan — no query rewrite needed. |
 | **Prisma pool sizing** | pool is **per process**; `instances × pool_size ≤ Postgres max_connections`. Set `connection_limit` explicitly with total process count in mind (a real production trap). |
 | **Transactions** | multi-table writes (create tournament + participants; record + pigeons; message + conversation) run in one Prisma `$transaction`. |
 | **Hot-path caching** | reference data (ETag + Redis), standings (short-TTL cache invalidated on new result), session context (`session:{jti}`). Cache only what's read far more than written. |
 | **Response envelope + request id** | `{ data, meta }`; `X-Request-Id` on every request for tracing; p95 latency tracked per route. |
-| **Rate limiting at the edge + app** | Cloudflare WAF + Redis sliding-window per endpoint bucket; `429` with `Retry-After`. |
+| **Rate limiting at the edge + app** | Cloudflare WAF + Redis sliding-window per endpoint bucket; `429` with `Retry-After`. **Implemented:** `@nestjs/throttler` + `@nest-lab/throttler-storage-redis` (shared across instances), global `ThrottlerGuard` before auth, default 100/60s, `@SkipThrottle` on health, `trust proxy` for real client IP. |
+| **Structured logging + correlation id** | **Implemented:** `nestjs-pino` — JSON logs, per-request `requestId` reused from `X-Request-Id` (echoed back) and put in the error envelope; auth/cookie headers redacted. |
+| **Health probes + graceful drain** | **Implemented:** `@nestjs/terminus` — `GET /v1/health` (liveness) + `GET /v1/health/ready` (DB + Redis + not-draining). On SIGTERM readiness flips to draining first (LB stops routing), then shutdown hooks close Redis/Prisma/BullMQ. Prisma boots even if DB is briefly down (no crash-loop). |
 | **Media off the request path** | uploads go straight to R2; resize/transcode/thumbnail happen in `media-process` worker; the request returns an `upload_id` immediately. |
 | **Exports off the request path** | Excel/PDF/image built in `export-generate` worker, not during the share tap. |
 

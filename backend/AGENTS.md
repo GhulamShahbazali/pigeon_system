@@ -62,7 +62,7 @@ Then, for the **contract** of what you're building:
 | *(shared)* `../docs/technical/performance-and-realtime.md` | process roles · Socket.io rooms/events · Redis keys · BullMQ queues · debounced counts · midnight auto-end · fast-endpoint rules |
 | *(shared)* `../docs/technical/schema/` · `api/` | the contracts (DB + REST/realtime) — never invent, read these |
 
-> **Backend docs are complete.** Only `docs/modules/<name>.md` (per-module dossier) is added once a module's implementation starts.
+> **Backend docs are complete.** Per-module dossiers live in `docs/modules/<name>.md` (one per implemented module — routes, use cases, owned queues/sockets, sync status); see the table in `docs/index.md`.
 
 ---
 

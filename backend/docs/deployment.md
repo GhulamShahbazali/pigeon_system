@@ -36,7 +36,22 @@ services:
 |-----|----------|----------|-------|
 | Dev | localhost:3000 | local Docker (or Aiven) | 1 API instance (Bug A hidden — see performance §1) |
 | Staging | api-staging.pigeonfly.app | **Aiven** | **2+ API instances** — must test the adapter path |
-| Prod | api.pigeonfly.app | Aiven (or upgraded) | 2+ API, 1+ worker, 1 scheduler |
+| Prod | api.pigeonfly.app | **DigitalOcean** (Managed Postgres + Redis) | Droplet: api cluster + worker ×2 + scheduler ×1 + nginx, behind a DO LB |
+
+## Production on DigitalOcean (Docker)
+Aiven is test-only; production runs on a DO Droplet with DO Managed Postgres + Redis (see `environment.md` → *Production — DigitalOcean*). Ship files (committed): `Dockerfile` (multi-stage), `.dockerignore`, `docker-compose.prod.yml` (api/worker/scheduler/nginx), `deploy/nginx.conf`, `.env.production.example`.
+
+```bash
+cp .env.production.example .env.production      # fill real DO values
+# one-time schema + trigram indexes via the DIRECT (non-pooled) url:
+DATABASE_URL="$DATABASE_DIRECT_URL" npx prisma migrate deploy
+DATABASE_URL="$DATABASE_DIRECT_URL" npx prisma db execute --file prisma/sql/01-search-indexes.sql --schema prisma/schema.prisma
+docker compose -f docker-compose.prod.yml up -d --build
+```
+- API runs **PM2 cluster (`-i max`)** inside its container (all droplet cores); worker/scheduler run plain `node`.
+- **Scheduler replicas must stay 1.** Workers scale freely.
+- TLS + **sticky sessions** (Socket.io) at the **DO Load Balancer** in front of nginx.
+- Runtime uses the **pooled** `DATABASE_URL` (`pgbouncer=true`); migrations use `DATABASE_DIRECT_URL`.
 
 ## CI/CD (GitHub Actions)
 1. install → `prisma generate` → typecheck → lint → test
@@ -49,13 +64,16 @@ services:
 - DB: forward-only migrations — a bad migration is fixed by a new compensating migration, not a down-migration on live data. Keep migrations small + reversible-by-design (expand/contract).
 
 ## Pre-launch checklist
-- [ ] Aiven Valkey `maxmemory-policy = noeviction`
-- [ ] `connection_limit` set so `Σ ≤ 20` (or upgrade / PgBouncer)
-- [ ] Socket.io Redis adapter wired; staging runs 2+ API
-- [ ] Exactly one scheduler in every env
-- [ ] Sentry DSN + uptime monitor live
-- [ ] Backups verified (restore test)
+- [ ] **DO Managed Redis** `eviction_policy = noeviction` (Aiven Valkey too, for staging)
+- [ ] Runtime on the **pooled** `DATABASE_URL` (`pgbouncer=true`, small `connection_limit`); migrations on `DATABASE_DIRECT_URL`
+- [ ] **DO Load Balancer**: TLS + **sticky sessions** for Socket.io
+- [ ] Socket.io Redis adapter wired; prod runs 2+ API (PM2 cluster counts)
+- [ ] **Exactly one scheduler** container (`replicas: 1`)
+- [ ] Trigram indexes applied (`prisma/sql/01-search-indexes.sql`)
+- [ ] `/v1/health` (liveness) + `/v1/health/ready` wired to LB + UptimeRobot
+- [ ] Sentry DSN set; pino JSON logs shipping
+- [ ] Backups verified (DO Managed DB daily backup + restore test)
 
 ---
 
-*backend/docs/deployment.md · v1.0 · 2026-10-03*
+*backend/docs/deployment.md · v1.1 · 2026-10-10 (DigitalOcean production)*

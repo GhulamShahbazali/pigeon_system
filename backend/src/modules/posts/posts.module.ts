@@ -6,5 +6,6 @@ import { PrismaPostRepository } from './data/prisma-post.repository';
 @Module({
   controllers: [PostsController],
   providers: [PostUseCases, PrismaPostRepository],
+  exports: [PostUseCases, PrismaPostRepository],
 })
 export class PostsModule {}

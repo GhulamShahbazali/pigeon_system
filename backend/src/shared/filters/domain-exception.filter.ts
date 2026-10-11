@@ -17,7 +17,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
-    const requestId = (req as any).requestId ?? 'unknown';
+    // pino (nestjs-pino) sets req.id as the correlation id; genReqId also mirrors it to req.requestId.
+    const requestId = (req as any).id ?? (req as any).requestId ?? 'unknown';
 
     const domain =
       exception instanceof DomainError ? exception : translatePrismaError(exception);

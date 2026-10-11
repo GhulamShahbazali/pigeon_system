@@ -1,0 +1,4 @@
+export const BOT_CONFIG_REPOSITORY = Symbol('BOT_CONFIG_REPOSITORY');
+export const BOT_ROSTER_REPOSITORY = Symbol('BOT_ROSTER_REPOSITORY');
+export const BOT_STATE = Symbol('BOT_STATE');
+export const CONTENT_PROVIDER = Symbol('CONTENT_PROVIDER');

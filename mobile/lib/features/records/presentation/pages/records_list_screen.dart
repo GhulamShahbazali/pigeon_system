@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -38,6 +39,22 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 23),
                   ),
                   const Spacer(),
+                  InkWell(
+                    onTap: () => context.push('/records/search'),
+                    borderRadius: BorderRadius.circular(13),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.soft,
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.search_rounded, color: AppColors.ink2, size: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () {
                       Navigator.of(context).push(

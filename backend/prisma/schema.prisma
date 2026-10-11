@@ -15,6 +15,7 @@ datasource db {
 enum AuthProvider {
   google
   apple
+  bot
 }
 
 enum UserRole {
@@ -116,6 +117,11 @@ model User {
   followerCount    Int       @default(0) @map("follower_count")
   followingCount   Int       @default(0) @map("following_count")
   isSuspended      Boolean   @default(false) @map("is_suspended")
+  passwordHash     String?   @map("password_hash")
+  isBot            Boolean   @default(false) @map("is_bot")
+  botKey           String?   @unique @map("bot_key")
+  activeStartHour  Int?      @map("active_start_hour")
+  activeEndHour    Int?      @map("active_end_hour")
   lastActiveAt     DateTime? @map("last_active_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -132,6 +138,7 @@ model User {
 
   @@unique([authProvider, authProviderId])
   @@index([countryCode])
+  @@index([isBot])
   @@map("users")
 }
 
@@ -603,4 +610,24 @@ model AdminActionLog {
   @@index([adminId, createdAt])
   @@index([targetType, targetId])
   @@map("admin_actions")
+}
+
+// ======================= §BOTS liveness/bot system =======================
+model BotConfig {
+  id                  Int      @id @default(1)
+  enabled             Boolean  @default(false)
+  tickIntervalSec     Int      @default(5)   @map("tick_interval_sec")
+  gapWindowSec        Int      @default(600) @map("gap_window_sec")
+  postsPerMin         Int      @default(6)   @map("posts_per_min")
+  botPostCooldownMin  Int      @default(45)  @map("bot_post_cooldown_min")
+  likesPerMin         Int      @default(40)  @map("likes_per_min")
+  newestBiasPct       Int      @default(70)  @map("newest_bias_pct")
+  maxBotLikesPerPost  Int      @default(25)  @map("max_bot_likes_per_post")
+  viewsPerMin         Int      @default(120) @map("views_per_min")
+  viewBatchSize       Int      @default(10)  @map("view_batch_size")
+  followsPerMin       Int      @default(2)   @map("follows_per_min")
+  tournamentsPerDay   Int      @default(3)   @map("tournaments_per_day")
+  recordsPerDay       Int      @default(4)   @map("records_per_day")
+  updatedAt           DateTime @updatedAt    @map("updated_at")
+  @@map("bot_config")
 }

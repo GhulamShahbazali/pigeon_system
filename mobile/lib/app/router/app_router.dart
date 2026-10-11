@@ -24,6 +24,10 @@ import '../../features/notifications/presentation/pages/notifications_screen.dar
 import '../../features/chat/presentation/pages/inbox_screen.dart';
 import '../../features/chat/presentation/pages/message_requests_screen.dart';
 import '../../features/chat/presentation/pages/chat_screen.dart';
+import '../../features/tournaments/presentation/pages/tournament_search_screen.dart';
+import '../../features/records/presentation/pages/records_search_screen.dart';
+import '../../features/chat/presentation/pages/chat_search_screen.dart';
+import '../../features/home/presentation/pages/find_friends_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -164,6 +168,22 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => ChatScreen(
         contactName: state.pathParameters['name'] ?? 'Ahmed Loft',
       ),
+    ),
+    GoRoute(
+      path: '/tournaments/search',
+      builder: (context, state) => const TournamentSearchScreen(),
+    ),
+    GoRoute(
+      path: '/records/search',
+      builder: (context, state) => const RecordsSearchScreen(),
+    ),
+    GoRoute(
+      path: '/messages/search',
+      builder: (context, state) => const ChatSearchScreen(),
+    ),
+    GoRoute(
+      path: '/discovery/find-friends',
+      builder: (context, state) => const FindFriendsScreen(),
     ),
   ],
 );

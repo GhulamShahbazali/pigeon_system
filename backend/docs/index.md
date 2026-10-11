@@ -18,6 +18,7 @@
 | Shipping it — PM2 roles, Docker, CI/CD, rollback, env matrix | `deployment.md` |
 | Naming a class, or "is this allowed?" | `naming-and-anti-patterns.md` |
 | Changing an existing schema/API/module without drift | `change-management.md` |
+| A specific feature module (routes, use cases, queues, invariants) | `modules/<name>.md` |
 | Process roles, Socket.io rooms/events, Redis keys, BullMQ queues, fast-endpoint rules | `../../docs/technical/performance-and-realtime.md` *(shared)* |
 | What table/column stores this | `../../docs/technical/schema/<section>.md` *(shared — never invent)* |
 | What an endpoint accepts/returns, error codes | `../../docs/technical/api/<section>.md` *(shared — never invent)* |
@@ -38,9 +39,22 @@
 | `change-management.md` | how changes propagate contract→code without drift |
 | `environment.md` | Aiven Postgres + Valkey connect, `.env`, noeviction + pool-sizing |
 
-## To add once code exists
-`modules/<name>.md` — per-module dossier (scope, entities, use cases, owned queues/sockets, sync status). Created when a module's implementation starts.
+## Per-module dossiers — `modules/`
+One file per implemented module (scope, routes, use cases, owned queues/sockets, notifications, sync status, invariants). Read the one you're touching.
+
+| Module | Dossier | API | Queues / sockets |
+|--------|---------|-----|------------------|
+| `auth` | [auth.md](modules/auth.md) | §1 | — |
+| `social` (users/follow/block) | [social.md](modules/social.md) | §2 | → `new_follower` |
+| `tournaments` | [tournaments.md](modules/tournaments.md) | §3 | `followerFanout` · `tournament.update` |
+| `posts` | [posts.md](modules/posts.md) | §4 | `post.new` · count debounce |
+| `records` | [records.md](modules/records.md) | §5 | `liveRecordAutoEnd` · `record.*` |
+| `messages` | [messages.md](modules/messages.md) | §6 | `dmPush` · `message.*` `chat.read` |
+| `notifications` (global) | [notifications.md](modules/notifications.md) | §7 | `pushSend` · `followerFanout` · `notification.*` |
+| `settings` | [settings.md](modules/settings.md) | §8 | — |
+| `moderation` (+admin) | [moderation.md](modules/moderation.md) | §9 | `user.suspended` |
+| `discovery` (find friends + search) | [discovery.md](modules/discovery.md) | §10 | — (read-only) |
 
 ---
 
-*backend/docs/index.md · v1.0 · 2026-10-03*
+*backend/docs/index.md · v1.1 · 2026-10-10 (added per-module dossiers)*

@@ -1,7 +1,7 @@
 # PigeonFly — API Design (Index)
 
 > **Purpose:** the REST + realtime contract for the backend, consumed by the **mobile app** and **admin panel**. Companion to [`../schema/index.md`](../schema/index.md) (what's stored) and [`../performance-and-realtime.md`](../performance-and-realtime.md) (Socket.io rooms/events · Redis keys · BullMQ queues — **not duplicated here**).
-> **Pattern:** follows the Talksy API docs. **Last updated:** 2026-10-03 · **Version:** 0.1 (in progress)
+> **Pattern:** follows the Talksy API docs. **Last updated:** 2026-10-10 · **Version:** 0.2 (added §10 Discovery & Search)
 
 ---
 
@@ -19,6 +19,8 @@ One file per feature area — **don't read them all.** This index (conventions +
 | Notifications feed | [07-notifications.md](07-notifications.md) |
 | Settings | [08-settings.md](08-settings.md) |
 | Reports, suspensions, admin panel | [09-moderation-admin.md](09-moderation-admin.md) |
+| Find friends + search (users / tournaments / records / chats) | [10-discovery.md](10-discovery.md) |
+| Bots / liveness engine controls (admin) | [11-bots-admin.md](11-bots-admin.md) |
 
 Socket.io events, Redis keys, and BullMQ queues are **catalogued once** in `../performance-and-realtime.md` (§3–§5). Each endpoint file lists which of those it touches.
 
@@ -111,4 +113,4 @@ exception filter (→ error envelope, Sentry) → response-envelope interceptor 
 
 ---
 
-*api/index.md · v0.1 · 2026-10-03 · pattern from Talksy API docs. Realtime/Redis/BullMQ inventory → ../performance-and-realtime.md*
+*api/index.md · v0.2 · 2026-10-10 · pattern from Talksy API docs. Realtime/Redis/BullMQ inventory → ../performance-and-realtime.md*

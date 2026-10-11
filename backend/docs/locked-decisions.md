@@ -38,8 +38,9 @@
 | `notifications` | §7 Notifications |
 | `settings` | §8 Settings |
 | `moderation`, `admin` | §9 Moderation |
+| `discovery` (find friends + search) | **no tables** — read-only across §1/§3/§5/§6 ([api §10](../../docs/technical/api/10-discovery.md)) |
 
-Home has **no** module/tables — it reads across §3/§4/§5.
+Home has **no** module/tables — it reads across §3/§4/§5. `discovery` likewise owns no tables — it only queries existing ones (users, tournaments, records, conversations) and reuses Follow/Message writes.
 
 ---
 

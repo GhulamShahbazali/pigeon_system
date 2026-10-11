@@ -6,7 +6,7 @@ import { QueueService } from '../../shared/queue/queue.service';
 import { QUEUES } from '../../shared/queue/queue.constants';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Err, Ok, Result } from '../../shared/result/result';
-import { ForbiddenError, NotFoundError } from '../../shared/errors/common-errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '../../shared/errors/common-errors';
 
 @Injectable()
 export class RecordUseCases {
@@ -58,6 +58,8 @@ export class RecordUseCases {
     const rec = await this.repo.findSummary(recordId);
     if (!rec) return Err(new NotFoundError('record'));
     if (rec.userId !== actorId) return Err(new ForbiddenError('Only the owner can go live'));
+    // A record lives for 24h then auto-ends; once ended it can never go live again.
+    if (rec.status === 'completed') return Err(new ConflictError('This record has ended and cannot go live again'));
     const user = await this.prisma.user.findUnique({ where: { id: actorId }, select: { timezone: true } });
     const r = await this.repo.goLive(recordId, user?.timezone ?? 'Asia/Karachi');
 

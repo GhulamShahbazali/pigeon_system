@@ -7,6 +7,6 @@ import { LiveRecordAutoEndProcessor } from './live-record-auto-end.processor';
 @Module({
   controllers: [RecordsController],
   providers: [RecordUseCases, PrismaRecordRepository, LiveRecordAutoEndProcessor],
-  exports: [PrismaRecordRepository, LiveRecordAutoEndProcessor],
+  exports: [RecordUseCases, PrismaRecordRepository, LiveRecordAutoEndProcessor],
 })
 export class RecordsModule {}

@@ -98,11 +98,13 @@ export class PrismaRecordRepository {
     );
   }
 
-  async goLive(recordId: string, tz: string) {
-    const autoEndAt = nextLocalMidnightUtc(tz);
+  async goLive(recordId: string, _tz: string) {
+    // Live for exactly 24 hours from go-live, then auto-ends (and can't re-live).
+    const wentLiveAt = new Date();
+    const autoEndAt = new Date(wentLiveAt.getTime() + 24 * 60 * 60 * 1000);
     const r = await this.prisma.personalRecord.update({
       where: { id: recordId },
-      data: { privacy: 'live', status: 'open', wentLiveAt: new Date(), autoEndAt },
+      data: { privacy: 'live', status: 'open', wentLiveAt, autoEndAt },
     });
     await this.redis.client.sadd(LIVE_SET, recordId).catch(() => null);
     return r;

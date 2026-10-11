@@ -39,6 +39,16 @@ export class PrismaPostRepository {
     });
   }
 
+  /** Lightweight recent-post list for the bot engine's like/view targeting + gap-fill. */
+  async recentForBots(limit: number): Promise<{ id: string; authorId: string; createdAt: Date }[]> {
+    return this.prisma.post.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: { id: true, authorId: true, createdAt: true },
+    });
+  }
+
   async getById(id: string) {
     const p = await this.prisma.post.findFirst({
       where: { id, deletedAt: null },

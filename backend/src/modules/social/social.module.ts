@@ -7,5 +7,6 @@ import { SOCIAL_REPOSITORY } from './domain/social.repository';
 @Module({
   controllers: [SocialController],
   providers: [SocialUseCases, { provide: SOCIAL_REPOSITORY, useClass: PrismaSocialRepository }],
+  exports: [SocialUseCases],
 })
 export class SocialModule {}

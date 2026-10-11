@@ -1,10 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ITournamentRepository, TOURNAMENT_REPOSITORY } from './tournament.repository';
 import { NotFoundError } from '../../../shared/errors/common-errors';
+import { CacheService } from '../../../shared/cache/cache.service';
+
+/** Cache key for a tournament's standings (shared across all viewers). */
+export const standingsKey = (id: string) => `t:standings:${id}`;
 
 @Injectable()
 export class TournamentQueries {
-  constructor(@Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository) {}
+  constructor(
+    @Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository,
+    private readonly cache: CacheService,
+  ) {}
 
   list(tab: 'all' | 'following' | 'mine', userId: string, cursor: string | null, limit: number) {
     return this.repo.list(tab, userId, cursor, limit);
@@ -17,8 +24,9 @@ export class TournamentQueries {
     return t;
   }
 
+  /** Hot path during live events — cache-aside, 20s TTL. Sockets carry live deltas. */
   standings(id: string) {
-    return this.repo.standings(id);
+    return this.cache.getOrSet(standingsKey(id), 20, () => this.repo.standings(id));
   }
 
   participantDays(tournamentId: string, participantId: string) {

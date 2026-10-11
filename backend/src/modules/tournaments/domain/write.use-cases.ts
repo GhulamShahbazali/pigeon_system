@@ -12,6 +12,8 @@ import { ForbiddenError, NotFoundError } from '../../../shared/errors/common-err
 import { EmitService } from '../../../shared/socket/emit.service';
 import { QueueService } from '../../../shared/queue/queue.service';
 import { QUEUES } from '../../../shared/queue/queue.constants';
+import { CacheService } from '../../../shared/cache/cache.service';
+import { standingsKey } from './read.use-cases';
 
 @Injectable()
 export class CreateTournamentUseCase {
@@ -34,12 +36,17 @@ export class CreateTournamentUseCase {
 
 @Injectable()
 export class AddParticipantUseCase {
-  constructor(@Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository) {}
+  constructor(
+    @Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository,
+    private readonly cache: CacheService,
+  ) {}
   async execute(actorId: string, input: AddParticipantInput): Promise<Result<any>> {
     const t = await this.repo.findSummary(input.tournamentId);
     if (!t) return Err(new NotFoundError('tournament'));
     if (t.organizerId !== actorId) return Err(new ForbiddenError('Only the organizer can add participants'));
-    return Ok(await this.repo.addParticipant(input));
+    const participant = await this.repo.addParticipant(input);
+    await this.cache.del(standingsKey(input.tournamentId)); // new participant appears in standings
+    return Ok(participant);
   }
 }
 
@@ -48,6 +55,7 @@ export class RecordFlightUseCase {
   constructor(
     @Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository,
     private readonly emit: EmitService,
+    private readonly cache: CacheService,
   ) {}
   async execute(actorId: string, input: RecordFlightInput): Promise<Result<any>> {
     const t = await this.repo.findSummary(input.tournamentId);
@@ -55,8 +63,9 @@ export class RecordFlightUseCase {
     if (t.organizerId !== actorId) return Err(new ForbiddenError('Only the organizer can record flights'));
     try {
       const flight = await this.repo.recordFlight(input);
-      // Push the refreshed leaderboard to everyone watching this tournament live.
+      // Fresh standings recomputed in the write txn → refresh cache + push to watchers.
       const standings = await this.repo.standings(input.tournamentId);
+      await this.cache.set(standingsKey(input.tournamentId), standings, 20);
       this.emit.toRoom(`tournament:${input.tournamentId}`, 'tournament.update', {
         tournament_id: input.tournamentId,
         day_id: input.dayId,

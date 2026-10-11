@@ -40,10 +40,7 @@ class HomeScreen extends StatelessWidget {
                     const Spacer(),
                     _buildIconButton(
                       icon: Icons.search_rounded,
-                      onTap: () {
-                        // Switch to Tournaments tab (index 1) for search/browse
-                        context.read<NavigationBloc>().add(const NavigationTabChangedEvent(1));
-                      },
+                      onTap: () => context.push('/discovery/find-friends'),
                     ),
                     const SizedBox(width: 8),
                     _buildIconButton(
@@ -310,7 +307,16 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                      child: Text('⑤ Suggested to follow', style: AppTextStyles.overline.copyWith(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('⑤ Suggested to follow', style: AppTextStyles.overline.copyWith(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+                          InkWell(
+                            onTap: () => context.push('/discovery/find-friends'),
+                            child: Text('See all', style: AppTextStyles.captionBold.copyWith(color: AppColors.brand)),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 6),
                     _buildSuggestedUserRow(

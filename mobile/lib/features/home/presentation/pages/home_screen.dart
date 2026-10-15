@@ -90,8 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDashboardData() async {
-    final tResult = await _tournamentsRepo.getTournaments(tab: 'all');
-    final pResult = await _postsRepo.getFeed(tab: 'for_you', limit: 100);
+    // Fire both requests together and await them in parallel — they are
+    // independent, so there's no reason to pay two round-trips back-to-back.
+    final tFuture = _tournamentsRepo.getTournaments(tab: 'all');
+    final pFuture = _postsRepo.getFeed(tab: 'for_you', limit: 100);
+    final tResult = await tFuture;
+    final pResult = await pFuture;
 
     if (!mounted) return;
 
@@ -120,15 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.bg,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.brand),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -386,7 +381,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // 6. Posts Feed
-              if (_posts.isEmpty)
+              if (_isLoading && _posts.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.brand),
+                    ),
+                  ),
+                )
+              else if (_posts.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(32),

@@ -19,6 +19,13 @@ class TournamentOrganizerModel {
       photoUrl: json['photo_url']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'display_name': displayName,
+        'username': username,
+        'photo_url': photoUrl,
+      };
 }
 
 class TournamentCardModel {
@@ -74,6 +81,23 @@ class TournamentCardModel {
       createdAt: json['created_at']?.toString() ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'cover_url': coverUrl,
+        'schedule_type': scheduleType,
+        'num_days': numDays,
+        'pigeon_count': pigeonCount,
+        'status': status,
+        'is_live': isLive,
+        'like_count': likeCount,
+        'view_count': viewCount,
+        'follower_count': followerCount,
+        'link_slug': linkSlug,
+        'organizer': organizer?.toJson(),
+        'created_at': createdAt,
+      };
 
   String get scheduleDisplay => scheduleType == 'alternate_days' ? 'Alternate' : 'Every day';
   String get daysDisplay => '$numDays ${numDays == 1 ? 'day' : 'days'}';

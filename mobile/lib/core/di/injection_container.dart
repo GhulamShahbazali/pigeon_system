@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../network/socket_service.dart';
 import '../local_storage/secure_storage_service.dart';
+import '../local_storage/json_cache_service.dart';
 import '../../features/tournaments/data/tournaments_repository.dart';
 import '../../features/posts/data/posts_repository.dart';
 import '../../features/records/data/records_repository.dart';
@@ -18,6 +19,7 @@ Future<void> initDependencies() async {
   // 1. Storage
   final storageService = SecureStorageService();
   sl.registerSingleton<SecureStorageService>(storageService);
+  sl.registerSingleton<JsonCacheService>(JsonCacheService());
 
   // 2. ApiClient (attaches the real session token once the user logs in)
   final apiClient = ApiClient(storage: storageService);

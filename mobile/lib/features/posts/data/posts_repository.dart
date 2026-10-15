@@ -22,6 +22,13 @@ class PostAuthorModel {
       photoUrl: json['photo_url']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'display_name': displayName,
+        'username': username,
+        'photo_url': photoUrl,
+      };
 }
 
 class PostModel {
@@ -60,6 +67,18 @@ class PostModel {
       createdAt: json['created_at']?.toString() ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'content': content,
+        'image_url': imageUrl,
+        'like_count': likeCount,
+        'share_count': shareCount,
+        'view_count': viewCount,
+        'is_liked': isLiked,
+        'author': author.toJson(),
+        'created_at': createdAt,
+      };
 }
 
 class PostsRepository {

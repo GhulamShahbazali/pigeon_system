@@ -6,6 +6,7 @@ import '../../../../app/bloc/navigation_event.dart';
 import '../../../../app/bloc/navigation_state.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/network/socket_service.dart';
+import '../../../../core/local_storage/json_cache_service.dart';
 import '../../../records/data/records_repository.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -34,8 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final PostsRepository _postsRepo = sl<PostsRepository>();
   final RecordsRepository _recordsRepo = sl<RecordsRepository>();
   final SocketService _socket = sl<SocketService>();
+  final JsonCacheService _cache = sl<JsonCacheService>();
 
   static const int _homeTabIndex = 0;
+  bool _refreshing = false;
 
   List<TournamentCardModel> _tournaments = [];
   List<LiveRecordPreviewModel> _liveRecords = [];
@@ -67,8 +70,57 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    _init();
     _setupRealtime();
+  }
+
+  /// Stale-while-revalidate: paint last-seen cached content instantly, then
+  /// refresh from the network in the background (like Facebook).
+  Future<void> _init() async {
+    await _loadFromCache();
+    await _loadDashboardData();
+  }
+
+  /// Rebuild the per-post like/view/share maps and subscribe to live counts.
+  void _applyPosts(List<PostModel> posts) {
+    _posts = posts;
+    _likedPostIds.clear();
+    _postLikeCounts.clear();
+    _postViewCounts.clear();
+    _postShareCounts.clear();
+    for (final p in posts) {
+      if (p.isLiked) _likedPostIds.add(p.id);
+      _postLikeCounts[p.id] = p.likeCount;
+      _postViewCounts[p.id] = p.viewCount;
+      _postShareCounts[p.id] = p.shareCount;
+      _socket.subscribePostCounts(p.id);
+    }
+  }
+
+  Future<void> _loadFromCache() async {
+    final t = await _cache.readList('home_tournaments');
+    final l = await _cache.readList('home_live');
+    final p = await _cache.readList('home_posts');
+    if (!mounted) return;
+    setState(() {
+      if (t != null) {
+        _tournaments = t
+            .map((e) => TournamentCardModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      if (l != null) {
+        _liveRecords = l
+            .map((e) => LiveRecordPreviewModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      if (p != null) {
+        _applyPosts(
+          p.map((e) => PostModel.fromJson(Map<String, dynamic>.from(e as Map))).toList(),
+        );
+      }
+      // Anything cached → drop the blocking spinner so content shows immediately.
+      if (t != null || l != null || p != null) _isLoading = false;
+    });
   }
 
   @override
@@ -97,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDashboardData() async {
+    if (mounted) setState(() => _refreshing = true);
     // Fire the requests together and await them in parallel — they are
     // independent, so there's no reason to pay the round-trips back-to-back.
     final tFuture = _tournamentsRepo.getTournaments(tab: 'all');
@@ -108,6 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
+    // On failure (e.g. offline) we keep whatever is already shown (cache) — the
+    // content never blanks out.
     setState(() {
       if (lResult.isSuccess) {
         _liveRecords = (lResult as dynamic).data as List<LiveRecordPreviewModel>;
@@ -116,22 +171,22 @@ class _HomeScreenState extends State<HomeScreen> {
         _tournaments = (tResult as dynamic).data as List<TournamentCardModel>;
       }
       if (pResult.isSuccess) {
-        _posts = (pResult as dynamic).data as List<PostModel>;
-        _likedPostIds.clear();
-        _postLikeCounts.clear();
-        _postViewCounts.clear();
-        _postShareCounts.clear();
-        for (final p in _posts) {
-          if (p.isLiked) _likedPostIds.add(p.id);
-          _postLikeCounts[p.id] = p.likeCount;
-          _postViewCounts[p.id] = p.viewCount;
-          _postShareCounts[p.id] = p.shareCount;
-          // Subscribe to this post's live count room.
-          _socket.subscribePostCounts(p.id);
-        }
+        _applyPosts((pResult as dynamic).data as List<PostModel>);
       }
       _isLoading = false;
+      _refreshing = false;
     });
+
+    // Persist the fresh content for the next cold start (fire-and-forget).
+    if (tResult.isSuccess) {
+      _cache.writeList('home_tournaments', _tournaments.map((e) => e.toJson()).toList());
+    }
+    if (lResult.isSuccess) {
+      _cache.writeList('home_live', _liveRecords.map((e) => e.toJson()).toList());
+    }
+    if (pResult.isSuccess) {
+      _cache.writeList('home_posts', _posts.map((e) => e.toJson()).toList());
+    }
   }
 
   @override
@@ -147,7 +202,20 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
+        child: Column(
+          children: [
+            // Thin top loader while refreshing in the background — content stays
+            // visible underneath (Facebook-style), no full-screen spinner.
+            if (_refreshing && !_isLoading)
+              const LinearProgressIndicator(
+                minHeight: 2,
+                color: AppColors.brand,
+                backgroundColor: AppColors.soft,
+              )
+            else
+              const SizedBox.shrink(),
+            Expanded(
+              child: RefreshIndicator(
           color: AppColors.brand,
           onRefresh: _loadDashboardData,
           child: CustomScrollView(
@@ -467,6 +535,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+              ),
+            ),
+          ],
         ),
       ),
       ),

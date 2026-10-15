@@ -10,6 +10,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/pigeon_logo.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../home/presentation/widgets/live_now_strip.dart';
 import '../../../posts/data/posts_repository.dart';
 import '../../../posts/presentation/widgets/post_card.dart';
@@ -124,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -180,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                         child: Row(
                           children: [
-                            Text('① Live now',
+                            Text('① ${s.liveNow}',
                                 style: AppTextStyles.overline.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -196,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 4),
                                 child: Text(
-                                  'See all',
+                                  s.seeAll,
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.brand,
                                     fontWeight: FontWeight.w700,
@@ -225,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: Row(
                       children: [
-                        Text('② Featured tournament',
+                        Text('② ${s.featuredTournament}',
                             style: AppTextStyles.overline.copyWith(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
@@ -238,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .add(const NavigationTabChangedEvent(1));
                           },
                           child: Text(
-                            'Explore all',
+                            s.exploreAll,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.brand,
                               fontWeight: FontWeight.w700,
@@ -285,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 20, vertical: 10),
                         child: Row(
                           children: [
-                            Text('③ Trending tournaments',
+                            Text('③ ${s.trendingTournaments}',
                                 style: AppTextStyles.overline.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -298,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .add(const NavigationTabChangedEvent(1));
                               },
                               child: Text(
-                                'See all',
+                                s.seeAll,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.brand,
                                   fontWeight: FontWeight.w700,
@@ -337,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('④ Feed & Community Updates',
+                      Text('④ ${s.feedCommunity}',
                           style: AppTextStyles.overline.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -364,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Share something about your loft…',
+                                  s.shareLoftHint,
                                   style: AppTextStyles.subText
                                       .copyWith(color: AppColors.mut),
                                 ),
@@ -400,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Icon(Icons.feed_outlined,
                               color: AppColors.muted, size: 40),
                           const SizedBox(height: 8),
-                          Text('No posts yet in feed',
+                          Text(s.noPostsInFeed,
                               style: AppTextStyles.caption),
                         ],
                       ),

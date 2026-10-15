@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../settings/data/user_repository.dart';
 import '../../data/discovery_repository.dart';
 
@@ -86,6 +87,7 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     final isSearching = _query.isNotEmpty;
     final list = isSearching ? _results : _suggestions;
 
@@ -99,7 +101,7 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text(isSearching ? 'Search people' : 'Find friends', style: AppTextStyles.h2),
+        title: Text(isSearching ? s.searchPeople : s.findFriends, style: AppTextStyles.h2),
         centerTitle: false,
       ),
       body: SafeArea(
@@ -129,7 +131,7 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
                         onChanged: _onSearchChanged,
                         style: AppTextStyles.bodyBold,
                         decoration: InputDecoration(
-                          hintText: 'Search name or @username…',
+                          hintText: s.searchNameHint,
                           hintStyle: AppTextStyles.body.copyWith(color: AppColors.mut),
                           border: InputBorder.none,
                           isDense: true,
@@ -155,14 +157,14 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
               ),
             ),
 
-            Expanded(child: _buildList(isSearching, list)),
+            Expanded(child: _buildList(isSearching, list, s)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildList(bool isSearching, List<UserCardModel> list) {
+  Widget _buildList(bool isSearching, List<UserCardModel> list, AppStrings s) {
     if ((isSearching && _searchLoading) || (!isSearching && _loading)) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -178,10 +180,10 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
               child: const Icon(Icons.people_outline_rounded, size: 32, color: AppColors.mut),
             ),
             const SizedBox(height: 14),
-            Text(isSearching ? 'No people found' : 'No suggestions yet', style: AppTextStyles.h4),
+            Text(isSearching ? s.noPeopleFound : s.suggestedForYou, style: AppTextStyles.h4),
             const SizedBox(height: 4),
             Text(
-              isSearching ? 'Try another name or @username' : 'Check back as more flyers join',
+              s.searchNameHint,
               style: AppTextStyles.body.copyWith(color: AppColors.mut),
             ),
           ],
@@ -194,18 +196,16 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
         Padding(
           padding: const EdgeInsets.only(bottom: 10, top: 4),
           child: Text(
-            isSearching
-                ? 'People · ${list.length} ${list.length == 1 ? 'result' : 'results'}'
-                : 'Suggested for you',
+            isSearching ? '${s.searchPeople} (${list.length})' : s.suggestedForYou,
             style: AppTextStyles.labelUppercase,
           ),
         ),
-        ...list.map(_userRow),
+        ...list.map((u) => _userRow(u, s)),
       ],
     );
   }
 
-  Widget _userRow(UserCardModel user) {
+  Widget _userRow(UserCardModel user, AppStrings s) {
     void openProfile() => context.push('/user/${user.id}');
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -256,7 +256,7 @@ class _FindFriendsScreenState extends State<FindFriendsScreen> {
                 border: user.isFollowing ? Border.all(color: AppColors.line) : null,
               ),
               child: Text(
-                user.isFollowing ? 'Following' : 'Follow',
+                user.isFollowing ? s.following : s.follow,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,

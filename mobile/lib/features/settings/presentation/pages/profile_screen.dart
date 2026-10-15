@@ -8,6 +8,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/pigeon_watermark.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../../app/bloc/navigation_bloc.dart';
 import '../../../../app/bloc/navigation_state.dart';
 import '../../../records/data/records_repository.dart';
@@ -97,7 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name = _profile?.displayName ?? 'Flyer';
+    final s = AppStrings.of(context);
+    final name = _profile?.displayName ?? s.flyer;
     final handle = '@${_profile?.username ?? 'flyer'}';
     final location = _profile?.city ?? 'Lahore, PK';
     final photoUrl = _profile?.photoUrl;
@@ -217,10 +219,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         await context.push('/profile/tournaments');
                         _loadProfile();
                       },
-                      child: _StatItem(number: '$tournaments', label: 'Tournaments'),
+                      child: _StatItem(number: '$tournaments', label: s.tournaments),
                     ),
-                    _StatItem(number: '$followers', label: 'Followers'),
-                    _StatItem(number: '$following', label: 'Following'),
+                    _StatItem(number: '$followers', label: s.followers),
+                    _StatItem(number: '$following', label: s.followingLabel),
                   ],
                 ),
               ),
@@ -229,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Content Rows: My Tournaments, My Posts, My Records
               _ProfileLinkRow(
                 icon: Icons.emoji_events_outlined,
-                title: 'My Tournaments',
+                title: s.myTournaments,
                 count: _myTournamentsCount,
                 onTap: () async {
                   await context.push('/profile/tournaments');
@@ -238,19 +240,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               _ProfileLinkRow(
                 icon: Icons.dynamic_feed_rounded,
-                title: 'My Posts',
+                title: s.myPosts,
                 count: _myPostsCount,
                 onTap: () {
                   final id = _profile?.id;
                   if (id == null) return;
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => MyPostsScreen(userId: id, title: 'My Posts'),
+                    builder: (_) => MyPostsScreen(userId: id, title: s.myPosts),
                   ));
                 },
               ),
               _ProfileLinkRow(
                 icon: Icons.format_list_bulleted_rounded,
-                title: 'My Records',
+                title: s.myRecords,
                 count: _myRecordsCount,
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(

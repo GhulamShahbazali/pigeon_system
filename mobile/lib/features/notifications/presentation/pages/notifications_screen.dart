@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/notifications_repository.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -57,6 +58,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     final hasUnread = _items.any((n) => !n.isRead);
     return Scaffold(
       backgroundColor: AppColors.card,
@@ -68,21 +70,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text('Notifications', style: AppTextStyles.h2),
+        title: Text(s.notificationsTitle, style: AppTextStyles.h2),
         actions: [
           if (hasUnread)
             TextButton(
               onPressed: _markAll,
-              child: Text('Mark all', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+              child: Text(s.markAll, style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
             ),
           const SizedBox(width: 8),
         ],
       ),
-      body: _buildBody(),
+      body: _buildBody(s),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -98,7 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: const Icon(Icons.notifications_off_outlined, size: 36, color: AppColors.mut),
             ),
             const SizedBox(height: 16),
-            Text('No notifications yet', style: AppTextStyles.h3),
+            Text(s.noNotifications, style: AppTextStyles.h3),
             const SizedBox(height: 6),
             Text(
               'Follow tournaments and people to see live updates here.',

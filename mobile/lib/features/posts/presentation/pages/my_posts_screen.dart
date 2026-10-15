@@ -4,6 +4,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/local_storage/secure_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/posts_repository.dart';
 import '../widgets/post_card.dart';
 
@@ -108,18 +109,18 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
               foregroundColor: Colors.white,
               onPressed: _createPost,
               icon: const Icon(Icons.add_rounded),
-              label: Text('New post', style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+              label: Text(AppStrings.of(context).newPost, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
             )
           : null,
       body: RefreshIndicator(
         color: AppColors.brand,
         onRefresh: _load,
-        child: _buildBody(),
+        child: _buildBody(AppStrings.of(context)),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -131,7 +132,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         const SizedBox(height: 100),
         const Icon(Icons.dynamic_feed_rounded, size: 54, color: AppColors.muted),
         const SizedBox(height: 12),
-        Center(child: Text('No posts yet', style: AppTextStyles.cardTitle)),
+        Center(child: Text(s.noPostsYet, style: AppTextStyles.cardTitle)),
         if (_isMe) ...[
           const SizedBox(height: 20),
           Center(
@@ -144,7 +145,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.add_rounded, size: 20),
-              label: Text('Create your first post',
+              label: Text(s.createFirstPost,
                   style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
             ),
           ),

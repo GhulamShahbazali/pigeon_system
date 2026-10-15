@@ -102,6 +102,19 @@ class AppStrings {
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
 
+  // ── Tournaments tab ──
+  String get tabAll => _t('All', 'سب', 'सभी', 'الكل');
+  String get tabUpcoming => _t('Upcoming', 'آنے والے', 'आगामी', 'القادمة');
+  String get tabOngoing => _t('Ongoing', 'جاری', 'चालू', 'الجارية');
+  String get tabPast => _t('Past', 'ماضی', 'पिछले', 'السابقة');
+  String get newTournament => _t('New Tournament', 'نیا ٹورنامنٹ', 'नया टूर्नामेंट', 'بطولة جديدة');
+  String get organizer => _t('Organizer', 'منتظم', 'आयोजक', 'المنظّم');
+  String get noUpcomingTournaments => _t('No upcoming tournaments.', 'کوئی آنے والا ٹورنامنٹ نہیں۔', 'कोई आगामी टूर्नामेंट नहीं।', 'لا بطولات قادمة.');
+  String get noOngoingTournaments => _t('No tournaments running right now.', 'ابھی کوئی ٹورنامنٹ جاری نہیں۔', 'अभी कोई टूर्नामेंट चालू नहीं।', 'لا بطولات جارية الآن.');
+  String get noPastTournaments => _t('No past tournaments yet.', 'ابھی کوئی ماضی کا ٹورنامنٹ نہیں۔', 'अभी कोई पिछला टूर्नामेंट नहीं।', 'لا بطولات سابقة بعد.');
+  String get noTournaments => _t('No tournaments found.', 'کوئی ٹورنامنٹ نہیں ملا۔', 'कोई टूर्नामेंट नहीं मिला।', 'لم يُعثر على بطولات.');
+  String get tournamentsHint => _t('Tournaments organized by users will show up here.', 'صارفین کے منظم کردہ ٹورنامنٹ یہاں نظر آئیں گے۔', 'उपयोगकर्ताओं द्वारा आयोजित टूर्नामेंट यहाँ दिखेंगे।', 'ستظهر هنا البطولات التي ينظّمها المستخدمون.');
+
   // ── Records tab ──
   String get recordsTitle => _t('Records', 'ریکارڈ', 'रिकॉर्ड', 'السجلات');
   String get myRecordsTab => _t('My records', 'میرے ریکارڈ', 'मेरे रिकॉर्ड', 'سجلاتي');

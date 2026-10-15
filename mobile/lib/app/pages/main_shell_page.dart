@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/localization/app_strings.dart';
 import '../bloc/navigation_bloc.dart';
 import '../bloc/navigation_event.dart';
 import '../bloc/navigation_state.dart';
@@ -49,6 +50,7 @@ class MainShellPage extends StatelessWidget {
   }
 
   void _showCreateModal(BuildContext context) {
+    final s = AppStrings.read(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
@@ -75,14 +77,14 @@ class MainShellPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Create New',
+                  s.createNew,
                   style: AppTextStyles.sectionTitle,
                 ),
                 const SizedBox(height: 14),
                 _buildCreateOption(
                   icon: Icons.emoji_events_outlined,
-                  title: 'New Tournament',
-                  subtitle: 'Single or multi-day competition',
+                  title: s.newTournament,
+                  subtitle: s.tournamentSubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/tournaments/create');
@@ -91,8 +93,8 @@ class MainShellPage extends StatelessWidget {
                 const Divider(color: AppColors.hair, height: 1),
                 _buildCreateOption(
                   icon: Icons.flight_takeoff_outlined,
-                  title: 'Daily Flight Record',
-                  subtitle: 'Track your loft routine live or private',
+                  title: s.dailyFlightRecord,
+                  subtitle: s.recordSubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/records/create');
@@ -101,8 +103,8 @@ class MainShellPage extends StatelessWidget {
                 const Divider(color: AppColors.hair, height: 1),
                 _buildCreateOption(
                   icon: Icons.edit_note_outlined,
-                  title: 'New Post',
-                  subtitle: 'Share flight photos and updates',
+                  title: s.newPostTitle,
+                  subtitle: s.postSubtitle,
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/posts/create');

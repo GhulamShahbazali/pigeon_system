@@ -17,6 +17,11 @@ class AppStrings {
   static AppStrings of(BuildContext context) =>
       AppStrings(context.watch<LocaleCubit>().state);
 
+  /// Non-reactive read — for one-shot contexts (bottom sheets, dialogs, tap
+  /// callbacks) where `watch` can't be used.
+  static AppStrings read(BuildContext context) =>
+      AppStrings(context.read<LocaleCubit>().state);
+
   String _t(String en, String ur, String hi, String ar) {
     switch (lang) {
       case AppLanguage.urdu:
@@ -101,6 +106,14 @@ class AppStrings {
   String get notificationsTitle => _t('Notifications', 'اطلاعات', 'सूचनाएँ', 'الإشعارات');
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
+
+  // ── Create New sheet ──
+  String get createNew => _t('Create New', 'نیا بنائیں', 'नया बनाएँ', 'إنشاء جديد');
+  String get tournamentSubtitle => _t('Single or multi-day competition', 'ایک یا کئی دن کا مقابلہ', 'एक या कई-दिन की प्रतियोगिता', 'منافسة ليوم أو عدة أيام');
+  String get dailyFlightRecord => _t('Daily Flight Record', 'روزانہ فلائٹ ریکارڈ', 'दैनिक उड़ान रिकॉर्ड', 'سجل الطيران اليومي');
+  String get recordSubtitle => _t('Track your loft routine live or private', 'اپنے لوفٹ کا معمول لائیو یا نجی ٹریک کریں', 'अपने लॉफ़्ट की दिनचर्या लाइव या निजी ट्रैक करें', 'تتبّع روتين برجك مباشرةً أو بشكل خاص');
+  String get newPostTitle => _t('New Post', 'نئی پوسٹ', 'नई पोस्ट', 'منشور جديد');
+  String get postSubtitle => _t('Share flight photos and updates', 'فلائٹ کی تصاویر اور اپڈیٹس شیئر کریں', 'उड़ान की तस्वीरें और अपडेट साझा करें', 'شارك صور الطيران والتحديثات');
 
   // ── Tournaments tab ──
   String get tabAll => _t('All', 'سب', 'सभी', 'الكل');

@@ -99,6 +99,16 @@ class PostsRepository {
     );
   }
 
+  /// Upload a post image and get back its absolute URL (reuses POST /media).
+  /// The returned URL is passed to [createPost] as `image_url`.
+  Future<Result<String>> uploadImage(String filePath) {
+    return _apiClient.upload<String>(
+      '/media',
+      filePath: filePath,
+      fromJson: (d) => (d as Map<String, dynamic>)['url']?.toString() ?? '',
+    );
+  }
+
   Future<Result<PostModel>> getPostDetail(String id) async {
     return _apiClient.get<PostModel>(
       '/posts/$id',

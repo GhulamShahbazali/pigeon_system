@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -42,6 +43,11 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     );
   }
 
+  Future<void> _createRecord() async {
+    await context.push('/records/create');
+    if (mounted) _load(); // show the newly created record on return
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +57,13 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text('My Records', style: AppTextStyles.screenTitle),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
+        onPressed: _createRecord,
+        icon: const Icon(Icons.add_rounded),
+        label: Text('New record', style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
       ),
       body: RefreshIndicator(
         color: AppColors.brand,
@@ -75,6 +88,21 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
         Center(child: Text('No records yet', style: AppTextStyles.cardTitle)),
         const SizedBox(height: 6),
         Center(child: Text('Add a record to track your flights.', style: AppTextStyles.caption)),
+        const SizedBox(height: 20),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: _createRecord,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brand,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 20),
+            label: Text('Add your first record',
+                style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+          ),
+        ),
       ]);
     }
     return ListView.builder(

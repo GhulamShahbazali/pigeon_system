@@ -4,6 +4,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/local_storage/json_cache_service.dart';
 import '../../data/models/tournament_card_model.dart';
 import '../../data/tournaments_repository.dart';
 import '../widgets/tournament_card.dart';
@@ -26,10 +27,12 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
   ];
   int _selectedSegment = 0;
   bool _isLoading = true;
+  bool _refreshing = false;
   String? _errorMessage;
   List<TournamentCardModel> _tournaments = [];
 
   final TournamentsRepository _repository = sl<TournamentsRepository>();
+  final JsonCacheService _cache = sl<JsonCacheService>();
 
   @override
   void initState() {
@@ -40,25 +43,41 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
   String get _currentTab => _segments[_selectedSegment].tab;
 
   Future<void> _fetchTournaments() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    final tab = _currentTab;
+    // Stale-while-revalidate: show this tab's cached list instantly, then refresh.
+    final cached = await _cache.readList('tournaments_$tab');
+    if (!mounted || tab != _currentTab) return;
+    if (cached != null) {
+      setState(() {
+        _tournaments = cached
+            .map((e) => TournamentCardModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    }
 
-    final result = await _repository.getTournaments(tab: _currentTab);
-    if (!mounted) return;
+    setState(() => _refreshing = true);
+    final result = await _repository.getTournaments(tab: tab);
+    if (!mounted || tab != _currentTab) return;
 
     result.when(
       success: (data) {
         setState(() {
           _tournaments = data;
           _isLoading = false;
+          _refreshing = false;
+          _errorMessage = null;
         });
+        _cache.writeList('tournaments_$tab', data.map((e) => e.toJson()).toList());
       },
       failure: (message, code) {
+        // Offline / error: keep the cached list; only surface an error when we
+        // have nothing to show.
         setState(() {
-          _errorMessage = message;
           _isLoading = false;
+          _refreshing = false;
+          if (_tournaments.isEmpty) _errorMessage = message;
         });
       },
     );
@@ -124,7 +143,12 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
                       isSelected: _selectedSegment == i,
                       onTap: () {
                         if (_selectedSegment != i) {
-                          setState(() => _selectedSegment = i);
+                          setState(() {
+                            _selectedSegment = i;
+                            _isLoading = true;
+                            _tournaments = [];
+                            _errorMessage = null;
+                          });
                           _fetchTournaments();
                         }
                       },
@@ -133,6 +157,12 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
               ),
             ),
           ),
+          if (_refreshing && !_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              color: AppColors.brand,
+              backgroundColor: AppColors.soft,
+            ),
           Expanded(
             child: _buildBody(s),
           ),

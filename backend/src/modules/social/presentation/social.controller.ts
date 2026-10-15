@@ -25,6 +25,7 @@ export class SocialController {
   ) {
     const u = await this.social.updateProfile(user.id, {
       displayName: b.display_name,
+      username: b.username,
       bio: b.bio,
       city: b.city,
       photoUrl: b.photo_url,

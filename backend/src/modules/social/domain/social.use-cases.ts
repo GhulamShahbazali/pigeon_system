@@ -19,7 +19,17 @@ export class SocialUseCases {
     const v = await this.repo.findProfileByUsername(username, viewerId);
     return v ? Ok(v) : Err(new NotFoundError('user'));
   }
-  updateProfile(userId: string, input: UpdateProfileInput) {
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    // Username is unique and case-insensitive: normalize, and reject if another
+    // user already holds it (clear field error instead of a raw DB conflict).
+    if (input.username) {
+      const username = input.username.toLowerCase();
+      const existing = await this.repo.findProfileByUsername(username, userId);
+      if (existing && existing.user.id !== userId) {
+        throw new ConflictError('Username already taken', 'username');
+      }
+      input = { ...input, username };
+    }
     return this.repo.updateProfile(userId, input);
   }
 

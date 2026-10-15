@@ -47,6 +47,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     setState(() => _isSaving = true);
     final rawName = _nameController.text.trim();
+    // Username may be shown/typed with a leading "@"; the API wants it without.
+    final rawUsername =
+        _usernameController.text.trim().replaceFirst(RegExp(r'^@+'), '');
     final rawBio = _bioController.text.trim();
     final rawCity = _cityController.text.trim();
 
@@ -71,6 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final result = await _userRepo.updateMyProfile(
       displayName: rawName.isNotEmpty ? rawName : null,
+      username: rawUsername.isNotEmpty ? rawUsername : null,
       bio: rawBio.isNotEmpty ? rawBio : null,
       city: rawCity.isNotEmpty ? rawCity : null,
       photoUrl: photoUrl,

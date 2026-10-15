@@ -2,6 +2,13 @@ import { z } from 'zod';
 
 export const UpdateProfileSchema = z.object({
   display_name: z.string().min(1).max(60).optional(),
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers and underscores')
+    .optional(),
   bio: z.string().max(500).optional(),
   city: z.string().max(80).optional(),
   photo_url: z.string().url().optional(),

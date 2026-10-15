@@ -8,6 +8,7 @@ export interface ProfileView {
 
 export interface UpdateProfileInput {
   displayName?: string;
+  username?: string;
   bio?: string;
   city?: string;
   photoUrl?: string;

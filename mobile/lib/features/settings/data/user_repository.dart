@@ -86,6 +86,7 @@ class UserRepository {
 
   Future<Result<UserProfileModel>> updateMyProfile({
     String? displayName,
+    String? username,
     String? bio,
     String? city,
     String? photoUrl,
@@ -94,6 +95,7 @@ class UserRepository {
       '/me',
       data: {
         if (displayName != null) 'display_name': displayName,
+        if (username != null) 'username': username,
         if (bio != null) 'bio': bio,
         if (city != null) 'city': city,
         if (photoUrl != null) 'photo_url': photoUrl,

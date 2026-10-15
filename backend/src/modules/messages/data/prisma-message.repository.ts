@@ -106,6 +106,19 @@ export class PrismaMessageRepository {
     );
   }
 
+  /** The conversation between [userId] and [otherId], any status, if one exists
+   *  and the caller is a participant — so reopening a chat by user id can load
+   *  its history (including a pending request the caller started). */
+  async findWith(userId: string, otherId: string): Promise<{ id: string; status: string } | null> {
+    const convo = await this.prisma.conversation.findUnique({
+      where: { pairKey: pairKey(userId, otherId) },
+      include: { participants: true },
+    });
+    if (!convo || convo.deletedAt) return null;
+    if (!convo.participants.some((p: any) => p.userId === userId)) return null;
+    return { id: convo.id, status: convo.status };
+  }
+
   async accept(conversationId: string, userId: string): Promise<void> {
     const convo = await this.prisma.conversation.findFirst({
       where: { id: conversationId, deletedAt: null },

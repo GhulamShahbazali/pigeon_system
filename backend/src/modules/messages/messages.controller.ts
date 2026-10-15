@@ -39,6 +39,14 @@ export class MessagesController {
     return { data: await this.uc.requests(u.id) };
   }
 
+  @Get('conversations/with/:userId')
+  async conversationWith(@Param('userId') userId: string, @CurrentUser() u: AuthUser) {
+    const convo = await this.uc.findWith(u.id, userId);
+    return {
+      data: convo ? { conversation_id: convo.id, status: convo.status } : null,
+    };
+  }
+
   @Get('conversations/:id/messages')
   async messages(@Param('id') id: string, @CurrentUser() u: AuthUser, @Query('limit') l?: string) {
     return { data: await this.uc.messages(id, u.id, lim(l)) };

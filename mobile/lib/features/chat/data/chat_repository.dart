@@ -49,6 +49,18 @@ class ChatRepository {
     );
   }
 
+  /// Find an existing conversation with [userId] (any status), so reopening a
+  /// chat by user id can load its history. Returns the conversation id, or null
+  /// if none exists yet.
+  Future<Result<String?>> findConversationWith(String userId) {
+    return _api.get<String?>(
+      '/conversations/with/$userId',
+      fromJson: (d) => (d is Map && d['conversation_id'] != null)
+          ? d['conversation_id'].toString()
+          : null,
+    );
+  }
+
   /// Accept a request → both sides can message freely.
   Future<Result<void>> acceptRequest(String conversationId) {
     return _api.post<void>('/conversations/$conversationId/accept');

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/image_picker_helper.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../settings/data/user_repository.dart';
 import '../../data/posts_repository.dart';
 
@@ -61,7 +62,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Write something to post')),
+        SnackBar(content: Text(AppStrings.read(context).writeSomethingToPost)),
       );
       return;
     }
@@ -98,6 +99,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.card,
       appBar: AppBar(
@@ -108,14 +110,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text('New Post', style: AppTextStyles.h3),
+        title: Text(s.newPostTitle, style: AppTextStyles.h3),
         centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: AppButton(
-                text: 'Publish',
+                text: s.publish,
                 isFullWidth: false,
                 height: 38,
                 isLoading: _isPublishing,
@@ -162,7 +164,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                   const Icon(Icons.remove_red_eye_outlined, size: 12, color: AppColors.brand),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Public',
+                                    s.publicLabel,
                                     style: AppTextStyles.captionBold.copyWith(color: AppColors.ink2, fontSize: 11),
                                   ),
                                 ],
@@ -180,7 +182,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       maxLines: 6,
                       style: AppTextStyles.body,
                       decoration: InputDecoration(
-                        hintText: 'Share something about your loft…',
+                        hintText: s.shareLoftHint,
                         hintStyle: AppTextStyles.body.copyWith(color: AppColors.mut),
                         border: InputBorder.none,
                       ),
@@ -234,7 +236,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             children: [
                               const Icon(Icons.image_outlined, size: 24, color: AppColors.brand),
                               const SizedBox(width: 8),
-                              Text('Add photo', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+                              Text(s.addPhoto, style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
                             ],
                           ),
                         ),
@@ -250,7 +252,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 border: Border(top: BorderSide(color: AppColors.line)),
               ),
               child: AppButton(
-                text: _isPublishing ? 'Publishing…' : 'Publish post',
+                text: _isPublishing ? s.publishing : s.publishPost,
                 isFullWidth: true,
                 isLoading: _isPublishing,
                 onPressed: _publish,

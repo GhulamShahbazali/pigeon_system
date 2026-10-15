@@ -107,6 +107,26 @@ class AppStrings {
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
 
+  // ── Notifications & Privacy settings ──
+  String get notifPrivacyTitle => _t('Notifications & Privacy', 'اطلاعات اور رازداری', 'सूचनाएँ और गोपनीयता', 'الإشعارات والخصوصية');
+  String get pushNotifications => _t('Push notifications', 'پش اطلاعات', 'पुश सूचनाएँ', 'إشعارات الدفع');
+  String get allowPush => _t('Allow push', 'پش کی اجازت', 'पुश की अनुमति', 'السماح بالإشعارات');
+  String get masterSwitch => _t('Master switch', 'مرکزی سوئچ', 'मुख्य स्विच', 'المفتاح الرئيسي');
+  String get newFollowerToggle => _t('New follower', 'نیا فالوور', 'नया फ़ॉलोअर', 'متابِع جديد');
+  String get likesOnContent => _t('Likes on my content', 'میرے مواد پر پسند', 'मेरी सामग्री पर लाइक', 'الإعجابات على محتواي');
+  String get tournamentUpdates => _t('Tournament I follow updates', 'جو ٹورنامنٹ فالو کرتا ہوں اس کی اپڈیٹس', 'जिन टूर्नामेंट को फ़ॉलो करता हूँ उनके अपडेट', 'تحديثات البطولات التي أتابعها');
+  String get liveRecordFollow => _t('Live record from people I follow', 'جن کو فالو کرتا ہوں ان کے لائیو ریکارڈ', 'जिन्हें फ़ॉलो करता हूँ उनके लाइव रिकॉर्ड', 'السجلات المباشرة لمن أتابعهم');
+  String get privateAccount => _t('Private account', 'نجی اکاؤنٹ', 'निजी खाता', 'حساب خاص');
+  String get privateAccountSubtitle => _t('Only approved followers can see your profile and records', 'صرف منظور شدہ فالوورز آپ کی پروفائل اور ریکارڈ دیکھ سکتے ہیں', 'केवल स्वीकृत फ़ॉलोअर आपकी प्रोफ़ाइल और रिकॉर्ड देख सकते हैं', 'يمكن للمتابعين المعتمدين فقط رؤية ملفك وسجلاتك');
+
+  // ── Create post ──
+  String get publish => _t('Publish', 'شائع کریں', 'प्रकाशित करें', 'نشر');
+  String get publishPost => _t('Publish post', 'پوسٹ شائع کریں', 'पोस्ट प्रकाशित करें', 'نشر المنشور');
+  String get publishing => _t('Publishing…', 'شائع ہو رہا ہے…', 'प्रकाशित हो रहा है…', 'جارٍ النشر…');
+  String get publicLabel => _t('Public', 'عوامی', 'सार्वजनिक', 'عام');
+  String get addPhoto => _t('Add photo', 'تصویر شامل کریں', 'फ़ोटो जोड़ें', 'إضافة صورة');
+  String get writeSomethingToPost => _t('Write something to post', 'پوسٹ کرنے کے لیے کچھ لکھیں', 'पोस्ट करने के लिए कुछ लिखें', 'اكتب شيئًا للنشر');
+
   // ── Create New sheet ──
   String get createNew => _t('Create New', 'نیا بنائیں', 'नया बनाएँ', 'إنشاء جديد');
   String get tournamentSubtitle => _t('Single or multi-day competition', 'ایک یا کئی دن کا مقابلہ', 'एक या कई-दिन की प्रतियोगिता', 'منافسة ليوم أو عدة أيام');

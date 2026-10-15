@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 
 class NotificationPrivacySettingsScreen extends StatefulWidget {
   const NotificationPrivacySettingsScreen({super.key});
@@ -19,6 +20,7 @@ class _NotificationPrivacySettingsScreenState extends State<NotificationPrivacyS
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.card,
       appBar: AppBar(
@@ -29,7 +31,7 @@ class _NotificationPrivacySettingsScreenState extends State<NotificationPrivacyS
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text('Notifications & Privacy', style: AppTextStyles.h3),
+        title: Text(s.notifPrivacyTitle, style: AppTextStyles.h3),
         centerTitle: true,
       ),
       body: ListView(
@@ -37,42 +39,42 @@ class _NotificationPrivacySettingsScreenState extends State<NotificationPrivacyS
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            child: Text('Push notifications', style: AppTextStyles.labelUppercase),
+            child: Text(s.pushNotifications, style: AppTextStyles.labelUppercase),
           ),
           _ToggleTile(
-            title: 'Allow push',
-            subtitle: 'Master switch',
+            title: s.allowPush,
+            subtitle: s.masterSwitch,
             value: _allowPush,
             onChanged: (v) => setState(() => _allowPush = v),
           ),
           _ToggleTile(
-            title: 'New follower',
+            title: s.newFollowerToggle,
             value: _newFollower,
             onChanged: (v) => setState(() => _newFollower = v),
           ),
           _ToggleTile(
-            title: 'Likes on my content',
+            title: s.likesOnContent,
             value: _likes,
             onChanged: (v) => setState(() => _likes = v),
           ),
           _ToggleTile(
-            title: 'Tournament I follow updates',
+            title: s.tournamentUpdates,
             value: _tournamentUpdates,
             onChanged: (v) => setState(() => _tournamentUpdates = v),
           ),
           _ToggleTile(
-            title: 'Live record from people I follow',
+            title: s.liveRecordFollow,
             value: _liveRecords,
             onChanged: (v) => setState(() => _liveRecords = v),
           ),
 
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
-            child: Text('Privacy', style: AppTextStyles.labelUppercase),
+            child: Text(s.privacy, style: AppTextStyles.labelUppercase),
           ),
           _ToggleTile(
-            title: 'Private account',
-            subtitle: 'Only approved followers can see your profile and records',
+            title: s.privateAccount,
+            subtitle: s.privateAccountSubtitle,
             icon: Icons.lock_outline_rounded,
             value: _privateAccount,
             onChanged: (v) => setState(() => _privateAccount = v),

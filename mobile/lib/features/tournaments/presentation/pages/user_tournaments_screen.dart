@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/models/tournament_card_model.dart';
 import '../../data/tournaments_repository.dart';
 import '../widgets/tournament_card.dart';
@@ -61,11 +62,12 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         title: Text(
-          'My Tournaments',
+          s.myTournaments,
           style: AppTextStyles.screenTitle,
         ),
         leading: IconButton(
@@ -89,7 +91,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
               child: Row(
                 children: [
                   _SegmentItem(
-                    title: 'All',
+                    title: s.tabAll,
                     isSelected: _selectedSegment == 0,
                     onTap: () {
                       if (_selectedSegment != 0) {
@@ -99,7 +101,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
                     },
                   ),
                   _SegmentItem(
-                    title: 'Followed',
+                    title: s.followedTab,
                     isSelected: _selectedSegment == 1,
                     onTap: () {
                       if (_selectedSegment != 1) {
@@ -113,14 +115,14 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
             ),
           ),
           Expanded(
-            child: _buildBody(),
+            child: _buildBody(s),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.brand,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Tournament', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: Text(s.newTournament, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () async {
           final created = await context.push<bool>('/tournaments/create');
           if (created == true) {
@@ -131,7 +133,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -145,7 +147,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
             children: [
               const Icon(Icons.wifi_off_rounded, size: 48, color: AppColors.mut),
               const SizedBox(height: 12),
-              Text('Failed to load tournaments', style: AppTextStyles.h3),
+              Text(s.failedLoadTournaments, style: AppTextStyles.h3),
               const SizedBox(height: 6),
               Text(_errorMessage!, style: AppTextStyles.caption, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -155,7 +157,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
                   backgroundColor: AppColors.brand,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Retry'),
+                child: Text(s.retry),
               ),
             ],
           ),
@@ -186,15 +188,15 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                isMine ? 'No tournaments created yet' : 'No followed tournaments yet',
+                isMine ? s.noTournamentsCreated : s.noFollowedTournaments,
                 style: AppTextStyles.cardTitle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 isMine
-                    ? 'Tournaments you create will show up here.'
-                    : 'Tournaments you follow and tournaments created by flyers you follow will show up here.',
+                    ? s.tournamentsCreatedHint
+                    : s.followedTournamentsHint,
                 style: AppTextStyles.caption,
                 textAlign: TextAlign.center,
               ),
@@ -214,7 +216,7 @@ class _UserTournamentsScreenState extends State<UserTournamentsScreen> {
           final item = _tournaments[index];
           return TournamentCard(
             title: item.title,
-            organizer: item.organizer?.displayName ?? 'Organizer',
+            organizer: item.organizer?.displayName ?? s.organizer,
             days: item.daysDisplay,
             schedule: item.scheduleDisplay,
             pigeons: item.pigeonCount,

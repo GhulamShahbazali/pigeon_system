@@ -4,6 +4,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/chat_repository.dart';
 import '../../data/models/chat_models.dart';
 import 'message_requests_screen.dart';
@@ -49,6 +50,7 @@ class _InboxScreenState extends State<InboxScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.card,
       appBar: AppBar(
@@ -59,7 +61,7 @@ class _InboxScreenState extends State<InboxScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text('Messages', style: AppTextStyles.h2),
+        title: Text(s.messagesTitle, style: AppTextStyles.h2),
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded, size: 22, color: AppColors.ink),
@@ -71,12 +73,12 @@ class _InboxScreenState extends State<InboxScreen> {
       body: RefreshIndicator(
         color: AppColors.brand,
         onRefresh: _load,
-        child: _buildBody(),
+        child: _buildBody(s),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -108,9 +110,9 @@ class _InboxScreenState extends State<InboxScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Message requests', style: AppTextStyles.bodyBold),
+                      Text(s.messageRequests, style: AppTextStyles.bodyBold),
                       const SizedBox(height: 2),
-                      Text('People who want to chat',
+                      Text(s.peopleWhoWantToChat,
                           style: AppTextStyles.caption.copyWith(color: AppColors.sub)),
                     ],
                   ),
@@ -133,20 +135,20 @@ class _InboxScreenState extends State<InboxScreen> {
               children: [
                 const Icon(Icons.forum_outlined, size: 54, color: AppColors.muted),
                 const SizedBox(height: 12),
-                Text('No conversations yet', style: AppTextStyles.cardTitle, textAlign: TextAlign.center),
+                Text(s.noConversations, style: AppTextStyles.cardTitle, textAlign: TextAlign.center),
                 const SizedBox(height: 6),
-                Text('Start a chat from someone’s profile.',
+                Text(s.startChatHint,
                     style: AppTextStyles.caption, textAlign: TextAlign.center),
               ],
             ),
           )
         else
-          ..._conversations.map(_buildTile),
+          ..._conversations.map((c) => _buildTile(c, s)),
       ],
     );
   }
 
-  Widget _buildTile(ConversationModel c) {
+  Widget _buildTile(ConversationModel c, AppStrings s) {
     return InkWell(
       onTap: () {
         Navigator.of(context)
@@ -174,7 +176,7 @@ class _InboxScreenState extends State<InboxScreen> {
                   Text(c.otherName, style: AppTextStyles.bodyBold, maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
                   Text(
-                    c.lastMessagePreview?.isNotEmpty == true ? c.lastMessagePreview! : 'Tap to open chat',
+                    c.lastMessagePreview?.isNotEmpty == true ? c.lastMessagePreview! : s.tapToOpenChat,
                     style: AppTextStyles.caption.copyWith(color: AppColors.mut),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -107,6 +107,25 @@ class AppStrings {
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
 
+  // ── Tournament card + My Tournaments ──
+  String get byAuthor => _t('by', 'بذریعہ', 'द्वारा', 'بواسطة');
+  String get pigeonsUnit => _t('pigeons', 'کبوتر', 'कबूतर', 'حمام');
+  String get followedTab => _t('Followed', 'فالو شدہ', 'फ़ॉलो किए', 'المتابَعة');
+  String get failedLoadTournaments => _t('Failed to load tournaments', 'ٹورنامنٹ لوڈ نہیں ہو سکے', 'टूर्नामेंट लोड नहीं हो सके', 'تعذّر تحميل البطولات');
+  String get retry => _t('Retry', 'دوبارہ', 'पुनः प्रयास', 'إعادة');
+  String get noTournamentsCreated => _t('No tournaments created yet', 'ابھی کوئی ٹورنامنٹ نہیں بنایا', 'अभी कोई टूर्नामेंट नहीं बनाया', 'لم تُنشئ أي بطولة بعد');
+  String get noFollowedTournaments => _t('No followed tournaments yet', 'ابھی کوئی فالو شدہ ٹورنامنٹ نہیں', 'अभी कोई फ़ॉलो किया टूर्नामेंट नहीं', 'لا بطولات متابَعة بعد');
+  String get tournamentsCreatedHint => _t('Tournaments you create will show up here.', 'آپ کے بنائے ٹورنامنٹ یہاں نظر آئیں گے۔', 'आपके बनाए टूर्नामेंट यहाँ दिखेंगे।', 'ستظهر هنا البطولات التي تنشئها.');
+  String get followedTournamentsHint => _t('Tournaments you follow and tournaments created by flyers you follow will show up here.', 'جو ٹورنامنٹ آپ فالو کرتے ہیں اور جن فلائرز کو فالو کرتے ہیں ان کے بنائے ٹورنامنٹ یہاں نظر آئیں گے۔', 'जिन टूर्नामेंट को आप फ़ॉलो करते हैं और जिन फ़्लायर्स को फ़ॉलो करते हैं उनके बनाए टूर्नामेंट यहाँ दिखेंगे।', 'ستظهر هنا البطولات التي تتابعها وبطولات من تتابعهم.');
+
+  // ── Messages / inbox ──
+  String get messagesTitle => _t('Messages', 'پیغامات', 'संदेश', 'الرسائل');
+  String get messageRequests => _t('Message requests', 'پیغام کی درخواستیں', 'संदेश अनुरोध', 'طلبات المراسلة');
+  String get peopleWhoWantToChat => _t('People who want to chat', 'جو لوگ بات کرنا چاہتے ہیں', 'जो लोग चैट करना चाहते हैं', 'أشخاص يريدون المحادثة');
+  String get noConversations => _t('No conversations yet', 'ابھی کوئی گفتگو نہیں', 'अभी कोई बातचीत नहीं', 'لا محادثات بعد');
+  String get startChatHint => _t("Start a chat from someone's profile.", 'کسی کی پروفائل سے گفتگو شروع کریں۔', 'किसी की प्रोफ़ाइल से चैट शुरू करें।', 'ابدأ محادثة من ملف أحدهم.');
+  String get tapToOpenChat => _t('Tap to open chat', 'چیٹ کھولنے کے لیے دبائیں', 'चैट खोलने के लिए टैप करें', 'اضغط لفتح المحادثة');
+
   // ── Edit profile ──
   String get nameLabel => _t('Name', 'نام', 'नाम', 'الاسم');
   String get usernameLabel => _t('Username', 'یوزرنیم', 'यूज़रनेम', 'اسم المستخدم');

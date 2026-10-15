@@ -4,6 +4,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/pigeon_watermark.dart';
+import '../../../../core/localization/app_strings.dart';
 
 class TournamentCard extends StatelessWidget {
   final String title;
@@ -41,6 +42,7 @@ class TournamentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
       decoration: BoxDecoration(
@@ -104,7 +106,7 @@ class TournamentCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                liveLabel ?? 'LIVE',
+                                liveLabel ?? s.live,
                                 style: const TextStyle(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w800,
@@ -135,7 +137,7 @@ class TournamentCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'by $organizer',
+                            '${s.byAuthor} $organizer',
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.white90,
                               fontWeight: FontWeight.w600,
@@ -168,7 +170,7 @@ class TournamentCard extends StatelessWidget {
                         const Icon(Icons.emoji_events_outlined, size: 13, color: AppColors.amberInk),
                         const SizedBox(width: 4),
                         Text(
-                          '$pigeons pigeons',
+                          '$pigeons ${s.pigeonsUnit}',
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.amberInk,
                             fontWeight: FontWeight.w700,

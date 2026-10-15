@@ -21,7 +21,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    // Short brand flash only. Auth now resolves locally (no network round-trip on
+    // launch), so the splash no longer waits on a slow/blocked server request.
+    Future.delayed(const Duration(milliseconds: 900), () {
       if (mounted) {
         setState(() => _minTimeElapsed = true);
         _handleRouting(context.read<AuthBloc>().state);

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/network/api_client.dart';
@@ -105,25 +107,21 @@ class AuthRepository {
 
   Future<AuthOutcome> checkSession() async {
     try {
-      // 1. Check if valid session token already exists in local storage
+      // 1. Local-first: a stored, unexpired session JWT means the user is already
+      //    signed in. Trust it WITHOUT a network round-trip, so the app stays logged
+      //    in across cold starts (and while offline / the backend is slow) until the
+      //    user logs out or the token actually expires. This is what keeps the splash
+      //    fast and stops the "log in on every launch" behaviour.
+      //    Server-side revocation (block/suspend/logout-everywhere) is caught lazily:
+      //    the first authenticated API call returns 401 and the app signs out then.
       final token = await _storage.getToken();
-      if (token != null && token.isNotEmpty) {
-        final meRes = await _api.get<Map<String, dynamic>>(
-          '/auth/me',
-          fromJson: (d) => (d as Map).cast<String, dynamic>(),
-        );
-        if (meRes.isSuccess) {
-          final data = (meRes as dynamic).data as Map<String, dynamic>;
-          final user = data['user'] as Map<String, dynamic>?;
-          return AuthOutcome(
-            AuthOutcomeType.authenticated,
-            name: user?['display_name']?.toString(),
-            email: user?['username']?.toString(),
-          );
-        }
+      if (token != null && token.isNotEmpty && _isTokenValid(token)) {
+        return const AuthOutcome(AuthOutcomeType.authenticated);
       }
 
-      // 2. Silent restore via Firebase Auth:
+      // 2. No usable local token (missing/expired/malformed) → silent restore via
+      //    Firebase Auth (persists natively on the device), which transparently mints
+      //    a fresh backend session without showing the sign-in screen:
       // If user was previously logged in on this device, Firebase currentUser persists natively!
       final fbUser = FirebaseAuth.instance.currentUser;
       if (fbUser != null) {
@@ -171,6 +169,29 @@ class AuthRepository {
   Future<bool> hasSession() async {
     final outcome = await checkSession();
     return outcome.type == AuthOutcomeType.authenticated;
+  }
+
+  /// True when [token] is a well-formed JWT that has not expired (10s leeway).
+  /// Decodes only the `exp` claim locally — no signature check (the server stays the
+  /// final authority via 401 on real calls). A token with no `exp` is treated as
+  /// valid; a malformed token is invalid so we fall back to Firebase silent restore.
+  bool _isTokenValid(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      var payload = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      while (payload.length % 4 != 0) {
+        payload += '=';
+      }
+      final map =
+          jsonDecode(utf8.decode(base64.decode(payload))) as Map<String, dynamic>;
+      final exp = map['exp'];
+      if (exp is! num) return true; // no exp claim → let the server decide
+      final expiryMs = exp.toInt() * 1000;
+      return DateTime.now().millisecondsSinceEpoch < (expiryMs - 10000);
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> signOut() async {

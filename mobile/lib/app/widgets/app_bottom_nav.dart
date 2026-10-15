@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
+import '../../core/localization/app_strings.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int selectedIndex;
@@ -16,6 +17,7 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.card,
@@ -37,13 +39,13 @@ class AppBottomNav extends StatelessWidget {
                     index: 0,
                     icon: Icons.home_outlined,
                     activeIcon: Icons.home_rounded,
-                    label: 'Home',
+                    label: s.navHome,
                   ),
                   _buildNavItem(
                     index: 1,
                     icon: Icons.emoji_events_outlined,
                     activeIcon: Icons.emoji_events_rounded,
-                    label: 'Tournaments',
+                    label: s.navTournaments,
                   ),
                   // Placeholder for center FAB
                   const Expanded(child: SizedBox()),
@@ -51,13 +53,13 @@ class AppBottomNav extends StatelessWidget {
                     index: 2,
                     icon: Icons.format_list_bulleted_rounded,
                     activeIcon: Icons.format_list_bulleted_rounded,
-                    label: 'Records',
+                    label: s.navRecords,
                   ),
                   _buildNavItem(
                     index: 3,
                     icon: Icons.person_outline_rounded,
                     activeIcon: Icons.person_rounded,
-                    label: 'Profile',
+                    label: s.navProfile,
                   ),
                 ],
               ),

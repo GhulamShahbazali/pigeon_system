@@ -73,6 +73,17 @@ class UserRepository {
   Future<Result<void>> follow(String id) => _api.post<void>('/users/$id/follow');
   Future<Result<void>> unfollow(String id) => _api.delete<void>('/users/$id/follow');
 
+  /// Upload a profile photo file and get back its absolute public URL.
+  /// Reuses the shared media endpoint (`POST /media`); the returned URL is then
+  /// saved on the profile via [updateMyProfile] as `photo_url`.
+  Future<Result<String>> uploadProfilePhoto(String filePath) {
+    return _api.upload<String>(
+      '/media',
+      filePath: filePath,
+      fromJson: (d) => (d as Map<String, dynamic>)['url']?.toString() ?? '',
+    );
+  }
+
   Future<Result<UserProfileModel>> updateMyProfile({
     String? displayName,
     String? bio,

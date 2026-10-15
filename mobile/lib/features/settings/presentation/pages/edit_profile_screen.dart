@@ -16,6 +16,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final UserRepository _userRepo = sl<UserRepository>();
   File? _profileImage;
+  String? _existingPhotoUrl;
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _bioController = TextEditingController();
@@ -38,6 +39,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _usernameController.text = '@${user.username}';
       _bioController.text = user.bio ?? '';
       _cityController.text = user.city ?? '';
+      _existingPhotoUrl = user.photoUrl;
     }
     setState(() => _isLoading = false);
   }
@@ -48,10 +50,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final rawBio = _bioController.text.trim();
     final rawCity = _cityController.text.trim();
 
+    // If the user picked a new photo, upload it first and save its URL on the
+    // profile. Without this the picked image was silently discarded (the reason
+    // the avatar never updated).
+    String? photoUrl;
+    if (_profileImage != null) {
+      final uploadRes = await _userRepo.uploadProfilePhoto(_profileImage!.path);
+      if (!mounted) return;
+      if (uploadRes.isSuccess) {
+        final url = (uploadRes as dynamic).data as String;
+        if (url.isNotEmpty) photoUrl = url;
+      } else {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text((uploadRes as dynamic).message ?? 'Photo upload failed')),
+        );
+        return;
+      }
+    }
+
     final result = await _userRepo.updateMyProfile(
       displayName: rawName.isNotEmpty ? rawName : null,
       bio: rawBio.isNotEmpty ? rawBio : null,
       city: rawCity.isNotEmpty ? rawCity : null,
+      photoUrl: photoUrl,
     );
 
     if (!mounted) return;
@@ -68,6 +90,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         SnackBar(content: Text(err)),
       );
     }
+  }
+
+  Widget _avatarInitial() {
+    final name = _nameController.text.trim();
+    final letter = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return Center(
+      child: Text(
+        letter,
+        style: const TextStyle(
+          fontSize: 35,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
   }
 
   @override
@@ -135,16 +172,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       clipBehavior: Clip.antiAlias,
                       child: _profileImage != null
                           ? Image.file(_profileImage!, fit: BoxFit.cover)
-                          : const Center(
-                              child: Text(
-                                'A',
-                                style: TextStyle(
-                                  fontSize: 35,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                          : (_existingPhotoUrl != null && _existingPhotoUrl!.trim().isNotEmpty)
+                              ? Image.network(
+                                  _existingPhotoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _avatarInitial(),
+                                )
+                              : _avatarInitial(),
                     ),
                     Positioned(
                       right: 0,

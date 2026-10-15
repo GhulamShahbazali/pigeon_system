@@ -4,6 +4,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/image_picker_helper.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/user_repository.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -85,7 +86,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (result.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        SnackBar(content: Text(AppStrings.read(context).profileUpdated)),
       );
       Navigator.of(context).pop(true);
     } else {
@@ -122,6 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.card,
       appBar: AppBar(
@@ -132,7 +134,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: Text('Edit profile', style: AppTextStyles.h3),
+        title: Text(s.editProfile, style: AppTextStyles.h3),
         centerTitle: true,
         actions: [
           TextButton(
@@ -143,7 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brand),
                   )
-                : Text('Save', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+                : Text(s.save, style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
           ),
           const SizedBox(width: 8),
         ],
@@ -204,13 +206,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            _Field(label: 'Name', controller: _nameController),
+            _Field(label: s.nameLabel, controller: _nameController),
             const SizedBox(height: 18),
-            _Field(label: 'Username', controller: _usernameController),
+            _Field(label: s.usernameLabel, controller: _usernameController),
             const SizedBox(height: 18),
-            _Field(label: 'Bio', controller: _bioController, hint: 'Tell people about your loft…', maxLines: 3),
+            _Field(label: s.bioLabel, controller: _bioController, hint: s.bioHint, maxLines: 3),
             const SizedBox(height: 18),
-            _Field(label: 'City', controller: _cityController),
+            _Field(label: s.cityLabel, controller: _cityController),
           ],
         ),
       ),

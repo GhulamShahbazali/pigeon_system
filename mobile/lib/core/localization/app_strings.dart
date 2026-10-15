@@ -107,6 +107,14 @@ class AppStrings {
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
 
+  // ── Edit profile ──
+  String get nameLabel => _t('Name', 'نام', 'नाम', 'الاسم');
+  String get usernameLabel => _t('Username', 'یوزرنیم', 'यूज़रनेम', 'اسم المستخدم');
+  String get bioLabel => _t('Bio', 'تعارف', 'परिचय', 'نبذة');
+  String get cityLabel => _t('City', 'شہر', 'शहर', 'المدينة');
+  String get bioHint => _t('Tell people about your loft…', 'لوگوں کو اپنے لوفٹ کے بارے میں بتائیں…', 'लोगों को अपने लॉफ़्ट के बारे में बताएँ…', 'أخبر الناس عن برجك…');
+  String get profileUpdated => _t('Profile updated successfully!', 'پروفائل کامیابی سے اپڈیٹ ہو گئی!', 'प्रोफ़ाइल सफलतापूर्वक अपडेट हुई!', 'تم تحديث الملف بنجاح!');
+
   // ── Notifications & Privacy settings ──
   String get notifPrivacyTitle => _t('Notifications & Privacy', 'اطلاعات اور رازداری', 'सूचनाएँ और गोपनीयता', 'الإشعارات والخصوصية');
   String get pushNotifications => _t('Push notifications', 'پش اطلاعات', 'पुश सूचनाएँ', 'إشعارات الدفع');

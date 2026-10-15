@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/bloc/navigation_bloc.dart';
 import '../../../../app/bloc/navigation_event.dart';
+import '../../../../app/bloc/navigation_state.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/network/socket_service.dart';
+import '../../../records/data/records_repository.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -30,9 +32,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TournamentsRepository _tournamentsRepo = sl<TournamentsRepository>();
   final PostsRepository _postsRepo = sl<PostsRepository>();
+  final RecordsRepository _recordsRepo = sl<RecordsRepository>();
   final SocketService _socket = sl<SocketService>();
 
+  static const int _homeTabIndex = 0;
+
   List<TournamentCardModel> _tournaments = [];
+  List<LiveRecordPreviewModel> _liveRecords = [];
   List<PostModel> _posts = [];
   final Set<String> _likedPostIds = {};
   final Map<String, int> _postLikeCounts = {};
@@ -91,16 +97,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDashboardData() async {
-    // Fire both requests together and await them in parallel — they are
-    // independent, so there's no reason to pay two round-trips back-to-back.
+    // Fire the requests together and await them in parallel — they are
+    // independent, so there's no reason to pay the round-trips back-to-back.
     final tFuture = _tournamentsRepo.getTournaments(tab: 'all');
     final pFuture = _postsRepo.getFeed(tab: 'for_you', limit: 100);
+    final lFuture = _recordsRepo.getLiveNow();
     final tResult = await tFuture;
     final pResult = await pFuture;
+    final lResult = await lFuture;
 
     if (!mounted) return;
 
     setState(() {
+      if (lResult.isSuccess) {
+        _liveRecords = (lResult as dynamic).data as List<LiveRecordPreviewModel>;
+      }
       if (tResult.isSuccess) {
         _tournaments = (tResult as dynamic).data as List<TournamentCardModel>;
       }
@@ -126,7 +137,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    return Scaffold(
+    return BlocListener<NavigationBloc, NavigationState>(
+      // Returning to the Home tab re-pulls the dashboard so the Live-now strip
+      // (and feed/tournaments) reflect what's live right now, not just startup.
+      listenWhen: (prev, curr) =>
+          curr.selectedIndex == _homeTabIndex && prev.selectedIndex != _homeTabIndex,
+      listener: (_, __) => _loadDashboardData(),
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
         bottom: false,
@@ -211,6 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       LiveNowStrip(
+                        records: _liveRecords,
+                        isLoading: _isLoading,
                         onGoLivePressed: () => context.push('/records/create'),
                         onUserPressed: (recordId) => context.push('/records/live/$recordId'),
                       ),
@@ -449,6 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -49,7 +49,16 @@ export class PrismaRecordRepository {
       select: { followeeId: true },
     });
     const followedIds = follows.map((f) => f.followeeId);
-    const base = { privacy: 'live' as const, status: 'open' as const, deletedAt: null };
+    // A live record drops out of "Live now" 24h after it went live, even if the
+    // owner-local midnight auto-end job hasn't run yet (timezone change, missed
+    // job, restart) — so stale records never linger in the live list.
+    const liveCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const base = {
+      privacy: 'live' as const,
+      status: 'open' as const,
+      deletedAt: null,
+      wentLiveAt: { gte: liveCutoff },
+    };
     const include = { user: { select: { id: true, displayName: true, username: true, photoUrl: true } } };
 
     // Live records of people the viewer follows come first.

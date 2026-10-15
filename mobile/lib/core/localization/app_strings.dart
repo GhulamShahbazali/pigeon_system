@@ -81,6 +81,7 @@ class AppStrings {
 
   // ── Home ──
   String get liveNow => _t('Live now', 'ابھی لائیو', 'अभी लाइव', 'مباشر الآن');
+  String get goLive => _t('Go live', 'لائیو جائیں', 'लाइव जाएँ', 'بث مباشر');
   String get featuredTournament => _t('Featured tournament', 'نمایاں ٹورنامنٹ', 'फ़ीचर्ड टूर्नामेंट', 'بطولة مميزة');
   String get trendingTournaments => _t('Trending tournaments', 'مقبول ٹورنامنٹ', 'ट्रेंडिंग टूर्नामेंट', 'بطولات رائجة');
   String get feedCommunity => _t('Feed & Community Updates', 'فیڈ اور کمیونٹی اپڈیٹس', 'फ़ीड और समुदाय अपडेट', 'الموجز وتحديثات المجتمع');

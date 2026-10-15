@@ -102,6 +102,21 @@ class AppStrings {
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
 
+  // ── Records tab ──
+  String get recordsTitle => _t('Records', 'ریکارڈ', 'रिकॉर्ड', 'السجلات');
+  String get myRecordsTab => _t('My records', 'میرے ریکارڈ', 'मेरे रिकॉर्ड', 'سجلاتي');
+  String get noFlightRecords => _t('No flight records logged yet', 'ابھی کوئی فلائٹ ریکارڈ درج نہیں', 'अभी कोई उड़ान रिकॉर्ड दर्ज नहीं', 'لا سجلات طيران بعد');
+  String get logLoftHint => _t('Log your loft routine using the + button above.', 'اوپر + بٹن سے اپنے لوفٹ کا معمول درج کریں۔', 'ऊपर + बटन से अपने लॉफ़्ट का रिकॉर्ड जोड़ें।', 'سجّل روتين برجك باستخدام زر + بالأعلى.');
+  String get youreLive => _t("You're live now", 'آپ ابھی لائیو ہیں', 'आप अभी लाइव हैं', 'أنت مباشر الآن');
+  String get noFlyersLive => _t('No flyers live right now', 'ابھی کوئی فلائر لائیو نہیں', 'अभी कोई फ़्लायर लाइव नहीं', 'لا مربّين مباشرين الآن');
+  String get noFlyersLiveHint => _t('When accounts you follow go live with flights, they appear here.', 'جن اکاؤنٹس کو آپ فالو کرتے ہیں وہ لائیو ہوں تو یہاں نظر آئیں گے۔', 'जिन खातों को आप फ़ॉलो करते हैं वे लाइव होने पर यहाँ दिखेंगे।', 'عندما يبث من تتابعهم مباشرةً يظهرون هنا.');
+  String get liveNowBadge => _t('LIVE NOW', 'ابھی لائیو', 'अभी लाइव', 'مباشر الآن');
+  String get pigeons => _t('Pigeons', 'کبوتر', 'कबूतर', 'الحمام');
+  String get flyTimeLabel => _t('Fly Time', 'اڑان کا وقت', 'उड़ान समय', 'وقت الطيران');
+  String get average => _t('Average', 'اوسط', 'औसत', 'المعدّل');
+  String get tryAgain => _t('Try Again', 'دوبارہ کوشش کریں', 'पुनः प्रयास करें', 'حاول مرة أخرى');
+  String landedOf(int a, int b) => _t('$a of $b landed', '$b میں سے $a واپس', '$b में से $a लौटे', '$a من $b عادت');
+
   // ── Find friends ──
   String get findFriends => _t('Find friends', 'دوست تلاش کریں', 'दोस्त खोजें', 'ابحث عن أصدقاء');
   String get searchPeople => _t('Search people', 'لوگ تلاش کریں', 'लोग खोजें', 'ابحث عن أشخاص');

@@ -7,7 +7,7 @@ Own daily routine. Private (stored) or live (broadcast). Same duration/average m
 | Method · Path | Auth | Body → | Notes |
 |---------------|------|--------|-------|
 | `GET /v1/me/records` | session | cursor → `{ data:[record] }` | "My records" (private + live) |
-| `GET /v1/records/live` | session | → `{ data:[live record previews] }` | **"Live now"** — from Redis `live_records:active` (owners you follow) |
+| `GET /v1/records/live` | session | → `{ data:[live record previews] }` | **"Live now"** — live records (`privacy=live`, `status=open`). Owners you **follow** come first; if that yields fewer than `limit`, the rest is filled with other users' live records (discovery) so a new user who follows no one still sees who is live. Never your own. Preview = `{ id, total_avg_seconds, returned_count, total_pigeons, like_count, view_count, owner:{id,display_name,username,photo_url} }` |
 | `GET /v1/records/{id}` | session | → `{ record, pigeons:[…], total_avg_seconds, returned_count }` | owner sees private; others only if live |
 | `POST /v1/me/records` | session | `{ record_date, fly_time, total_pigeons, privacy }` → `201 {record}` | `privacy` default `private` |
 | `PATCH /v1/records/{id}` | session | partial → `{record}` | owner only |

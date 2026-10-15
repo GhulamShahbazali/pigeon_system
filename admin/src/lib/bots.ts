@@ -24,7 +24,8 @@ export interface Overview {
   active_source: 'schedule' | 'manual';
   total_bots: number;
   awake_now: number;
-  today: { posts: number; likes: number; views: number; follows: number; tournaments: number };
+  today: { posts: number; likes: number; views: number; follows: number; tournaments: number; records: number };
+  live_records_now: number;
 }
 export interface RosterItem {
   id: string;

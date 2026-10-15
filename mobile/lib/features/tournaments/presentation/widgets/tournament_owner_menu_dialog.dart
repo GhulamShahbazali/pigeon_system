@@ -5,6 +5,7 @@ import '../../../../core/theme/app_text_styles.dart';
 
 class TournamentOwnerMenuDialog extends StatelessWidget {
   final VoidCallback? onEdit;
+  final VoidCallback? onAddParticipant;
   final VoidCallback? onManageParticipants;
   final VoidCallback? onShare;
   final VoidCallback? onDelete;
@@ -12,6 +13,7 @@ class TournamentOwnerMenuDialog extends StatelessWidget {
   const TournamentOwnerMenuDialog({
     super.key,
     this.onEdit,
+    this.onAddParticipant,
     this.onManageParticipants,
     this.onShare,
     this.onDelete,
@@ -20,6 +22,7 @@ class TournamentOwnerMenuDialog extends StatelessWidget {
   static Future<void> show(
     BuildContext context, {
     VoidCallback? onEdit,
+    VoidCallback? onAddParticipant,
     VoidCallback? onManageParticipants,
     VoidCallback? onShare,
     VoidCallback? onDelete,
@@ -29,6 +32,7 @@ class TournamentOwnerMenuDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => TournamentOwnerMenuDialog(
         onEdit: onEdit,
+        onAddParticipant: onAddParticipant,
         onManageParticipants: onManageParticipants,
         onShare: onShare,
         onDelete: onDelete,
@@ -62,6 +66,15 @@ class TournamentOwnerMenuDialog extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
               onEdit?.call();
+            },
+          ),
+          const SizedBox(height: 10),
+          _MenuTile(
+            icon: Icons.person_add_alt_1_outlined,
+            title: 'Add participant',
+            onTap: () {
+              Navigator.of(context).pop();
+              onAddParticipant?.call();
             },
           ),
           const SizedBox(height: 10),

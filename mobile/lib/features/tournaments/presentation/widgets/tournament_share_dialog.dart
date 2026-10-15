@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../data/record_exporter.dart';
 
 class TournamentShareDialog extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? shareUrl;
   final bool isParticipant;
+  final ParticipantExportData? exportData;
 
   const TournamentShareDialog({
     super.key,
@@ -15,6 +17,7 @@ class TournamentShareDialog extends StatelessWidget {
     required this.subtitle,
     this.shareUrl,
     this.isParticipant = false,
+    this.exportData,
   });
 
   static Future<void> show(
@@ -23,6 +26,7 @@ class TournamentShareDialog extends StatelessWidget {
     required String subtitle,
     String? shareUrl,
     bool isParticipant = false,
+    ParticipantExportData? exportData,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -33,21 +37,36 @@ class TournamentShareDialog extends StatelessWidget {
         subtitle: subtitle,
         shareUrl: shareUrl,
         isParticipant: isParticipant,
+        exportData: exportData,
       ),
     );
   }
 
+  Future<void> _export(BuildContext context, Future<void> Function(ParticipantExportData) fn) async {
+    final data = exportData;
+    Navigator.of(context).pop();
+    if (data == null) return;
+    try {
+      await fn(data);
+    } catch (_) {/* share cancelled / failed — ignore */}
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Clear the system navigation bar / gesture inset so the last tile is never
+    // hidden behind it, and allow scrolling if the content is tall.
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
       decoration: const BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           Container(
             width: 40,
             height: 4,
@@ -80,7 +99,17 @@ class TournamentShareDialog extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text('Copy', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+                  InkWell(
+                    onTap: () async {
+                      await RecordExporter.copyLink(shareUrl!);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Link copied'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    },
+                    child: Text('Copy', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+                  ),
                 ],
               ),
             ),
@@ -92,7 +121,7 @@ class TournamentShareDialog extends StatelessWidget {
               iconBg: AppColors.greenExcel,
               title: 'Excel spreadsheet',
               badge: '.xlsx',
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () => _export(context, RecordExporter.shareExcel),
             ),
             const SizedBox(height: 10),
             _ShareOptionTile(
@@ -100,7 +129,7 @@ class TournamentShareDialog extends StatelessWidget {
               iconBg: AppColors.danger,
               title: 'PDF report',
               badge: '.pdf',
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () => _export(context, RecordExporter.sharePdf),
             ),
             const SizedBox(height: 10),
             _ShareOptionTile(
@@ -108,7 +137,7 @@ class TournamentShareDialog extends StatelessWidget {
               iconBg: AppColors.brand,
               title: 'Text summary',
               badge: 'copy / send',
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () => _export(context, RecordExporter.shareText),
             ),
             const SizedBox(height: 10),
             _ShareOptionTile(
@@ -116,7 +145,7 @@ class TournamentShareDialog extends StatelessWidget {
               iconBg: AppColors.purpleImage,
               title: 'Image card',
               badge: '.png',
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () => _export(context, RecordExporter.shareImage),
             ),
           ] else ...[
             _ShareOptionTile(
@@ -124,7 +153,10 @@ class TournamentShareDialog extends StatelessWidget {
               iconBg: AppColors.brand,
               title: 'Share link',
               badge: 'WhatsApp · anywhere',
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () {
+                Navigator.of(context).pop();
+                if (shareUrl != null) RecordExporter.shareLink(shareUrl!, subject: title);
+              },
             ),
             const SizedBox(height: 10),
             _ShareOptionTile(
@@ -143,7 +175,8 @@ class TournamentShareDialog extends StatelessWidget {
               onTap: () => Navigator.of(context).pop(),
             ),
           ],
-        ],
+          ],
+        ),
       ),
     );
   }

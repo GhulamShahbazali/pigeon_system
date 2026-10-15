@@ -1,4 +1,9 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_event.dart';
+import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/auth/presentation/pages/splash_screen.dart';
 import '../../features/auth/presentation/pages/sign_in_screen.dart';
 import '../../features/auth/presentation/pages/google_chooser_screen.dart';
@@ -8,7 +13,9 @@ import '../pages/main_shell_page.dart';
 import '../../features/tournaments/presentation/pages/create_tournament_screen.dart';
 import '../../features/tournaments/presentation/pages/tournament_participants_screen.dart';
 import '../../features/tournaments/presentation/pages/tournament_detail_screen.dart';
+import '../../features/tournaments/presentation/pages/tournament_winner_screen.dart';
 import '../../features/tournaments/presentation/pages/record_day_result_screen.dart';
+import '../../features/posts/data/posts_repository.dart';
 import '../../features/posts/presentation/pages/create_post_screen.dart';
 import '../../features/posts/presentation/pages/post_detail_screen.dart';
 import '../../features/records/presentation/pages/add_record_screen.dart';
@@ -25,6 +32,7 @@ import '../../features/chat/presentation/pages/inbox_screen.dart';
 import '../../features/chat/presentation/pages/message_requests_screen.dart';
 import '../../features/chat/presentation/pages/chat_screen.dart';
 import '../../features/tournaments/presentation/pages/tournament_search_screen.dart';
+import '../../features/tournaments/presentation/pages/user_tournaments_screen.dart';
 import '../../features/records/presentation/pages/records_search_screen.dart';
 import '../../features/chat/presentation/pages/chat_search_screen.dart';
 import '../../features/home/presentation/pages/find_friends_screen.dart';
@@ -34,15 +42,27 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => SplashScreen(
-        onFinish: () => context.go('/auth/sign-in'),
-      ),
+      builder: (context, state) => const SplashScreen(),
     ),
     GoRoute(
       path: '/auth/sign-in',
-      builder: (context, state) => SignInScreen(
-        onGoogleSignIn: () => context.push('/auth/chooser'),
-        onAppleSignIn: () => context.push('/auth/profile-setup'),
+      builder: (context, state) => BlocListener<AuthBloc, AuthState>(
+        listener: (context, s) {
+          if (s.status == AuthStatus.authenticated) {
+            context.go('/home');
+          } else if (s.status == AuthStatus.needsProfileSetup) {
+            context.go('/auth/profile-setup');
+          } else if (s.status == AuthStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(s.errorMessage ?? 'Sign-in failed')),
+            );
+          }
+        },
+        child: SignInScreen(
+          // Trigger the REAL Google sign-in (native picker -> Firebase -> backend).
+          onGoogleSignIn: () => context.read<AuthBloc>().add(AuthGoogleSignInRequestedEvent()),
+          onAppleSignIn: () => context.read<AuthBloc>().add(AuthAppleSignInRequestedEvent()),
+        ),
       ),
     ),
     GoRoute(
@@ -54,8 +74,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/auth/profile-setup',
+      // The screen dispatches AuthProfileSubmittedEvent itself and calls onContinue
+      // once the backend completes signup (status = authenticated).
       builder: (context, state) => ProfileSetupScreen(
-        onContinue: () => context.go('/auth/welcome'),
+        onContinue: () => context.go('/home'),
       ),
     ),
     GoRoute(
@@ -76,7 +98,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/tournaments/participants',
-      builder: (context, state) => const TournamentParticipantsScreen(),
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return TournamentParticipantsScreen(
+          tournamentId: state.uri.queryParameters['tournamentId'],
+          tournamentData: data,
+        );
+      },
     ),
     GoRoute(
       path: '/tournaments/detail/:id',
@@ -93,6 +121,24 @@ final GoRouter appRouter = GoRouter(
       path: '/tournaments/record-day',
       builder: (context, state) => const RecordDayResultScreen(),
     ),
+    GoRoute(
+      path: '/tournaments/winner/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        final title = state.uri.queryParameters['title'];
+        return TournamentWinnerScreen(
+          tournamentId: id,
+          tournamentTitle: title,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/profile/tournaments',
+      builder: (context, state) {
+        final initialTab = state.uri.queryParameters['tab'];
+        return UserTournamentsScreen(initialTab: initialTab);
+      },
+    ),
     // Posts routes
     GoRoute(
       path: '/posts/create',
@@ -100,7 +146,26 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/posts/detail',
-      builder: (context, state) => const PostDetailScreen(),
+      builder: (context, state) {
+        final post = state.extra;
+        if (post is PostModel) {
+          return PostDetailScreen(
+            postId: post.id,
+            authorName: post.author.displayName,
+            authorHandle: '@${post.author.username}',
+            authorPhotoUrl: post.author.photoUrl,
+            authorId: post.author.id,
+            timeAgo: 'Recently',
+            content: post.content,
+            imageUrl: post.imageUrl,
+            likes: post.likeCount,
+            shares: post.shareCount,
+            views: post.viewCount.toString(),
+            isLiked: post.isLiked,
+          );
+        }
+        return const PostDetailScreen();
+      },
     ),
     // Records routes
     GoRoute(
@@ -110,6 +175,19 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/records/live',
       builder: (context, state) => const LiveRecordScreen(),
+    ),
+    GoRoute(
+      path: '/records/live/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id'];
+        final isOwner = state.uri.queryParameters['isOwner'] == 'true';
+        final loftName = state.uri.queryParameters['loftName'];
+        return LiveRecordScreen(
+          recordId: id,
+          isOwner: isOwner,
+          loftName: loftName,
+        );
+      },
     ),
     GoRoute(
       path: '/records/private',
@@ -139,14 +217,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/user/:id',
       builder: (context, state) {
-        final id = state.pathParameters['id'] ?? 'user';
-        final name = state.uri.queryParameters['name'] ?? (id == 'rashid' ? 'Rashid Lofts' : id == 'naveed' ? 'Naveed Pigeons' : id == 'ahmed' ? 'Ahmed Loft' : id == 'kashif' ? 'Kashif Pigeons' : 'Kashif Ali');
-        final handle = state.uri.queryParameters['handle'] ?? '@$id';
-        final location = state.uri.queryParameters['location'] ?? 'Lahore, PK';
+        final id = state.pathParameters['id'] ?? '';
+        final extra = state.extra;
+        // extra may be a PostAuthorModel (from a post's author tap) for an instant
+        // name/photo before the full profile loads; else fall back to a query param.
+        String? initialName = state.uri.queryParameters['name'];
+        String? initialPhoto;
+        try {
+          initialName ??= (extra as dynamic)?.displayName as String?;
+          initialPhoto = (extra as dynamic)?.photoUrl as String?;
+        } catch (_) {}
         return OtherUserProfileScreen(
-          name: name,
-          handle: handle,
-          location: location,
+          userId: id,
+          initialName: initialName,
+          initialPhotoUrl: initialPhoto,
         );
       },
     ),

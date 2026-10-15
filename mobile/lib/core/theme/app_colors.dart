@@ -18,6 +18,9 @@ abstract final class AppColors {
   static const Color ink2 = Color(0xFF394153);
   static const Color sub = Color(0xFF6B7280);
   static const Color mut = Color(0xFFA4ABB8);
+  static const Color muted = Color(0xFFA4ABB8);
+  static const Color brandSoft = Color(0xFFEEF3FF);
+  static const Color white70 = Color(0xB3FFFFFF);
 
   // Backgrounds, cards & lines
   static const Color line = Color(0xFFECEEF2);

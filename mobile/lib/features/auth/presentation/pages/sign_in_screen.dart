@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/pigeon_watermark.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_state.dart';
 
 class SignInScreen extends StatelessWidget {
   final VoidCallback onGoogleSignIn;
@@ -107,32 +110,45 @@ class SignInScreen extends StatelessWidget {
                   const SizedBox(height: 18),
 
                   // Google button
-                  InkWell(
-                    onTap: onGoogleSignIn,
-                    borderRadius: BorderRadius.circular(15),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == AuthStatus.loading;
+                      return InkWell(
+                        onTap: isLoading ? null : onGoogleSignIn,
                         borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: AppColors.line, width: 1.5),
-                        boxShadow: AppShadows.xs,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildGoogleMark(),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Continue with Google',
-                            style: AppTextStyles.buttonText.copyWith(
-                              color: AppColors.ink,
-                            ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: AppColors.line, width: 1.5),
+                            boxShadow: AppShadows.xs,
                           ),
-                        ],
-                      ),
-                    ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (isLoading)
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brand),
+                                )
+                              else ...[
+                                _buildGoogleMark(),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Continue with Google',
+                                  style: AppTextStyles.buttonText.copyWith(
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 12),

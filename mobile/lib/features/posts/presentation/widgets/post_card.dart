@@ -6,12 +6,15 @@ import '../../../../core/widgets/pigeon_watermark.dart';
 
 class PostCard extends StatelessWidget {
   final String authorName;
+  final String? avatarUrl;
   final String timeAgo;
   final String content;
   final String? mediaGradient;
+  final String? imageUrl;
   final int likes;
   final int shares;
   final String views;
+  final bool isLiked;
   final bool isFollowing;
   final VoidCallback onFollowPressed;
   final VoidCallback onLikePressed;
@@ -21,12 +24,15 @@ class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
     required this.authorName,
+    this.avatarUrl,
     required this.timeAgo,
     required this.content,
     this.mediaGradient,
+    this.imageUrl,
     required this.likes,
     required this.shares,
     required this.views,
+    this.isLiked = false,
     this.isFollowing = false,
     required this.onFollowPressed,
     required this.onLikePressed,
@@ -55,7 +61,7 @@ class PostCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        AppAvatar(text: authorName, size: 40),
+                        AppAvatar(text: authorName, imageUrl: avatarUrl, size: 40),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,8 +115,38 @@ class PostCard extends StatelessWidget {
             ),
           ),
 
-          // Media block (if any)
-          if (mediaGradient != null) ...[
+          // Media block — real image if present, else gradient placeholder.
+          if (imageUrl != null && imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Image.network(
+              imageUrl!,
+              height: 210,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, progress) => progress == null
+                  ? child
+                  : Container(
+                      height: 210,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(gradient: AppColors.heroMeshSky),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                        ),
+                      ),
+                    ),
+              errorBuilder: (context, error, stack) => Container(
+                height: 210,
+                width: double.infinity,
+                decoration: const BoxDecoration(gradient: AppColors.heroMeshSky),
+                child: const Center(
+                  child: PigeonWatermark(width: 108, height: 108, color: Color(0xE6FFFFFF)),
+                ),
+              ),
+            ),
+          ] else if (mediaGradient != null) ...[
             const SizedBox(height: 12),
             Container(
               height: 210,
@@ -139,7 +175,7 @@ class PostCard extends StatelessWidget {
                   onTap: onLikePressed,
                   child: Row(
                     children: [
-                      const Icon(Icons.favorite_rounded, size: 18, color: AppColors.danger),
+                      Icon(isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded, size: 18, color: isLiked ? AppColors.danger : AppColors.sub),
                       const SizedBox(width: 6),
                       Text('$likes', style: AppTextStyles.bodyBold.copyWith(fontSize: 13)),
                     ],

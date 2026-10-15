@@ -97,6 +97,7 @@
 | T27 | Average / score | per pigeon: **flight duration = landing time − fly time** (hours). Participant score = **sum/average of their pigeons' durations**. **Higher = better** (longest total flight time wins — endurance). Ranking is **descending** | ✅ |
 | T27b | "Not returned" in the average | a pigeon that doesn't return is **never recorded** (no landing time entered) → **not counted at all**. The average is over the **returned (recorded) pigeons only** (denominator = returned count). | ✅ |
 | T28 | Pigeons per participant | **multiple** — each flies up to T11 pigeons; the owner records a name + landing time for each **returned** pigeon (count ≤ T11); each has its own row per day | ✅ |
+| T28c | Flight date gating / entry eligibility | **Today (`day.date == today`):** organizer can **Add**, **Edit**, and **Delete** pigeons/landings.<br>**Past days (`day.date < today`):** organizer can **Edit** and **Delete** existing landings, but **CANNOT Add** new pigeons.<br>**Future days (`day.date > today`):** **Deactivated** (locked/inactive) until that date arrives; no landings can be added or recorded. | ✅ |
 
 ### 2.5 Social & realtime
 
@@ -108,6 +109,8 @@
 | T32 | Who gets tournament notifications | **followers** of the organizer (and anyone following the tournament) | ✅ |
 | T33 | Notification triggers | **(a) tournament created · (b) each new participant added · (c) flight / pigeon detail added (day results)** | ✅ |
 | T33b | Flight-add throttling | whether every single landing pushes a notification or they're batched per update is a **delivery detail** (tune later) | 🟡 |
+| T34 | LIVE badge gating | **LIVE tag appears ONLY if tournament is active and today matches one of its scheduled flight days (`TournamentDay.date == today`).** On non-flying days or completed tournaments, the LIVE badge is hidden. | ✅ |
+| T35 | Tournament list & Profile tabs | **Main Tournaments Screen:** Two tabs — **`Ongoing`** and **`Past`** (`Following` and `Mine` removed from main screen).<br>**Profile Screen:** Tapping Tournaments opens **`All`** (created by me) and **`Followed`** (tournaments followed directly OR created by flyers I follow). Following any flyer cascades their tournaments to Followed and delivers notifications for new posts/tournaments. | ✅ |
 
 ### 2.6 Browsing flow (locked)
 

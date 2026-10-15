@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaPostRepository } from './data/prisma-post.repository';
 import { EmitService } from '../../shared/socket/emit.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { QueueService } from '../../shared/queue/queue.service';
+import { QUEUES } from '../../shared/queue/queue.constants';
 import { Err, Ok, Result } from '../../shared/result/result';
 import { ForbiddenError, NotFoundError } from '../../shared/errors/common-errors';
 
@@ -11,13 +13,17 @@ export class PostUseCases {
     private readonly repo: PrismaPostRepository,
     private readonly emit: EmitService,
     private readonly notifs: NotificationsService,
+    private readonly queue: QueueService,
   ) {}
 
   feed = (tab: 'for_you' | 'following', viewerId: string, limit: number) =>
     this.repo.feed(tab, viewerId, limit);
 
+  byAuthor = (authorId: string, viewerId: string, limit: number) =>
+    this.repo.byAuthor(authorId, viewerId, limit);
+
   async detail(id: string, viewerId: string) {
-    const p = await this.repo.getById(id);
+    const p = await this.repo.getById(id, viewerId);
     if (p.authorId !== viewerId) await this.repo.view(id, viewerId);
     return p;
   }
@@ -26,6 +32,14 @@ export class PostUseCases {
     if (!content && !imageUrl) return Err(new ForbiddenError('Empty post'));
     const p = await this.repo.create(authorId, content, imageUrl);
     this.emit.toRoom('feed:global', 'post.new', { post_id: p.id, author_id: authorId });
+
+    await this.queue.add(QUEUES.followerFanout, 'fanout', {
+      actorId: authorId,
+      type: 'post_created',
+      entityType: 'post',
+      entityId: p.id,
+    });
+
     return Ok(p);
   }
 

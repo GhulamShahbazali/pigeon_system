@@ -11,15 +11,17 @@ class AppAvatar extends StatelessWidget {
 
   const AppAvatar({
     super.key,
-    required this.text,
+    String? text,
+    String? name,
     this.imageUrl,
     this.size = 40,
     this.gradient,
     this.hasBorder = false,
-  });
+  }) : text = name ?? text ?? '?';
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
     return Container(
       width: size,
       height: size,
@@ -31,7 +33,24 @@ class AppAvatar extends StatelessWidget {
             : null,
         boxShadow: AppShadows.xs,
       ),
-      child: Center(
+      clipBehavior: Clip.antiAlias,
+      child: hasImage
+          ? Image.network(
+              imageUrl!,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              // While the photo loads (or if it fails), show the initial so the
+              // circle is never blank.
+              loadingBuilder: (context, child, progress) =>
+                  progress == null ? child : _initial(),
+              errorBuilder: (context, _, __) => _initial(),
+            )
+          : _initial(),
+    );
+  }
+
+  Widget _initial() => Center(
         child: Text(
           text.isNotEmpty ? text[0].toUpperCase() : '?',
           style: TextStyle(
@@ -40,7 +59,5 @@ class AppAvatar extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-      ),
-    );
-  }
+      );
 }

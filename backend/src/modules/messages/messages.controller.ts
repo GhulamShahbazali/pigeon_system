@@ -11,8 +11,12 @@ const SendSchema = z
     type: z.enum(['text', 'voice', 'image', 'video']),
     body: z.string().max(5000).optional(),
     media_url: z.string().url().optional(),
+    media_duration_seconds: z.number().int().positive().max(3600).optional(),
   })
-  .refine((v) => v.to_user_id || v.conversation_id, { message: 'to_user_id or conversation_id required' });
+  .refine((v) => v.to_user_id || v.conversation_id, { message: 'to_user_id or conversation_id required' })
+  .refine((v) => v.type === 'text' ? !!v.body?.trim() : !!v.media_url, {
+    message: 'text needs body; media needs media_url',
+  });
 
 const ReadSchema = z.object({ up_to_message_id: z.string().uuid() });
 

@@ -28,6 +28,15 @@ export interface RecordFlightInput {
   dayId: string;
   pigeonName: string;
   landingTime: Date;
+  bypassDateCheck?: boolean;
+}
+
+export interface UpdateFlightInput {
+  tournamentId: string;
+  participantId: string;
+  flightId: string;
+  pigeonName?: string;
+  landingTime?: Date;
 }
 
 export interface TournamentSummary {
@@ -40,11 +49,19 @@ export interface TournamentSummary {
 export interface ITournamentRepository {
   create(input: CreateTournamentInput): Promise<string>; // returns id
   findSummary(id: string): Promise<TournamentSummary | null>;
-  findDetail(id: string): Promise<any | null>;
-  list(tab: 'all' | 'following' | 'mine', userId: string, cursor: string | null, limit: number): Promise<any[]>;
+  findDetail(id: string, viewerId: string): Promise<any | null>;
+  list(
+    tab: 'all' | 'following' | 'mine' | 'upcoming' | 'ongoing' | 'past',
+    userId: string,
+    cursor: string | null,
+    limit: number,
+  ): Promise<any[]>;
+  byOrganizer(organizerId: string, viewerId: string, limit: number): Promise<any[]>;
   addParticipant(input: AddParticipantInput): Promise<any>;
   /** Atomic: cap-check + insert flight + recompute day/overall stats + positions. Throws PigeonCapExceededError. */
   recordFlight(input: RecordFlightInput): Promise<any>;
+  updateFlight(input: UpdateFlightInput): Promise<any>;
+  deleteFlight(tournamentId: string, participantId: string, flightId: string): Promise<void>;
   standings(tournamentId: string): Promise<any[]>;
   participantDays(tournamentId: string, participantId: string): Promise<any>;
   toggleFollow(tournamentId: string, userId: string, follow: boolean): Promise<void>;

@@ -1,7 +1,7 @@
 # PigeonFly — API Design (Index)
 
 > **Purpose:** the REST + realtime contract for the backend, consumed by the **mobile app** and **admin panel**. Companion to [`../schema/index.md`](../schema/index.md) (what's stored) and [`../performance-and-realtime.md`](../performance-and-realtime.md) (Socket.io rooms/events · Redis keys · BullMQ queues — **not duplicated here**).
-> **Pattern:** follows the Talksy API docs. **Last updated:** 2026-10-10 · **Version:** 0.2 (added §10 Discovery & Search)
+> **Pattern:** follows the Talksy API docs. **Last updated:** 2026-10-14 · **Version:** 0.3 (chat media upload `POST /v1/media`; tournament `upcoming` filter + `status`; `records/live` discovery fallback; bots overview `records`)
 
 ---
 
@@ -71,7 +71,7 @@ Opaque base64 of `{sort_col,id}`; `limit` default 20 / max 100. Newer items arri
 
 ## Timestamps / enums / codes
 - ISO 8601 UTC in responses; accepted in any tz (converted to UTC). "time ago" is client-side.
-- **Durations** returned as `*_seconds` integers (client formats `7h 40m`); **averages** as `avg_seconds`. Never a pre-formatted string.
+- **Durations** returned as `*_seconds` integers; **averages** as `avg_seconds` / `total_avg_seconds`. Never a pre-formatted string. The mobile client formats them with **seconds kept** (races are decided by seconds): `47m 59s`, `2h 2m 50s`, average `1h 27m 31s` — not an ambiguous `HH:MM` like `02:02`.
 - Enums lowercase `snake_case`. `language_code` ISO 639-1 (`ur/hi/ar/en`); `country_code` ISO 3166-1 alpha-2.
 
 ## Idempotency
@@ -81,7 +81,9 @@ Opaque base64 of `{sort_col,id}`; `limit` default 20 / max 100. Newer items arri
 Headers `X-RateLimit-{Limit,Remaining,Reset}` on every response; `429` + `Retry-After`. Buckets: posts 60/h, messages 30/min→200/h, reports 20/h, default 100/min per endpoint group.
 
 ## File uploads
-`POST /v1/uploads` (multipart): `file` + `purpose` ∈ `participant_photo` \| `tournament_cover` \| `post_image` \| `profile_photo` \| `chat_image` \| `chat_video` \| `voice_note`. Returns `{ upload_id, url, expires_at? }`; referenced in later create calls. Processing (resize/thumbnail/transcode) runs in the `media-process` worker. Unused uploads cleaned hourly.
+**Implemented (MVP — chat media):** `POST /v1/media` (multipart `file`) → `{ data:{ url, kind, size } }`. Stores the file in the project `uploads/media/` folder and serves it statically from `/uploads/…` (outside the `/v1` prefix). `kind` is derived from the mimetype (audio→voice, image→image, video→video); max 25 MB. The returned `url` is absolute (host from the request, or `PUBLIC_BASE_URL`); pass it back as `media_url` on `POST /v1/messages`. See [06-messages.md](06-messages.md).
+
+**Planned (other surfaces):** a general `POST /v1/uploads` (multipart): `file` + `purpose` ∈ `participant_photo` \| `tournament_cover` \| `post_image` \| `profile_photo`, returning `{ upload_id, url, expires_at? }` referenced in later create calls, with resize/thumbnail/transcode in a `media-process` worker. Storage may move to object storage (e.g. DigitalOcean Spaces) without changing these contracts.
 
 ---
 
@@ -113,4 +115,4 @@ exception filter (→ error envelope, Sentry) → response-envelope interceptor 
 
 ---
 
-*api/index.md · v0.2 · 2026-10-10 · pattern from Talksy API docs. Realtime/Redis/BullMQ inventory → ../performance-and-realtime.md*
+*api/index.md · v0.3 · 2026-10-14 · pattern from Talksy API docs. Realtime/Redis/BullMQ inventory → ../performance-and-realtime.md*

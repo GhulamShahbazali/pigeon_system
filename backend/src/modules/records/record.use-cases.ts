@@ -25,7 +25,7 @@ export class RecordUseCases {
   liveNow = (viewerId: string, limit: number) => this.repo.liveNow(viewerId, limit);
 
   async detail(id: string, viewerId: string): Promise<Result<any>> {
-    const r = await this.repo.detail(id);
+    const r = await this.repo.detail(id, viewerId);
     if (r.privacy === 'private' && r.userId !== viewerId) return Err(new NotFoundError('record'));
     if (r.userId !== viewerId) await this.repo.recordView(id, viewerId);
     return Ok(r);

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../bloc/auth_bloc.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onGoToTournaments;
@@ -15,6 +17,11 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userName = context.watch<AuthBloc>().state.name;
+    final displayName = (userName != null && userName.isNotEmpty)
+        ? userName.split(' ').first
+        : 'Flyer';
+
     return Scaffold(
       backgroundColor: AppColors.card,
       body: SafeArea(
@@ -43,7 +50,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 22),
                     Text(
-                      'Welcome, Ahmed!',
+                      'Welcome, $displayName!',
                       style: AppTextStyles.screenTitle,
                     ),
                     const SizedBox(height: 8),

@@ -20,6 +20,7 @@ export function toPost(p: any) {
     like_count: p.likeCount,
     share_count: p.shareCount,
     view_count: p.viewCount,
+    is_liked: p.isLiked ?? false,
     author: p.author
       ? { id: p.author.id, display_name: p.author.displayName, username: p.author.username, photo_url: p.author.photoUrl }
       : null,

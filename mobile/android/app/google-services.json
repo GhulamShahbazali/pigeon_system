@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "899758637019",
+    "project_id": "pegion-fly",
+    "storage_bucket": "pegion-fly.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899758637019:android:8447e3256b0a0174eef1fe",
+        "android_client_info": {
+          "package_name": "com.pegions_fly.app.pegions_fly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "899758637019-18l6r5pprk37ubfdqte7d26ienb32giq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pegions_fly.app.pegions_fly",
+            "certificate_hash": "dae4c5a8863b547d8f26e2c823f23e51d24d56f9"
+          }
+        },
+        {
+          "client_id": "899758637019-g0tetimqnn9in81b44aaninfh47727ki.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjXH6zxGjN4zvFca8dXnsVhkI_57pxl4I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "899758637019-g0tetimqnn9in81b44aaninfh47727ki.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "899758637019-df5ivdv1ou9qp9pk914cvivrojks9ctb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pegionsfly.app.pegionsFly"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

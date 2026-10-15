@@ -7,6 +7,7 @@ const TITLES: Record<string, string> = {
   tournament_created: 'New tournament',
   participant_added: 'New participant',
   tournament_day_results: 'Day results posted',
+  post_created: 'New post',
   new_follower: 'New follower',
   content_like: 'New like',
   record_live_started: 'Live now',

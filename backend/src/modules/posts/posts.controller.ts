@@ -6,7 +6,7 @@ import { CreatePostSchema, ReportSchema, toPost, type CreatePostDto, type Report
 
 function lim(v?: string): number {
   const n = Number(v);
-  return Number.isFinite(n) && n > 0 && n <= 50 ? Math.floor(n) : 20;
+  return Number.isFinite(n) && n > 0 && n <= 100 ? Math.floor(n) : 50;
 }
 
 @Controller()
@@ -17,6 +17,11 @@ export class PostsController {
   async feed(@CurrentUser() u: AuthUser, @Query('tab') tab?: string, @Query('limit') l?: string) {
     const t = tab === 'following' ? 'following' : 'for_you';
     return { data: (await this.uc.feed(t, u.id, lim(l))).map(toPost) };
+  }
+
+  @Get('users/:id/posts')
+  async byAuthor(@Param('id') id: string, @CurrentUser() u: AuthUser, @Query('limit') l?: string) {
+    return { data: (await this.uc.byAuthor(id, u.id, lim(l))).map(toPost) };
   }
 
   @Get('posts/:id')

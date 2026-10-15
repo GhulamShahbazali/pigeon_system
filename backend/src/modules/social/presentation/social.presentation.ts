@@ -29,6 +29,7 @@ export function profileResponse(v: any) {
       follower_count: v.user.followerCount,
       following_count: v.user.followingCount,
       tournament_count: v.tournamentCount,
+      post_count: v.postCount,
     },
     is_following: v.isFollowing,
     is_blocked: v.isBlocked,

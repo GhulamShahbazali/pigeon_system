@@ -34,6 +34,7 @@ export class MessageUseCases {
       type: input.type,
       body: input.body,
       mediaUrl: input.media_url,
+      mediaDurationSeconds: input.media_duration_seconds,
     });
     const payload = toMessage(message);
     this.emit.toRoom(`chat:${conversationId}`, 'message.new', payload);
@@ -53,12 +54,38 @@ export class MessageUseCases {
 
   async inbox(userId: string, limit: number) {
     const rows = await this.repo.inbox(userId, limit);
-    return rows.map((c: any) => ({
-      id: c.id,
-      status: c.status,
-      last_message_at: c.lastMessageAt ? c.lastMessageAt.toISOString() : null,
-      other_user_id: c.participants.find((p: any) => p.userId !== userId)?.userId ?? null,
-    }));
+    // Enrich in TWO batched queries (not N+1) so the mobile makes a single call —
+    // important on a high-latency DB where every round-trip costs ~100-200ms.
+    const otherIds = [
+      ...new Set(
+        rows
+          .map((c: any) => c.participants.find((p: any) => p.userId !== userId)?.userId)
+          .filter(Boolean) as string[],
+      ),
+    ];
+    const lastMsgIds = rows.map((c: any) => c.lastMessageId).filter(Boolean) as string[];
+    const [users, lastMsgs] = await Promise.all([
+      this.repo.usersByIds(otherIds),
+      this.repo.messagesByIds(lastMsgIds),
+    ]);
+    const userMap = new Map(users.map((u: any) => [u.id, u]));
+    const msgMap = new Map(lastMsgs.map((m: any) => [m.id, m]));
+
+    return rows.map((c: any) => {
+      const otherId = c.participants.find((p: any) => p.userId !== userId)?.userId ?? null;
+      const u = otherId ? userMap.get(otherId) : null;
+      const lm = c.lastMessageId ? msgMap.get(c.lastMessageId) : null;
+      return {
+        id: c.id,
+        status: c.status,
+        last_message_at: c.lastMessageAt ? c.lastMessageAt.toISOString() : null,
+        other_user_id: otherId,
+        other_user: u
+          ? { id: u.id, display_name: u.displayName, username: u.username, photo_url: u.photoUrl }
+          : null,
+        last_message: lm ? { type: lm.type, body: lm.body } : null,
+      };
+    });
   }
 
   async requests(userId: string) {
@@ -71,8 +98,31 @@ export class MessageUseCases {
   }
 
   async messages(conversationId: string, userId: string, limit: number) {
-    const rows = await this.repo.messages(conversationId, userId, limit);
-    return rows.map(toMessage);
+    const rows = await this.repo.messages(conversationId, userId, limit); // newest first
+    // Opening a chat = reading it. Mark the viewer delivered + read up to the newest
+    // message and tell the other side so their sent-ticks turn (grey→grey✓✓→green✓✓).
+    const newest = rows[0];
+    if (newest) {
+      await Promise.all([
+        this.repo.markRead(conversationId, userId, newest.id),
+        this.repo.markDelivered(conversationId, userId, newest.id),
+      ]);
+      this.emit.toRoom(`chat:${conversationId}`, 'chat.delivered', {
+        user_id: userId,
+        last_delivered_message_id: newest.id,
+      });
+      this.emit.toRoom(`chat:${conversationId}`, 'chat.read', {
+        user_id: userId,
+        last_read_message_id: newest.id,
+        last_read_at: new Date().toISOString(),
+      });
+    }
+    const other = await this.repo.otherPointers(conversationId, userId);
+    return {
+      messages: rows.map(toMessage),
+      other_last_read_message_id: other.lastReadMessageId,
+      other_last_delivered_message_id: other.lastDeliveredMessageId,
+    };
   }
 
   async read(conversationId: string, userId: string, uptoMessageId: string) {

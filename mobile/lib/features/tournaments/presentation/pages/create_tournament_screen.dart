@@ -5,6 +5,9 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
 
+import 'dart:io';
+import '../../../../core/widgets/image_picker_helper.dart';
+
 class CreateTournamentScreen extends StatefulWidget {
   final bool isEditing;
   final String? initialTitle;
@@ -36,6 +39,7 @@ class CreateTournamentScreen extends StatefulWidget {
 }
 
 class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
+  File? _coverFile;
   late int _days;
   late int _pigeons;
   late int _scheduleIndex; // 0 = Every day, 1 = Alternate days
@@ -47,18 +51,31 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   late final TextEditingController _startDateController;
   late final TextEditingController _contactController;
 
+  DateTime _startDate = DateTime.now().add(const Duration(days: 1));
+  TimeOfDay _flyTime = const TimeOfDay(hour: 6, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
+
+  static const List<String> _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
   @override
   void initState() {
     super.initState();
     _days = widget.initialDays ?? 3;
     _pigeons = widget.initialPigeons ?? 20;
     _scheduleIndex = widget.initialScheduleIndex ?? 1;
-    _titleController = TextEditingController(text: widget.initialTitle ?? 'City Loft Championship');
+    _titleController = TextEditingController(text: widget.initialTitle ?? '');
     _rulesController = TextEditingController(text: widget.initialRules ?? '');
+
+    final initialDate = _startDate;
+    final formattedDate = '${initialDate.day} ${_months[initialDate.month - 1]} ${initialDate.year}';
+    _startDateController = TextEditingController(text: widget.initialStartDate ?? formattedDate);
+
     _flyTimeController = TextEditingController(text: widget.initialFlyTime ?? '06:00 AM');
     _endTimeController = TextEditingController(text: widget.initialEndTime ?? '06:00 PM');
-    _startDateController = TextEditingController(text: widget.initialStartDate ?? '16 Oct 2026');
-    _contactController = TextEditingController(text: widget.initialContact ?? '+92 300 1234567');
+    _contactController = TextEditingController(text: widget.initialContact ?? '');
   }
 
   @override
@@ -73,7 +90,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 
   Future<void> _pickTime({required bool isFlyTime}) async {
-    final initial = isFlyTime ? const TimeOfDay(hour: 6, minute: 0) : const TimeOfDay(hour: 18, minute: 0);
+    final initial = isFlyTime ? _flyTime : _endTime;
     final picked = await showTimePicker(
       context: context,
       initialTime: initial,
@@ -85,8 +102,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       final formatted = '${hour.toString().padLeft(2, '0')}:$minute $period';
       setState(() {
         if (isFlyTime) {
+          _flyTime = picked;
           _flyTimeController.text = formatted;
         } else {
+          _endTime = picked;
           _endTimeController.text = formatted;
         }
       });
@@ -96,14 +115,14 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   Future<void> _pickStartDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _startDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      final formatted = '${picked.day} ${months[picked.month - 1]} ${picked.year}';
+      final formatted = '${picked.day} ${_months[picked.month - 1]} ${picked.year}';
       setState(() {
+        _startDate = picked;
         _startDateController.text = formatted;
       });
     }
@@ -150,49 +169,70 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     // Cover picker
                     Text('Cover image · optional', style: AppTextStyles.labelUppercase),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.soft,
-                        border: Border.all(color: AppColors.line),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              gradient: AppColors.duskMesh,
-                              borderRadius: BorderRadius.circular(12),
+                    InkWell(
+                      onTap: () async {
+                        final file = await ImagePickerHelper.showImageSourceSheet(context);
+                        if (file != null) {
+                          setState(() => _coverFile = file);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.soft,
+                          border: Border.all(color: AppColors.line),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                gradient: _coverFile == null ? AppColors.duskMesh : null,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: _coverFile != null
+                                  ? Image.file(_coverFile!, fit: BoxFit.cover)
+                                  : const Icon(Icons.flight_takeoff_rounded, color: Colors.white, size: 28),
                             ),
-                            child: const Icon(Icons.flight_takeoff_rounded, color: Colors.white, size: 28),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Add a cover photo', style: AppTextStyles.bodyBold),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'No photo? A gradient cover is used.',
-                                  style: AppTextStyles.caption.copyWith(color: AppColors.mut),
-                                ),
-                              ],
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _coverFile != null ? 'Cover photo selected' : 'Add a cover photo',
+                                    style: AppTextStyles.bodyBold,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _coverFile != null
+                                        ? 'Tap to change photo'
+                                        : 'No photo? A gradient cover is used.',
+                                    style: AppTextStyles.caption.copyWith(color: AppColors.mut),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.card,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: AppShadows.xs,
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppColors.card,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: AppShadows.xs,
+                              ),
+                              child: Icon(
+                                _coverFile != null ? Icons.check_circle_rounded : Icons.camera_alt_outlined,
+                                size: 18,
+                                color: _coverFile != null ? AppColors.ok : AppColors.ink2,
+                              ),
                             ),
-                            child: const Icon(Icons.camera_alt_outlined, size: 18, color: AppColors.ink2),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -401,9 +441,43 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                 onPressed: () {
                   if (widget.isEditing) {
                     Navigator.of(context).pop();
-                  } else {
-                    context.push('/tournaments/participants');
+                    return;
                   }
+
+                  final title = _titleController.text.trim();
+                  if (title.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter tournament title')),
+                    );
+                    return;
+                  }
+
+                  final flyHour = _flyTime.hour.toString().padLeft(2, '0');
+                  final flyMin = _flyTime.minute.toString().padLeft(2, '0');
+                  final endHour = _endTime.hour.toString().padLeft(2, '0');
+                  final endMin = _endTime.minute.toString().padLeft(2, '0');
+                  final startYear = _startDate.year.toString();
+                  final startMonth = _startDate.month.toString().padLeft(2, '0');
+                  final startDay = _startDate.day.toString().padLeft(2, '0');
+
+                  final payload = <String, dynamic>{
+                    'title': title,
+                    'num_days': _days,
+                    'pigeon_count': _pigeons,
+                    'schedule_type': _scheduleIndex == 0 ? 'every_day' : 'alternate_days',
+                    'fly_time': '$flyHour:$flyMin',
+                    'end_time': '$endHour:$endMin',
+                    'start_date': '$startYear-$startMonth-$startDay',
+                  };
+
+                  if (_rulesController.text.trim().isNotEmpty) {
+                    payload['rules'] = _rulesController.text.trim();
+                  }
+                  if (_contactController.text.trim().isNotEmpty) {
+                    payload['organizer_contact'] = _contactController.text.trim();
+                  }
+
+                  context.push('/tournaments/participants', extra: payload);
                 },
               ),
             ),

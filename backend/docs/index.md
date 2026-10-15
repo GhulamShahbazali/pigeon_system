@@ -54,7 +54,9 @@ One file per implemented module (scope, routes, use cases, owned queues/sockets,
 | `settings` | [settings.md](modules/settings.md) | §8 | — |
 | `moderation` (+admin) | [moderation.md](modules/moderation.md) | §9 | `user.suspended` |
 | `discovery` (find friends + search) | [discovery.md](modules/discovery.md) | §10 | — (read-only) |
+| `media` (chat uploads) | [media.md](modules/media.md) | — | static `/uploads/…` |
+| `bots` (liveness engine) | — | — | content + varied tournament lifecycle |
 
 ---
 
-*backend/docs/index.md · v1.1 · 2026-10-10 (added per-module dossiers)*
+*backend/docs/index.md · v1.2 · 2026-10-14 (added `media` module for chat uploads; bots content/lifecycle update)*

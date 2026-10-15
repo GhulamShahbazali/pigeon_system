@@ -1,6 +1,6 @@
 export interface BotPost {
   caption: string;
-  imageUrl: string;
+  imageUrl: string | null; // ~30% of bot posts are text-only
 }
 
 export interface BotTournament {

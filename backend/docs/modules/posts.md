@@ -9,6 +9,7 @@
 | Method · Path | Notes |
 |---|---|
 | `GET /v1/feed` | cursor feed, block-filtered |
+| `GET /v1/users/:id/posts` | a single author's posts (profile "Posts"); `is_liked` batched |
 | `POST /v1/posts` | create (idempotency-key supported) |
 | `GET`/`PATCH`/`DELETE /v1/posts/:id` | read/edit/soft-delete (owner) |
 | `POST`/`DELETE /v1/posts/:id/like` | like/unlike; counter atomic |

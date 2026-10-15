@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../data/records_repository.dart';
 import 'add_record_screen.dart';
 import 'live_record_screen.dart';
 import 'private_record_detail_screen.dart';
-import 'auto_ended_record_screen.dart';
 
 class RecordsListScreen extends StatefulWidget {
   const RecordsListScreen({super.key});
@@ -18,7 +19,62 @@ class RecordsListScreen extends StatefulWidget {
 
 class _RecordsListScreenState extends State<RecordsListScreen> {
   int _selectedTab = 0; // 0 = My records, 1 = Live now
-  bool _isUserLive = true;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  List<PersonalRecordModel> _myRecords = [];
+  List<LiveRecordPreviewModel> _liveNowRecords = [];
+
+  final RecordsRepository _repository = sl<RecordsRepository>();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecords();
+  }
+
+  Future<void> _fetchRecords() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    if (_selectedTab == 0) {
+      final res = await _repository.getMyRecords();
+      if (!mounted) return;
+      res.when(
+        success: (data) {
+          setState(() {
+            _myRecords = data;
+            _isLoading = false;
+          });
+        },
+        failure: (msg, _) {
+          setState(() {
+            _errorMessage = msg;
+            _isLoading = false;
+          });
+        },
+      );
+    } else {
+      final res = await _repository.getLiveNow();
+      if (!mounted) return;
+      res.when(
+        success: (data) {
+          setState(() {
+            _liveNowRecords = data;
+            _isLoading = false;
+          });
+        },
+        failure: (msg, _) {
+          setState(() {
+            _errorMessage = msg;
+            _isLoading = false;
+          });
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +84,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
         bottom: false,
         child: Column(
           children: [
-            // Top Bar matching wireframe (.bar with .gbtn.brand plus)
+            // Top Bar
             Container(
               color: AppColors.card,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -56,10 +112,13 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                   ),
                   const SizedBox(width: 8),
                   InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
+                    onTap: () async {
+                      final created = await Navigator.of(context).push<bool>(
                         MaterialPageRoute(builder: (ctx) => const AddRecordScreen()),
                       );
+                      if (created == true) {
+                        _fetchRecords();
+                      }
                     },
                     borderRadius: BorderRadius.circular(13),
                     child: Container(
@@ -78,54 +137,122 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                 ],
               ),
             ),
-          // Segmented tab: My records / Live now
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            color: AppColors.card,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.soft,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.line),
-              ),
-              child: Row(
-                children: [
-                  _SegmentItem(
-                    title: 'My records',
-                    isSelected: _selectedTab == 0,
-                    onTap: () => setState(() => _selectedTab = 0),
-                  ),
-                  _SegmentItem(
-                    title: 'Live now',
-                    isSelected: _selectedTab == 1,
-                    onTap: () => setState(() => _selectedTab = 1),
-                  ),
-                ],
+            // Segmented tab: My records / Live now
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              color: AppColors.card,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.soft,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.line),
+                ),
+                child: Row(
+                  children: [
+                    _SegmentItem(
+                      title: 'My records',
+                      isSelected: _selectedTab == 0,
+                      onTap: () {
+                        if (_selectedTab != 0) {
+                          setState(() => _selectedTab = 0);
+                          _fetchRecords();
+                        }
+                      },
+                    ),
+                    _SegmentItem(
+                      title: 'Live now',
+                      isSelected: _selectedTab == 1,
+                      onTap: () {
+                        if (_selectedTab != 1) {
+                          setState(() => _selectedTab = 1);
+                          _fetchRecords();
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Body based on tab
-          Expanded(
-            child: _selectedTab == 0 ? _buildMyRecords() : _buildLiveNowList(),
-          ),
-        ],
-      ),
+            // Body based on tab
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.brand,
+                onRefresh: _fetchRecords,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.brand))
+                    : _errorMessage != null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: AppColors.danger, size: 48),
+                                  const SizedBox(height: 12),
+                                  Text(_errorMessage!,
+                                      textAlign: TextAlign.center, style: AppTextStyles.body),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _fetchRecords,
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.brand),
+                                    child: const Text('Try Again',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : _selectedTab == 0
+                            ? _buildMyRecords()
+                            : _buildLiveNowList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildMyRecords() {
+    if (_myRecords.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.note_alt_outlined, color: AppColors.muted, size: 48),
+              const SizedBox(height: 12),
+              Text('No flight records logged yet', style: AppTextStyles.bodyBold),
+              const SizedBox(height: 6),
+              Text('Log your loft routine using the + button above.',
+                  style: AppTextStyles.caption, textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final liveRecord = _myRecords.cast<PersonalRecordModel?>().firstWhere(
+          (r) => r?.isLive == true,
+          orElse: () => null,
+        );
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 12),
       children: [
         // You're live banner
-        if (_isUserLive)
+        if (liveRecord != null)
           InkWell(
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (ctx) => const LiveRecordScreen(isOwner: true, loftName: 'My live record')),
+                MaterialPageRoute(
+                    builder: (ctx) =>
+                        LiveRecordScreen(isOwner: true, loftName: 'My Live Record')),
               );
             },
             child: Container(
@@ -152,20 +279,11 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("You're live now", style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
-                        Text('12 of 18 landed · 870 watching', style: AppTextStyles.caption.copyWith(color: AppColors.white90)),
+                        Text("You're live now",
+                            style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+                        Text('${liveRecord.returnedCount} of ${liveRecord.totalPigeons} landed',
+                            style: AppTextStyles.caption.copyWith(color: AppColors.white90)),
                       ],
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => setState(() => _isUserLive = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.white28,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text('End', style: AppTextStyles.captionBold.copyWith(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -173,172 +291,155 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
             ),
           ),
 
-        // Record Card 1 (Live)
-        _buildRecordCard(
-          date: 'Today · 16 Oct',
-          isLive: true,
-          flown: 18,
-          flyTime: '06:00',
-          avg: '13:04',
-          likes: 54,
-          views: '870',
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (ctx) => const LiveRecordScreen(isOwner: true)),
-            );
-          },
-        ),
-
-        // Record Card 2 (Private)
-        _buildRecordCard(
-          date: '15 Oct',
-          isLive: false,
-          flown: 20,
-          flyTime: '06:10',
-          avg: '12:50',
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (ctx) => const PrivateRecordDetailScreen(date: '15 Oct')),
-            );
-          },
-        ),
-
-        // Record Card 3 (Auto-ended history from yesterday)
-        _buildRecordCard(
-          date: '14 Oct',
-          isLive: false,
-          flown: 18,
-          flyTime: '06:00',
-          avg: '13:02',
-          likes: 42,
-          views: '610',
-          isAutoEnded: true,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (ctx) => const AutoEndedRecordScreen(date: '14 Oct')),
-            );
-          },
-        ),
+        ..._myRecords.map((r) {
+          return _buildRecordCard(
+            date: r.recordDate,
+            isLive: r.isLive,
+            flown: r.totalPigeons,
+            flyTime: r.formattedFlyTime,
+            avg: r.formattedAverage,
+            likes: r.likeCount,
+            views: r.viewCount.toString(),
+            onTap: () {
+              if (r.isLive) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (ctx) => LiveRecordScreen(recordId: r.id, isOwner: true)),
+                );
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (ctx) => PrivateRecordDetailScreen(date: r.recordDate)),
+                );
+              }
+            },
+          );
+        }),
       ],
     );
   }
 
   Widget _buildLiveNowList() {
-    final liveFlyers = [
-      {'name': "Ahmed's loft", 'sub': '12 of 18 landed · 870 watching', 'avg': '13:02', 'initial': 'A', 'grad': AppColors.avatarBlue},
-      {'name': 'Kashif Ali', 'sub': '5 of 14 landed · 210 watching', 'avg': '11:40', 'initial': 'K', 'grad': AppColors.avatarPurple},
-      {'name': 'Usman Tariq', 'sub': '9 of 10 landed · 440 watching', 'avg': '12:15', 'initial': 'U', 'grad': AppColors.avatarGreen},
-    ];
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          child: Text(
-            'People you follow who are flying live right now.',
-            style: AppTextStyles.body.copyWith(color: AppColors.sub, fontSize: 13),
+    if (_liveNowRecords.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_tethering, color: AppColors.muted, size: 48),
+              const SizedBox(height: 12),
+              Text('No flyers live right now', style: AppTextStyles.bodyBold),
+              const SizedBox(height: 6),
+              Text('When accounts you follow go live with flights, they appear here.',
+                  style: AppTextStyles.caption, textAlign: TextAlign.center),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
-        ...liveFlyers.map((flyer) {
-          return InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (ctx) => LiveRecordScreen(loftName: flyer['name'] as String, isOwner: false)),
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                border: Border.all(color: AppColors.line),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: AppShadows.xs,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      itemCount: _liveNowRecords.length,
+      itemBuilder: (context, index) {
+        final flyer = _liveNowRecords[index];
+        final name = flyer.owner?.displayName ?? 'Flyer';
+
+        return InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (ctx) => LiveRecordScreen(
+                  recordId: flyer.id,
+                  loftName: "$name's loft",
+                  isOwner: false,
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Row(
-                  children: [
-                    // Green left indicator bar (border-left: 3.5px solid var(--ok) from wireframe)
-                    Container(
-                      width: 4,
-                      height: 72,
-                      color: AppColors.ok,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
-                          children: [
-                            Stack(
-                              children: [
-                                AppAvatar(
-                                  text: flyer['initial'] as String,
-                                  size: 42,
-                                  gradient: flyer['grad'] as LinearGradient,
-                                ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: AppColors.ok,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                        ),
-                      ),
-                    ],
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              border: Border.all(color: AppColors.line),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppShadows.xs,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 72,
+                    color: AppColors.ok,
                   ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(flyer['name'] as String, style: AppTextStyles.bodyBold),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.ok50,
-                                borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        children: [
+                          Stack(
+                            children: [
+                              AppAvatar(
+                                name: name,
+                                imageUrl: flyer.owner?.photoUrl,
+                                size: 42,
                               ),
-                              child: Text(
-                                'LIVE',
-                                style: AppTextStyles.captionBold.copyWith(color: AppColors.ok, fontSize: 9),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.ok,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(name, style: AppTextStyles.bodyBold),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${flyer.returnedCount} of ${flyer.totalPigeons} landed',
+                                  style: AppTextStyles.caption,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.ok.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'LIVE',
+                              style: AppTextStyles.captionBold.copyWith(
+                                color: AppColors.ok,
+                                fontSize: 11,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(flyer['sub'] as String, style: AppTextStyles.caption.copyWith(color: AppColors.mut)),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(flyer['avg'] as String, style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
-                      Text('avg', style: AppTextStyles.caption.copyWith(color: AppColors.mut, fontSize: 10)),
-                    ],
                   ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
-    ),
-  ),
-);
-}),
-],
-);
+        );
+      },
+    );
   }
 
   Widget _buildRecordCard({
@@ -349,99 +450,110 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
     required String avg,
     int? likes,
     String? views,
-    bool isAutoEnded = false,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.line),
-          boxShadow: AppShadows.xs,
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        border: Border.all(color: AppColors.line),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: AppShadows.xs,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(date, style: AppTextStyles.bodyBold),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isLive ? AppColors.ok50 : isAutoEnded ? AppColors.soft : AppColors.soft,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      if (isLive) ...[
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
+                Row(
+                  children: [
+                    Text(date, style: AppTextStyles.cardTitle),
+                    const Spacer(),
+                    if (isLive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.ok.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'LIVE NOW',
+                          style: AppTextStyles.overline.copyWith(
                             color: AppColors.ok,
-                            shape: BoxShape.circle,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                      ] else if (isAutoEnded) ...[
-                        const Icon(Icons.check_circle_outline_rounded, size: 11, color: AppColors.sub),
-                        const SizedBox(width: 4),
-                      ] else ...[
-                        const Icon(Icons.lock_rounded, size: 10, color: AppColors.sub),
-                        const SizedBox(width: 4),
-                      ],
-                      Text(
-                        isLive ? 'LIVE' : isAutoEnded ? 'Ended' : 'Private',
-                        style: AppTextStyles.captionBold.copyWith(
-                          color: isLive ? AppColors.ok : AppColors.sub,
-                          fontSize: 10,
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.soft,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'PRIVATE',
+                          style: AppTextStyles.overline.copyWith(
+                            color: AppColors.muted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.emoji_events_outlined, size: 16, color: AppColors.mut),
-                const SizedBox(width: 4),
-                Text('$flown flown', style: AppTextStyles.body),
-                const SizedBox(width: 14),
-                const Icon(Icons.access_time_rounded, size: 16, color: AppColors.mut),
-                const SizedBox(width: 4),
-                Text(flyTime, style: AppTextStyles.body),
-                const Spacer(),
-                Text('Avg $avg', style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
-              ],
-            ),
-            if (likes != null) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.only(top: 10),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: AppColors.hair)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.favorite_rounded, color: AppColors.danger, size: 16),
-                    const SizedBox(width: 6),
-                    Text('$likes', style: AppTextStyles.captionBold.copyWith(color: AppColors.danger)),
-                    const SizedBox(width: 14),
-                    const Icon(Icons.remove_red_eye_outlined, color: AppColors.mut, size: 16),
-                    const SizedBox(width: 6),
-                    Text(views ?? '0', style: AppTextStyles.captionBold.copyWith(color: AppColors.sub)),
                   ],
                 ),
-              ),
-            ],
-          ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _InfoPill(label: 'Pigeons', value: '$flown'),
+                    const SizedBox(width: 8),
+                    _InfoPill(label: 'Fly Time', value: flyTime),
+                    const Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Average', style: AppTextStyles.caption),
+                        Text(avg,
+                            style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoPill({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.soft,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('$label: ', style: AppTextStyles.caption),
+          Text(value, style: AppTextStyles.captionBold),
+        ],
       ),
     );
   }
@@ -463,19 +575,18 @@ class _SegmentItem extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.card : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected ? AppShadows.xs : null,
+            borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
           child: Text(
             title,
-            style: AppTextStyles.captionBold.copyWith(
-              color: isSelected ? AppColors.brand : AppColors.sub,
+            style: AppTextStyles.caption.copyWith(
+              color: isSelected ? AppColors.brand : AppColors.muted,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),

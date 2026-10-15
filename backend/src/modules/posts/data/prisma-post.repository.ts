@@ -31,12 +31,36 @@ export class PrismaPostRepository {
       const f = await this.prisma.follow.findMany({ where: { followerId: viewerId }, select: { followeeId: true } });
       where.authorId = { in: f.map((x) => x.followeeId), notIn: blocked };
     }
-    return this.prisma.post.findMany({
+    const posts = await this.prisma.post.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: { author: { select: { id: true, displayName: true, username: true, photoUrl: true } } },
     });
+    // Annotate the viewer's like state in one batched query (cards show it correctly).
+    const likes = await this.prisma.postLike.findMany({
+      where: { userId: viewerId, postId: { in: posts.map((p) => p.id) } },
+      select: { postId: true },
+    });
+    const liked = new Set(likes.map((l) => l.postId));
+    return posts.map((p) => ({ ...p, isLiked: liked.has(p.id) }));
+  }
+
+  /** A single author's posts (newest first), with the viewer's like state. Used by
+   *  the profile "Posts" list (own or another user's). */
+  async byAuthor(authorId: string, viewerId: string, limit: number) {
+    const posts = await this.prisma.post.findMany({
+      where: { authorId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { author: { select: { id: true, displayName: true, username: true, photoUrl: true } } },
+    });
+    const likes = await this.prisma.postLike.findMany({
+      where: { userId: viewerId, postId: { in: posts.map((p) => p.id) } },
+      select: { postId: true },
+    });
+    const liked = new Set(likes.map((l) => l.postId));
+    return posts.map((p) => ({ ...p, isLiked: liked.has(p.id) }));
   }
 
   /** Lightweight recent-post list for the bot engine's like/view targeting + gap-fill. */
@@ -49,13 +73,21 @@ export class PrismaPostRepository {
     });
   }
 
-  async getById(id: string) {
+  async getById(id: string, viewerId?: string) {
     const p = await this.prisma.post.findFirst({
       where: { id, deletedAt: null },
       include: { author: { select: { id: true, displayName: true, username: true, photoUrl: true } } },
     });
     if (!p) throw new NotFoundError('post');
-    return p;
+    let isLiked = false;
+    if (viewerId) {
+      const like = await this.prisma.postLike.findUnique({
+        where: { postId_userId: { postId: id, userId: viewerId } },
+        select: { id: true },
+      });
+      isLiked = !!like;
+    }
+    return { ...p, isLiked };
   }
 
   create(authorId: string, content: string | undefined, imageUrl: string | undefined) {

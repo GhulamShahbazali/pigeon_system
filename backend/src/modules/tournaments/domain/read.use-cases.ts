@@ -13,12 +13,21 @@ export class TournamentQueries {
     private readonly cache: CacheService,
   ) {}
 
-  list(tab: 'all' | 'following' | 'mine', userId: string, cursor: string | null, limit: number) {
+  list(
+    tab: 'all' | 'following' | 'mine' | 'upcoming' | 'ongoing' | 'past',
+    userId: string,
+    cursor: string | null,
+    limit: number,
+  ) {
     return this.repo.list(tab, userId, cursor, limit);
   }
 
+  byOrganizer(organizerId: string, viewerId: string, limit: number) {
+    return this.repo.byOrganizer(organizerId, viewerId, limit);
+  }
+
   async detail(id: string, viewerId: string) {
-    const t = await this.repo.findDetail(id);
+    const t = await this.repo.findDetail(id, viewerId);
     if (!t) throw new NotFoundError('tournament');
     await this.repo.recordView(id, viewerId);
     return t;

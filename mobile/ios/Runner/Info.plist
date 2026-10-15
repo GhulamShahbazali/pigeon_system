@@ -45,5 +45,16 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>PigeonFly needs camera access to capture pigeon, profile, and tournament photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PigeonFly needs photo library access to upload photos and media.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PigeonFly needs microphone access to record voice messages in chat.</string>
 </dict>
 </plist>

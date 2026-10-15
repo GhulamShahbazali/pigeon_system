@@ -4,6 +4,8 @@ import {
   CreateTournamentUseCase,
   AddParticipantUseCase,
   RecordFlightUseCase,
+  UpdateFlightUseCase,
+  DeleteFlightUseCase,
   TournamentSocialUseCase,
 } from './domain/write.use-cases';
 import { TournamentQueries } from './domain/read.use-cases';
@@ -16,10 +18,18 @@ import { TOURNAMENT_REPOSITORY } from './domain/tournament.repository';
     CreateTournamentUseCase,
     AddParticipantUseCase,
     RecordFlightUseCase,
+    UpdateFlightUseCase,
+    DeleteFlightUseCase,
     TournamentSocialUseCase,
     TournamentQueries,
     { provide: TOURNAMENT_REPOSITORY, useClass: PrismaTournamentRepository },
   ],
-  exports: [CreateTournamentUseCase, AddParticipantUseCase, RecordFlightUseCase],
+  exports: [
+    CreateTournamentUseCase,
+    AddParticipantUseCase,
+    RecordFlightUseCase,
+    UpdateFlightUseCase,
+    DeleteFlightUseCase,
+  ],
 })
 export class TournamentsModule {}

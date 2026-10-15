@@ -3,6 +3,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
 
+import 'dart:io';
+import '../../../../core/widgets/image_picker_helper.dart';
+
 class AddParticipantScreen extends StatefulWidget {
   final String? initialName;
   final String? initialPhone;
@@ -24,6 +27,7 @@ class AddParticipantScreen extends StatefulWidget {
 }
 
 class _AddParticipantScreenState extends State<AddParticipantScreen> {
+  File? _photoFile;
   late final TextEditingController _nameController;
   late final TextEditingController _contactController;
   late final TextEditingController _phoneController;
@@ -72,7 +76,12 @@ class _AddParticipantScreenState extends State<AddParticipantScreen> {
                   children: [
                     // Photo picker
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        final file = await ImagePickerHelper.showImageSourceSheet(context);
+                        if (file != null) {
+                          setState(() => _photoFile = file);
+                        }
+                      },
                       child: Column(
                         children: [
                           Container(
@@ -83,11 +92,14 @@ class _AddParticipantScreenState extends State<AddParticipantScreen> {
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: AppColors.line),
                             ),
-                            child: const Icon(Icons.camera_alt_outlined, size: 36, color: AppColors.ink2),
+                            clipBehavior: Clip.antiAlias,
+                            child: _photoFile != null
+                                ? Image.file(_photoFile!, fit: BoxFit.cover)
+                                : const Icon(Icons.camera_alt_outlined, size: 36, color: AppColors.ink2),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Add photo',
+                            _photoFile != null ? 'Change photo' : 'Add photo',
                             style: AppTextStyles.captionBold.copyWith(color: AppColors.brand),
                           ),
                         ],

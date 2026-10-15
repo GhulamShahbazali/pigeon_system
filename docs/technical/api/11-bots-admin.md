@@ -8,7 +8,7 @@ All routes `@Roles('superadmin')`, prefixed `/v1/admin/bots`.
 
 | Method · Path | Body → Response | Notes |
 |---------------|-----------------|-------|
-| `GET /overview` | → `{ enabled, active_source, total_bots, awake_now, today:{posts,likes,views,follows,tournaments} }` | dashboard header |
+| `GET /overview` | → `{ enabled, active_source, total_bots, awake_now, today:{posts,likes,views,follows,tournaments,records}, live_records_now }` | dashboard header. `today.records` = live records created today; `live_records_now` = bot records currently live. Admin UI shows **Posts/Likes/Views/Follows** then **Tournaments/Records/Live now** cards |
 | `GET /config` | → `{ data: BotConfig }` | the live knobs |
 | `PATCH /config` | partial `BotConfig` → `{ data }` | kill-switch (`enabled`), rates, cooldowns, caps — editable live |
 | `GET /roster` | `?offset=&limit=` → `{ data:[bot], meta }` | bot list + `awake_now` per row |
@@ -16,6 +16,6 @@ All routes `@Roles('superadmin')`, prefixed `/v1/admin/bots`.
 | `GET /manual-selection` · `POST /manual-selection` | `{ ids: uuid[] }` → `204` | the Manual-mode awake set |
 | `GET /content` | → `{ data: pools }` | caption/image/tournament pool sizes (Content tab) |
 
-**`BotConfig`:** `enabled, tickIntervalSec, gapWindowSec, postsPerMin, botPostCooldownMin, likesPerMin, newestBiasPct, maxBotLikesPerPost, viewsPerMin, viewBatchSize, followsPerMin, tournamentsPerDay`.
+**`BotConfig`:** `enabled, tickIntervalSec, gapWindowSec, postsPerMin, botPostCooldownMin, likesPerMin, newestBiasPct, maxBotLikesPerPost, viewsPerMin, viewBatchSize, followsPerMin, tournamentsPerDay, recordsPerDay`. (`postsPerMin` default `1` ≈ one post every 1–2 min — a calm, readable feed; admin-tunable.)
 
 **Touches:** `bot_config` table; Redis `bots:*` (active_source, manual_selection, cooldowns, rate caps, daily tournament counter). No sockets. Bots act through the real feed/social/tournament use-cases, so their activity raises the same `content_like` / `new_follower` notifications + counters as real users.

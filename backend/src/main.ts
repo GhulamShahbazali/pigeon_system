@@ -1,14 +1,20 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { UPLOADS_DIR, UPLOADS_ROUTE } from './modules/media/media.constants';
 
 async function bootstrapApi(): Promise<void> {
   // bufferLogs → startup logs are held until the pino logger is attached.
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
   app.useLogger(app.get(PinoLogger)); // structured JSON logging + correlation id
-  app.use(helmet());
+  // Serve uploaded chat media (voice/image/video) from the project uploads folder.
+  // Static assets bypass the /v1 global prefix, so these URLs are /uploads/… .
+  app.useStaticAssets(UPLOADS_DIR, { prefix: `${UPLOADS_ROUTE}/` });
+  // crossOriginResourcePolicy relaxed so the mobile app can load media cross-origin.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.enableCors({
     origin: (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
     credentials: true,
@@ -20,8 +26,8 @@ async function bootstrapApi(): Promise<void> {
   app.enableShutdownHooks();
 
   const port = Number(process.env.PORT ?? 3000);
-  await app.listen(port);
-  app.get(PinoLogger).log(`[api] PigeonFly API listening on :${port}`);
+  await app.listen(port, '0.0.0.0');
+  app.get(PinoLogger).log(`[api] PigeonFly API listening on 0.0.0.0:${port}`);
 }
 
 async function bootstrapWorker(): Promise<void> {
@@ -39,3 +45,4 @@ const role = process.env.PROCESS_ROLE ?? 'api';
   console.error('Fatal boot error:', e);
   process.exit(1);
 });
+

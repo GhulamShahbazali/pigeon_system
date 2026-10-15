@@ -28,6 +28,7 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { BotsModule } from './modules/bots/bots.module';
+import { MediaModule } from './modules/media/media.module';
 import { WorkerRunner } from './worker/worker-runner.service';
 
 @Module({
@@ -55,6 +56,7 @@ import { WorkerRunner } from './worker/worker-runner.service';
     ModerationModule,
     DiscoveryModule,
     BotsModule,
+    MediaModule,
   ],
   providers: [
     // Rate limit first (cheap, protects everything behind it), then auth.

@@ -7,12 +7,24 @@ import {
   ITournamentRepository,
   RecordFlightInput,
   TournamentSummary,
+  UpdateFlightInput,
 } from '../domain/tournament.repository';
 import {
   FlightBeforeReleaseError,
+  FutureDayInactiveError,
+  PastDayCannotAddError,
   PigeonCapExceededError,
 } from '../domain/tournament.errors';
 import { NotFoundError } from '../../../shared/errors/common-errors';
+
+function getTodayInTimezone(tz: string): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    return formatter.format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
 
 /** Minutes the IANA tz is ahead of UTC at the given instant. */
 function offsetMinutes(tz: string, at: Date): number {
@@ -104,39 +116,138 @@ export class PrismaTournamentRepository implements ITournamentRepository {
     });
   }
 
-  async findDetail(id: string): Promise<any | null> {
-    return this.prisma.tournament.findFirst({
+  async findDetail(id: string, viewerId: string): Promise<any | null> {
+    const t = await this.prisma.tournament.findFirst({
       where: { id, deletedAt: null },
       include: {
-        organizer: { select: { id: true, displayName: true, username: true, photoUrl: true } },
+        organizer: { select: { id: true, displayName: true, username: true, photoUrl: true, timezone: true } },
         days: { orderBy: { dayNumber: 'asc' } },
       },
     });
+    if (!t) return null;
+    const tz = (t.organizer as any)?.timezone ?? 'Asia/Karachi';
+    const todayStr = getTodayInTimezone(tz);
+    const isLive = t.status === 'active' && (t.days ?? []).some((d: any) => d.date.toISOString().slice(0, 10) === todayStr);
+
+    // Viewer-specific state so the app shows follow/like correctly after reopen.
+    const [follow, like] = await Promise.all([
+      this.prisma.tournamentFollow.findUnique({
+        where: { tournamentId_userId: { tournamentId: id, userId: viewerId } },
+        select: { id: true },
+      }),
+      this.prisma.tournamentLike.findUnique({
+        where: { tournamentId_userId: { tournamentId: id, userId: viewerId } },
+        select: { id: true },
+      }),
+    ]);
+    return { ...t, isLive, isFollowing: !!follow, isLiked: !!like, isOrganizer: t.organizerId === viewerId };
   }
 
   async list(
-    tab: 'all' | 'following' | 'mine',
+    tab: 'all' | 'following' | 'mine' | 'upcoming' | 'ongoing' | 'past',
     userId: string,
     _cursor: string | null,
     limit: number,
   ): Promise<any[]> {
+    const viewer = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { timezone: true },
+    });
+    const tz = viewer?.timezone ?? 'Asia/Karachi';
+    const todayStr = getTodayInTimezone(tz);
+    const todayStartUtc = new Date(`${todayStr}T00:00:00Z`);
+
     const where: any = { deletedAt: null };
-    if (tab === 'mine') where.organizerId = userId;
-    if (tab === 'following') {
-      const follows = await this.prisma.tournamentFollow.findMany({
-        where: { userId },
-        select: { tournamentId: true },
-      });
-      where.id = { in: follows.map((f) => f.tournamentId) };
+    if (tab === 'mine') {
+      where.organizerId = userId;
+    } else if (tab === 'following') {
+      // 1. Tournaments followed directly by user
+      // 2. Tournaments created by users that this viewer follows
+      const [follows, userFollows] = await Promise.all([
+        this.prisma.tournamentFollow.findMany({
+          where: { userId },
+          select: { tournamentId: true },
+        }),
+        this.prisma.follow.findMany({
+          where: { followerId: userId },
+          select: { followeeId: true },
+        }),
+      ]);
+      const followedTourneyIds = follows.map((f) => f.tournamentId);
+      const followedUserIds = userFollows.map((f) => f.followeeId);
+
+      where.OR = [
+        { id: { in: followedTourneyIds } },
+        { organizerId: { in: followedUserIds } },
+      ];
+    } else if (tab === 'upcoming') {
+      // "Coming soon" — active and not started yet (every day is in the future).
+      where.status = 'active';
+      where.days = {
+        some: {},
+        every: { date: { gt: todayStartUtc } },
+      };
+    } else if (tab === 'ongoing') {
+      // Underway — started (a day today-or-earlier) and not finished (a day
+      // today-or-later). This excludes "coming soon" races, which have no past day.
+      where.status = 'active';
+      where.AND = [
+        { days: { some: { date: { lte: todayStartUtc } } } },
+        { days: { some: { date: { gte: todayStartUtc } } } },
+      ];
+    } else if (tab === 'past') {
+      // Completed tournaments OR tournaments where all days are in the past
+      where.OR = [
+        { status: 'completed' },
+        {
+          status: 'active',
+          days: {
+            none: {
+              date: { gte: todayStartUtc },
+            },
+          },
+        },
+      ];
     }
-    return this.prisma.tournament.findMany({
+
+    const rows = await this.prisma.tournament.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
         organizer: { select: { id: true, displayName: true, username: true, photoUrl: true } },
+        days: { select: { date: true } },
       },
     });
+
+    return rows.map((t) => {
+      const isLive =
+        t.status === 'active' &&
+        t.days.some((d) => d.date.toISOString().slice(0, 10) === todayStr);
+      return {
+        ...t,
+        isLive,
+      };
+    });
+  }
+
+  /** A given organizer's tournaments (newest first) — for a user's profile. */
+  async byOrganizer(organizerId: string, viewerId: string, limit: number): Promise<any[]> {
+    const viewer = await this.prisma.user.findUnique({ where: { id: viewerId }, select: { timezone: true } });
+    const todayStr = getTodayInTimezone(viewer?.timezone ?? 'Asia/Karachi');
+    const rows = await this.prisma.tournament.findMany({
+      where: { organizerId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        organizer: { select: { id: true, displayName: true, username: true, photoUrl: true } },
+        days: { select: { date: true } },
+      },
+    });
+    return rows.map((t) => ({
+      ...t,
+      isLive: t.status === 'active' && t.days.some((d) => d.date.toISOString().slice(0, 10) === todayStr),
+    }));
   }
 
   addParticipant(input: AddParticipantInput): Promise<any> {
@@ -155,41 +266,151 @@ export class PrismaTournamentRepository implements ITournamentRepository {
   async recordFlight(input: RecordFlightInput): Promise<any> {
     return this.prisma.$transaction(
       async (tx) => {
-      const day = await tx.tournamentDay.findUnique({
-        where: { id: input.dayId },
-        select: { releaseAt: true, tournamentId: true },
-      });
-      if (!day || day.tournamentId !== input.tournamentId) throw new NotFoundError('day');
+        const day = await tx.tournamentDay.findUnique({
+          where: { id: input.dayId },
+          select: { releaseAt: true, date: true, tournamentId: true },
+        });
+        if (!day || day.tournamentId !== input.tournamentId) throw new NotFoundError('day');
 
-      const tournament = await tx.tournament.findUnique({
-        where: { id: input.tournamentId },
-        select: { pigeonCount: true },
-      });
-      if (!tournament) throw new NotFoundError('tournament');
+        const tournament = await tx.tournament.findUnique({
+          where: { id: input.tournamentId },
+          select: { pigeonCount: true, organizerId: true },
+        });
+        if (!tournament) throw new NotFoundError('tournament');
 
-      const count = await tx.pigeonFlight.count({
-        where: { participantId: input.participantId, dayId: input.dayId },
-      });
-      if (count >= tournament.pigeonCount) throw new PigeonCapExceededError(tournament.pigeonCount);
+        if (!input.bypassDateCheck) {
+          const organizer = await tx.user.findUnique({
+            where: { id: tournament.organizerId },
+            select: { timezone: true },
+          });
+          const tz = organizer?.timezone ?? 'Asia/Karachi';
+          const todayStr = getTodayInTimezone(tz);
+          const dayStr = day.date.toISOString().slice(0, 10);
 
-      const durationSeconds = Math.floor(
-        (input.landingTime.getTime() - day.releaseAt.getTime()) / 1000,
-      );
-      if (durationSeconds <= 0) throw new FlightBeforeReleaseError();
+          if (dayStr > todayStr) {
+            throw new FutureDayInactiveError(dayStr);
+          }
+          if (dayStr < todayStr) {
+            throw new PastDayCannotAddError(dayStr);
+          }
+        }
 
-      const flight = await tx.pigeonFlight.create({
-        data: {
-          tournamentId: input.tournamentId,
-          participantId: input.participantId,
-          dayId: input.dayId,
-          pigeonName: input.pigeonName,
-          landingTime: input.landingTime,
-          durationSeconds,
-        },
-      });
+        const count = await tx.pigeonFlight.count({
+          where: { participantId: input.participantId, dayId: input.dayId },
+        });
+        if (count >= tournament.pigeonCount) throw new PigeonCapExceededError(tournament.pigeonCount);
+
+        const durationSeconds = Math.floor(
+          (input.landingTime.getTime() - day.releaseAt.getTime()) / 1000,
+        );
+        if (durationSeconds <= 0) throw new FlightBeforeReleaseError();
+
+        const flight = await tx.pigeonFlight.create({
+          data: {
+            tournamentId: input.tournamentId,
+            participantId: input.participantId,
+            dayId: input.dayId,
+            pigeonName: input.pigeonName,
+            landingTime: input.landingTime,
+            durationSeconds,
+          },
+        });
 
         await this.recompute(tx, input.tournamentId, input.participantId, input.dayId);
         return flight;
+      },
+      { timeout: 20000, maxWait: 15000 },
+    );
+  }
+
+  async updateFlight(input: UpdateFlightInput): Promise<any> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const flight = await tx.pigeonFlight.findUnique({
+          where: { id: input.flightId },
+          include: { day: true },
+        });
+        if (!flight || flight.tournamentId !== input.tournamentId || flight.participantId !== input.participantId) {
+          throw new NotFoundError('flight');
+        }
+
+        const tournament = await tx.tournament.findUnique({
+          where: { id: input.tournamentId },
+          select: { organizerId: true },
+        });
+        if (!tournament) throw new NotFoundError('tournament');
+
+        const organizer = await tx.user.findUnique({
+          where: { id: tournament.organizerId },
+          select: { timezone: true },
+        });
+        const tz = organizer?.timezone ?? 'Asia/Karachi';
+        const todayStr = getTodayInTimezone(tz);
+        const dayStr = flight.day.date.toISOString().slice(0, 10);
+
+        if (dayStr > todayStr) {
+          throw new FutureDayInactiveError(dayStr);
+        }
+
+        const updateData: any = {};
+        if (input.pigeonName !== undefined) {
+          updateData.pigeonName = input.pigeonName;
+        }
+        if (input.landingTime !== undefined) {
+          const durationSeconds = Math.floor(
+            (input.landingTime.getTime() - flight.day.releaseAt.getTime()) / 1000,
+          );
+          if (durationSeconds <= 0) throw new FlightBeforeReleaseError();
+          updateData.landingTime = input.landingTime;
+          updateData.durationSeconds = durationSeconds;
+        }
+
+        const updated = await tx.pigeonFlight.update({
+          where: { id: input.flightId },
+          data: updateData,
+        });
+
+        await this.recompute(tx, input.tournamentId, input.participantId, flight.dayId);
+        return updated;
+      },
+      { timeout: 20000, maxWait: 15000 },
+    );
+  }
+
+  async deleteFlight(tournamentId: string, participantId: string, flightId: string): Promise<void> {
+    await this.prisma.$transaction(
+      async (tx) => {
+        const flight = await tx.pigeonFlight.findUnique({
+          where: { id: flightId },
+          include: { day: true },
+        });
+        if (!flight || flight.tournamentId !== tournamentId || flight.participantId !== participantId) {
+          throw new NotFoundError('flight');
+        }
+
+        const tournament = await tx.tournament.findUnique({
+          where: { id: tournamentId },
+          select: { organizerId: true },
+        });
+        if (!tournament) throw new NotFoundError('tournament');
+
+        const organizer = await tx.user.findUnique({
+          where: { id: tournament.organizerId },
+          select: { timezone: true },
+        });
+        const tz = organizer?.timezone ?? 'Asia/Karachi';
+        const todayStr = getTodayInTimezone(tz);
+        const dayStr = flight.day.date.toISOString().slice(0, 10);
+
+        if (dayStr > todayStr) {
+          throw new FutureDayInactiveError(dayStr);
+        }
+
+        await tx.pigeonFlight.delete({
+          where: { id: flightId },
+        });
+
+        await this.recompute(tx, tournamentId, participantId, flight.dayId);
       },
       { timeout: 20000, maxWait: 15000 },
     );

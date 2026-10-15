@@ -48,29 +48,50 @@ export class PrismaRecordRepository {
       where: { followerId: viewerId },
       select: { followeeId: true },
     });
-    return this.prisma.personalRecord.findMany({
-      where: {
-        privacy: 'live',
-        status: 'open',
-        deletedAt: null,
-        userId: { in: follows.map((f) => f.followeeId) },
-      },
+    const followedIds = follows.map((f) => f.followeeId);
+    const base = { privacy: 'live' as const, status: 'open' as const, deletedAt: null };
+    const include = { user: { select: { id: true, displayName: true, username: true, photoUrl: true } } };
+
+    // Live records of people the viewer follows come first.
+    const followed = followedIds.length
+      ? await this.prisma.personalRecord.findMany({
+          where: { ...base, userId: { in: followedIds } },
+          orderBy: { wentLiveAt: 'desc' },
+          take: limit,
+          include,
+        })
+      : [];
+
+    if (followed.length >= limit) return followed;
+
+    // Fill the rest with other live records (discovery) so a new user — who may
+    // follow no one yet — still sees who is live right now. Never the viewer's own.
+    const exclude = [viewerId, ...followed.map((r) => r.userId)];
+    const discovery = await this.prisma.personalRecord.findMany({
+      where: { ...base, userId: { notIn: exclude } },
       orderBy: { wentLiveAt: 'desc' },
-      take: limit,
-      include: { user: { select: { id: true, displayName: true, username: true, photoUrl: true } } },
+      take: limit - followed.length,
+      include,
     });
+    return [...followed, ...discovery];
   }
 
-  async detail(id: string) {
+  async detail(id: string, viewerId?: string) {
     const r = await this.prisma.personalRecord.findFirst({
       where: { id, deletedAt: null },
       include: {
         user: { select: { id: true, displayName: true, username: true, photoUrl: true } },
-        pigeons: { orderBy: { durationSeconds: 'desc' } },
+        pigeons: { orderBy: { landingTime: 'desc' } },
       },
     });
     if (!r) throw new NotFoundError('record');
-    return r;
+    const like = viewerId
+      ? await this.prisma.recordLike.findUnique({
+          where: { recordId_userId: { recordId: id, userId: viewerId } },
+          select: { id: true },
+        })
+      : null;
+    return { ...r, isLiked: !!like, isOwner: r.userId === viewerId };
   }
 
   async addPigeon(recordId: string, releaseAt: Date, pigeonName: string, landingTime: Date) {
@@ -82,13 +103,13 @@ export class PrismaRecordRepository {
         });
         const agg = await tx.recordPigeon.aggregate({
           where: { recordId },
-          _avg: { durationSeconds: true },
+          _sum: { durationSeconds: true },
           _count: { _all: true },
         });
         await tx.personalRecord.update({
           where: { id: recordId },
           data: {
-            totalAvgSeconds: agg._avg.durationSeconds ? Math.round(agg._avg.durationSeconds) : null,
+            totalAvgSeconds: agg._sum.durationSeconds ?? null,
             returnedCount: agg._count._all,
           },
         });

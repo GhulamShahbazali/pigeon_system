@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly Admin — Tournaments Wireframes</title>
+<style>
+  :root{
+    --brand:#2F6BFF; --brand-ink:#1E49B8; --brand-50:#EEF3FF; --brand-100:#DCE6FF;
+    --ink:#0B1020; --ink-2:#394153; --sub:#6B7280; --mut:#A4ABB8;
+    --line:#E9ECF2; --hair:#F2F4F8; --soft:#F6F7F9; --bg:#F4F6FB; --card:#fff;
+    --ok:#12B76A; --ok-50:#E7F8F0; --amber:#F5A524; --amber-50:#FEF3E0; --danger:#F04438; --danger-50:#FEECEB;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:34px 24px 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1160px;margin:0 auto;}
+  h1{font-size:26px;letter-spacing:-.03em;margin:0 0 4px;}
+  .sub{color:var(--sub);font-size:13.5px;}
+  .legend{font-size:12.5px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:16px 0 30px;line-height:1.7;}
+  .legend b{color:var(--ink);} .legend code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11.5px;}
+  .num{font-variant-numeric:tabular-nums;}
+  .screen-label{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);padding:6px 13px;border-radius:7px;margin:42px 0 13px;box-shadow:0 8px 16px rgba(47,107,255,.26);}
+  .screen-label .n{background:rgba(255,255,255,.26);border-radius:4px;padding:0 7px;}
+  .cap{font-size:12px;color:var(--mut);margin:8px 2px 0;}
+  .app{display:grid;grid-template-columns:210px 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.06),0 18px 40px rgba(16,24,40,.08);}
+  .side{background:#0B1020;color:#cdd5e4;padding:18px 14px;}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 18px;}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#4C86FF,#2F6BFF 55%,#1E49B8);display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .brand b{font-size:14px;color:#fff;letter-spacing:-.02em;display:block;} .brand span{font-size:10.5px;color:#7f8aa3;}
+  .nav-item{padding:9px 11px;font-size:13px;color:#aeb8cd;display:flex;align-items:center;gap:10px;border-radius:9px;}
+  .nav-item.active{background:rgba(47,107,255,.16);color:#fff;font-weight:600;} .nav-item.dim{opacity:.5;}
+  .main{padding:20px 24px 26px;min-height:420px;}
+  .main-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
+  .main-title{font-size:19px;font-weight:800;letter-spacing:-.02em;} .main-title .hint{font-size:12px;color:var(--sub);font-weight:500;margin-top:3px;}
+  .search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--brand);box-shadow:0 0 0 4px var(--brand-50);border-radius:11px;padding:9px 13px;color:var(--ink);font-size:13.5px;min-width:240px;}
+  .chips{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .chip{font-size:12.5px;font-weight:700;color:var(--sub);background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:7px 14px;}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:13px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:11px 14px;border-bottom:1px solid var(--line);}
+  td{padding:11px 14px;border-bottom:1px solid var(--hair);}
+  tr:hover td{background:var(--soft);}
+  .thumb{width:46px;height:34px;border-radius:8px;flex-shrink:0;}
+  .mesh-sky{background:radial-gradient(130% 120% at 0% 0%,#4F8BFF,rgba(79,139,255,0) 52%),linear-gradient(150deg,#1E4FC2,#0E2A6B);}
+  .mesh-dusk{background:radial-gradient(130% 120% at 0% 0%,#8A6CF0,rgba(138,108,240,0) 52%),linear-gradient(150deg,#5536B8,#23134F);}
+  .mesh-dawn{background:radial-gradient(130% 120% at 0% 0%,#FF9E7A,rgba(255,158,122,0) 50%),linear-gradient(150deg,#E8603B,#9A2D12);}
+  .tt{display:flex;align-items:center;gap:11px;} .tt b{font-weight:700;} .tt span{font-size:11.5px;color:var(--mut);display:block;}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:30px;}
+  .pill.live{background:var(--ok-50);color:var(--ok);} .pill.live i{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;}
+  .pill.ended{background:var(--soft);color:var(--sub);} .pill.up{background:var(--amber-50);color:#9a6208;} .pill.bot{background:#F0E9FF;color:#6D4CE6;}
+  .btn{border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer;}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);} .btn.danger{background:var(--danger);} .btn.sm{padding:6px 11px;font-size:12px;}
+  .rowact{display:flex;gap:7px;justify-content:flex-end;}
+  /* detail */
+  .hero{border-radius:14px;padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden;}
+  .hero h2{margin:0;font-size:21px;letter-spacing:-.02em;} .hero p{margin:4px 0 0;font-size:12.5px;opacity:.9;}
+  .daytabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .dtab{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:7px 13px;text-align:center;}
+  .dtab small{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--mut);display:block;} .dtab b{font-size:13px;}
+  .dtab.on{background:var(--ink);color:#fff;border-color:var(--ink);} .dtab.on small{color:rgba(255,255,255,.7);}
+  .dtab.rest{border-style:dashed;color:var(--mut);}
+  .medal{width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;}
+  .m1{background:linear-gradient(145deg,#FFD66B,#E6A100);}.m2{background:linear-gradient(145deg,#D7DEE6,#9AA8B6);}.m3{background:linear-gradient(145deg,#F0B98C,#C07A4C);} .mN{background:var(--soft);color:var(--sub);}
+  .avgv{font-weight:800;color:var(--brand);letter-spacing:-.02em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PigeonFly Admin — Tournaments</h1>
+  <div class="sub">Browse + moderate tournaments (real + bot) · standings day-by-day · hide / remove. SuperAdmin.</div>
+  <div class="legend">
+    <b>API:</b> <code>GET /v1/tournaments</code> (list), <code>GET /v1/tournaments/:id</code> (+days), <code>GET /v1/tournaments/:id/participants</code> (standings), moderation via <code>POST /v1/admin/reports/:id/action</code> (hide/remove). Bot-created tournaments carry real flights → full standings.
+  </div>
+
+  <!-- 1 TOURNAMENTS LIST -->
+  <div class="screen-label"><span class="n">1</span> Tournaments list</div>
+  <div class="app">
+    <div class="side">
+      <div class="brand"><div class="logo">🕊️</div><div><b>PigeonFly</b><span>Admin Console</span></div></div>
+      <div class="nav-item dim">🤖 Bots / Liveness</div><div class="nav-item active">🏆 Tournaments</div><div class="nav-item dim">🚩 Moderation</div><div class="nav-item dim">👥 Users</div>
+    </div>
+    <div class="main">
+      <div class="main-head"><div class="main-title">Tournaments<div class="hint">1,240 total · 86 live</div></div><div class="search">🔎 valley</div></div>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Live</span><span class="chip">Upcoming</span><span class="chip">Ended</span><span class="chip">Reported</span></div>
+      <div class="card" style="overflow:hidden;">
+        <table>
+          <thead><tr><th>Tournament</th><th>Organizer</th><th>Country</th><th>Days</th><th>Pigeons</th><th style="text-align:right">Part.</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody>
+            <tr><td><div class="tt"><div class="thumb mesh-sky"></div><div><b>Valley Cup 2026</b><span>every_day</span></div></div></td><td>@ahmedloft</td><td>PK</td><td class="num">7</td><td class="num">11</td><td class="num" style="text-align:right">24</td><td><span class="pill live"><i></i>live</span></td><td><div class="rowact"><span class="btn ghost sm">View</span><span class="btn danger sm">Remove</span></div></td></tr>
+            <tr><td><div class="tt"><div class="thumb mesh-dusk"></div><div><b>Falcon Derby 2026</b><span>alternate_days · <span class="pill bot">bot</span></span></div></div></td><td>@saad.pk018</td><td>PK</td><td class="num">5</td><td class="num">20</td><td class="num" style="text-align:right">6</td><td><span class="pill live"><i></i>live</span></td><td><div class="rowact"><span class="btn ghost sm">View</span><span class="btn danger sm">Remove</span></div></td></tr>
+            <tr><td><div class="tt"><div class="thumb mesh-dawn"></div><div><b>Royal Open Spring</b><span>every_day</span></div></div></td><td>@rashid_pk</td><td>AE</td><td class="num">3</td><td class="num">7</td><td class="num" style="text-align:right">12</td><td><span class="pill up">upcoming</span></td><td><div class="rowact"><span class="btn ghost sm">View</span><span class="btn danger sm">Remove</span></div></td></tr>
+            <tr><td><div class="tt"><div class="thumb mesh-sky"></div><div><b>Desert Classic</b><span>every_day</span></div></div></td><td>@khalid12</td><td>SA</td><td class="num">1</td><td class="num">5</td><td class="num" style="text-align:right">18</td><td><span class="pill ended">ended</span></td><td><div class="rowact"><span class="btn ghost sm">View</span></div></td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border-top:1px solid var(--line);"><span class="btn ghost sm">← Prev</span><span style="font-size:12px;color:var(--mut)">cursor · 20/page</span><span class="btn ghost sm">Next →</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cap">1 · Tournaments list — search + status filter, schedule type shown, remove inline (moderation).</div>
+
+  <!-- 2 TOURNAMENT DETAIL -->
+  <div class="screen-label"><span class="n">2</span> Tournament detail — standings</div>
+  <div class="app">
+    <div class="side">
+      <div class="brand"><div class="logo">🕊️</div><div><b>PigeonFly</b><span>Admin Console</span></div></div>
+      <div class="nav-item dim">🤖 Bots / Liveness</div><div class="nav-item active">🏆 Tournaments</div><div class="nav-item dim">🚩 Moderation</div><div class="nav-item dim">👥 Users</div>
+    </div>
+    <div class="main">
+      <div class="main-head"><div class="main-title">← Valley Cup 2026</div><div class="rowact"><span class="btn ghost">Hide</span><span class="btn danger">Remove</span></div></div>
+      <div class="hero mesh-sky"><h2>Valley Cup 2026 <span class="pill live" style="vertical-align:middle;color:#0B1020"><i></i>live</span></h2><p>by @ahmedloft · Lahore, PK · every_day · 7 days · 11 pigeons/participant · 24 participants</p></div>
+      <div class="daytabs"><div class="dtab on"><small>DAY 1</small><b>09 Oct</b></div><div class="dtab"><small>DAY 2</small><b>10 Oct</b></div><div class="dtab"><small>DAY 3</small><b>11 Oct</b></div><div class="dtab rest"><small>DAY 4</small><b>12 Oct</b></div><div class="dtab rest"><small>DAY 5+</small><b>…</b></div></div>
+      <div class="card" style="overflow:hidden;">
+        <table>
+          <thead><tr><th>#</th><th>Participant</th><th style="text-align:right">Returned</th><th style="text-align:right">Day avg</th><th style="text-align:right">Overall avg</th></tr></thead>
+          <tbody>
+            <tr><td><span class="medal m1">1</span></td><td><b>Bilal Raza</b></td><td class="num" style="text-align:right">9 / 11</td><td class="num" style="text-align:right">6:52</td><td class="num avgv" style="text-align:right">6:48</td></tr>
+            <tr><td><span class="medal m2">2</span></td><td><b>Kashif Ali</b></td><td class="num" style="text-align:right">8 / 11</td><td class="num" style="text-align:right">6:30</td><td class="num avgv" style="text-align:right">6:25</td></tr>
+            <tr><td><span class="medal m3">3</span></td><td><b>Usman Tariq</b></td><td class="num" style="text-align:right">7 / 11</td><td class="num" style="text-align:right">6:10</td><td class="num avgv" style="text-align:right">6:02</td></tr>
+            <tr><td><span class="medal mN">4</span></td><td><b>Imran Shah</b></td><td class="num" style="text-align:right">6 / 11</td><td class="num" style="text-align:right">5:40</td><td class="num avgv" style="text-align:right">5:36</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cap" style="margin-top:10px">Higher average = better (descending). Not-returned pigeons are never counted.</div>
+    </div>
+  </div>
+  <div class="cap">2 · Tournament detail — day tabs, standings (rank · returned · day avg · overall avg), hide/remove.</div>
+
+</div>
+</body>
+</html>

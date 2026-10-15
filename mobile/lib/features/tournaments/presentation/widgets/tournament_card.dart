@@ -15,7 +15,9 @@ class TournamentCard extends StatelessWidget {
   final String views;
   final String? average;
   final bool isLive;
+  final bool isCompleted;
   final String? liveLabel;
+  final String? avatarUrl;
   final Gradient coverGradient;
   final VoidCallback onTap;
 
@@ -30,7 +32,9 @@ class TournamentCard extends StatelessWidget {
     required this.views,
     this.average,
     this.isLive = false,
+    this.isCompleted = false,
     this.liveLabel,
+    this.avatarUrl,
     this.coverGradient = AppColors.duskMesh,
     required this.onTap,
   });
@@ -185,10 +189,16 @@ class TournamentCard extends StatelessWidget {
                         const SizedBox(width: 5),
                         Text(views, style: AppTextStyles.bodyBold.copyWith(fontSize: 13, color: AppColors.sub)),
                         const Spacer(),
+                        // Completed races show a green "done" check next to share.
+                        if (isCompleted) ...[
+                          const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.ok),
+                          const SizedBox(width: 12),
+                        ],
                         const Icon(Icons.share_outlined, size: 17, color: AppColors.sub),
                         const SizedBox(width: 14),
                         AppAvatar(
                           text: organizer,
+                          imageUrl: avatarUrl,
                           size: 26,
                         ),
                       ],

@@ -48,12 +48,17 @@ export class BotsAdminService {
     const botIds = botIdsRows.map((b) => b.id);
     const awakeNow = bots.filter((b) => isAwakeInWindow(b.activeStartHour, b.activeEndHour, hour)).length;
 
-    const [posts, likes, views, follows, tournaments] = await Promise.all([
+    const [posts, likes, views, follows, tournaments, records, liveRecordsNow] = await Promise.all([
       this.prisma.post.count({ where: { authorId: { in: botIds }, createdAt: { gte: since } } }),
       this.prisma.postLike.count({ where: { userId: { in: botIds }, createdAt: { gte: since } } }),
       this.prisma.postView.count({ where: { userId: { in: botIds }, createdAt: { gte: since } } }),
       this.prisma.follow.count({ where: { followerId: { in: botIds }, createdAt: { gte: since } } }),
       this.prisma.tournament.count({ where: { organizerId: { in: botIds }, createdAt: { gte: since } } }),
+      this.prisma.personalRecord.count({ where: { userId: { in: botIds }, createdAt: { gte: since } } }),
+      // Currently-live bot records (not just today's) — what shows in "Live now".
+      this.prisma.personalRecord.count({
+        where: { userId: { in: botIds }, privacy: 'live', status: 'open', deletedAt: null },
+      }),
     ]);
 
     return {
@@ -61,7 +66,8 @@ export class BotsAdminService {
       active_source: source,
       total_bots: botIds.length,
       awake_now: awakeNow,
-      today: { posts, likes, views, follows, tournaments },
+      today: { posts, likes, views, follows, tournaments, records },
+      live_records_now: liveRecordsNow,
     };
   }
 

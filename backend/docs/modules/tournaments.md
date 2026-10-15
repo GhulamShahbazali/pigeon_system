@@ -8,7 +8,8 @@
 **Routes**
 | Method · Path | Notes |
 |---|---|
-| `GET`/`POST /v1/tournaments` | list (all/following/mine) · create (organizer) |
+| `GET`/`POST /v1/tournaments` | list (all/upcoming/ongoing/past/mine/following) · create (organizer) |
+| `GET /v1/tournaments/by-user/:userId` | a given organizer's tournaments (profile "Tournaments") |
 | `GET /v1/tournaments/:id` | detail + days |
 | `GET`/`POST /v1/tournaments/:id/participants` | list · add (organizer only) |
 | `GET /v1/tournaments/:id/participants/:pid` | participant per-day detail |

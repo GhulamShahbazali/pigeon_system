@@ -74,7 +74,9 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    await Promise.all(this.workers.map((w) => w.close()));
-    await this.emitterServer?.close();
+    await Promise.all(this.workers.map((w) => w.close().catch(() => null)));
+    // The server-less emitter has no HTTP server; Server.close() would throw
+    // (async) on shutdown, so we just drop the reference and let it be GC'd.
+    this.emitterServer = undefined;
   }
 }

@@ -1,7 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/image_picker_helper.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final VoidCallback onContinue;
@@ -13,11 +19,10 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  File? _selectedImage;
   String selectedLanguage = 'English';
-  final TextEditingController nameController =
-      TextEditingController(text: 'Ahmed Raza');
-  final TextEditingController usernameController =
-      TextEditingController(text: 'ahmed_loft');
+  late final TextEditingController nameController;
+  late final TextEditingController usernameController;
 
   final languages = [
     {'code': 'en', 'label': 'English'},
@@ -25,6 +30,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     {'code': 'hi', 'label': 'हिन्दी'},
     {'code': 'ar', 'label': 'العربية'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    final initialName = authState.name ?? '';
+    // Generate suggested username from name or email (e.g. ahmed_raza)
+    String suggestedUsername = '';
+    if (initialName.isNotEmpty) {
+      suggestedUsername = initialName
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9_]'), '_')
+          .replaceAll(RegExp(r'_+'), '_');
+    } else if (authState.email != null && authState.email!.isNotEmpty) {
+      suggestedUsername = authState.email!.split('@').first.toLowerCase();
+    }
+
+    nameController = TextEditingController(text: initialName);
+    usernameController = TextEditingController(text: suggestedUsername);
+  }
 
   @override
   void dispose() {
@@ -58,23 +83,35 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     children: [
                       // Photo picker circle
                       Center(
-                        child: Container(
-                          width: 92,
-                          height: 92,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.soft,
-                            border: Border.all(
-                              color: AppColors.brand100,
-                              width: 2,
+                        child: InkWell(
+                          onTap: () async {
+                            final image = await ImagePickerHelper.showImageSourceSheet(context);
+                            if (image != null) {
+                              setState(() => _selectedImage = image);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(46),
+                          child: Container(
+                            width: 92,
+                            height: 92,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.soft,
+                              border: Border.all(
+                                color: AppColors.brand100,
+                                width: 2,
+                              ),
                             ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.camera_alt_outlined,
-                              size: 32,
-                              color: AppColors.brand,
-                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: _selectedImage != null
+                                ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                                : const Center(
+                                    child: Icon(
+                                      Icons.camera_alt_outlined,
+                                      size: 32,
+                                      color: AppColors.brand,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -152,9 +189,57 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
 
               // Continue button
-              AppButton(
-                text: 'Continue',
-                onPressed: widget.onContinue,
+              BlocConsumer<AuthBloc, AuthState>(
+                listener: (context, state) {
+                  if (state.status == AuthStatus.authenticated) {
+                    widget.onContinue();
+                  } else if (state.status == AuthStatus.error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.errorMessage ?? 'Setup failed')),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  final isLoading = state.status == AuthStatus.loading;
+                  return AppButton(
+                    text: isLoading ? 'Saving…' : 'Continue',
+                    onPressed: isLoading
+                        ? () {}
+                        : () {
+                            final name = nameController.text.trim();
+                            final rawUser = usernameController.text.trim();
+                            final username = rawUser.startsWith('@')
+                                ? rawUser.substring(1)
+                                : rawUser;
+
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please enter your name')),
+                              );
+                              return;
+                            }
+                            if (username.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please enter a username')),
+                              );
+                              return;
+                            }
+
+                            final selectedEntry = languages.firstWhere(
+                              (l) => l['label'] == selectedLanguage,
+                              orElse: () => {'code': 'en'},
+                            );
+
+                            context.read<AuthBloc>().add(
+                                  AuthProfileSubmittedEvent(
+                                    name: name,
+                                    username: username,
+                                    language: selectedEntry['code'] ?? 'en',
+                                  ),
+                                );
+                          },
+                  );
+                },
               ),
             ],
           ),

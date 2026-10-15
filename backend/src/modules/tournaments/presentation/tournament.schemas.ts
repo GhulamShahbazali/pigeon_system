@@ -34,8 +34,14 @@ export const RecordFlightSchema = z.object({
 });
 export type RecordFlightDto = z.infer<typeof RecordFlightSchema>;
 
+export const UpdateFlightSchema = z.object({
+  pigeon_name: z.string().min(1).max(80).optional(),
+  landing_time: z.string().datetime().optional(),
+});
+export type UpdateFlightDto = z.infer<typeof UpdateFlightSchema>;
+
 export const ListQuerySchema = z.object({
-  tab: z.enum(['all', 'following', 'mine']).default('all'),
+  tab: z.enum(['all', 'following', 'mine', 'upcoming', 'ongoing', 'past']).default('ongoing'),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });

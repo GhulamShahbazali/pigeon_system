@@ -3,6 +3,7 @@ export interface ProfileView {
   isFollowing: boolean;
   isBlocked: boolean;
   tournamentCount: number;
+  postCount: number;
 }
 
 export interface UpdateProfileInput {

@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -14,6 +15,8 @@ import {
   CreateTournamentUseCase,
   AddParticipantUseCase,
   RecordFlightUseCase,
+  UpdateFlightUseCase,
+  DeleteFlightUseCase,
   TournamentSocialUseCase,
 } from '../domain/write.use-cases';
 import { TournamentQueries } from '../domain/read.use-cases';
@@ -22,10 +25,12 @@ import {
   CreateTournamentSchema,
   ListQuerySchema,
   RecordFlightSchema,
+  UpdateFlightSchema,
   type AddParticipantDto,
   type CreateTournamentDto,
   type ListQueryDto,
   type RecordFlightDto,
+  type UpdateFlightDto,
 } from './tournament.schemas';
 import {
   toCard,
@@ -41,6 +46,8 @@ export class TournamentsController {
     private readonly create: CreateTournamentUseCase,
     private readonly addParticipant: AddParticipantUseCase,
     private readonly recordFlight: RecordFlightUseCase,
+    private readonly updateFlightUc: UpdateFlightUseCase,
+    private readonly deleteFlightUc: DeleteFlightUseCase,
     private readonly social: TournamentSocialUseCase,
     private readonly queries: TournamentQueries,
   ) {}
@@ -52,6 +59,16 @@ export class TournamentsController {
     @Query(new ZodValidationPipe(ListQuerySchema)) q: ListQueryDto,
   ) {
     const rows = await this.queries.list(q.tab, user.id, q.cursor ?? null, q.limit);
+    return { data: rows.map(toCard) };
+  }
+
+  @Get('by-user/:userId')
+  async byUser(
+    @Param('userId') userId: string,
+    @CurrentUser() user: AuthUser,
+    @Query(new ZodValidationPipe(ListQuerySchema)) q: ListQueryDto,
+  ) {
+    const rows = await this.queries.byOrganizer(userId, user.id, q.limit);
     return { data: rows.map(toCard) };
   }
 
@@ -129,6 +146,37 @@ export class TournamentsController {
     });
     if (!r.ok) throw r.error;
     return toFlight(r.value);
+  }
+
+  @Patch(':id/participants/:pid/flights/:fid')
+  async editFlight(
+    @Param('id') id: string,
+    @Param('pid') pid: string,
+    @Param('fid') fid: string,
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(UpdateFlightSchema)) b: UpdateFlightDto,
+  ) {
+    const r = await this.updateFlightUc.execute(user.id, {
+      tournamentId: id,
+      participantId: pid,
+      flightId: fid,
+      pigeonName: b.pigeon_name,
+      landingTime: b.landing_time ? new Date(b.landing_time) : undefined,
+    });
+    if (!r.ok) throw r.error;
+    return toFlight(r.value);
+  }
+
+  @Delete(':id/participants/:pid/flights/:fid')
+  @HttpCode(204)
+  async removeFlight(
+    @Param('id') id: string,
+    @Param('pid') pid: string,
+    @Param('fid') fid: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const r = await this.deleteFlightUc.execute(user.id, id, pid, fid);
+    if (!r.ok) throw r.error;
   }
 
   // ---- social ----

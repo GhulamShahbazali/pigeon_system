@@ -93,10 +93,13 @@ async function main() {
       // Spread photo indices: males 0-99 by male-sequence, females by female-sequence.
       const photoUrl = avatar(female ? females : n - females, female);
 
-      const off = TZ_OFFSET[cc] ?? 0;
-      const localStart = 14 + (i % 6);
-      const start = ((Math.round(localStart - off) % 24) + 24) % 24;
-      const end = (start + 7) % 24;
+      // Spread start hours evenly around the clock (13 is coprime with 24) and use
+      // a WIDE 14-hour window so ~55-60% of bots are awake at ANY UTC hour — the
+      // feed never feels dead. (Per-bot still has day/night variation.)
+      const start = (n * 13) % 24;
+      const end = (start + 14) % 24;
+
+      const timezone = 'Asia/Karachi';
 
       const existing = await prisma.user.findUnique({ where: { botKey }, select: { id: true } });
       await prisma.user.upsert({
@@ -105,12 +108,12 @@ async function main() {
           authProvider: 'bot', authProviderId: botKey, botKey, isBot: true,
           email: `bot+${botKey}@pigeonfly.internal`,
           displayName, username, photoUrl, countryCode: cc, city,
-          timezone: 'UTC',
+          timezone,
           languageCode: cc === 'PK' ? 'ur' : cc === 'BD' ? 'bn' : cc === 'IN' ? 'hi' : ['AE', 'SA', 'KW'].includes(cc) ? 'ar' : 'en',
           activeStartHour: start, activeEndHour: end,
           deletedAt: null,
         },
-        update: { displayName, username, photoUrl, city, countryCode: cc, activeStartHour: start, activeEndHour: end, deletedAt: null },
+        update: { displayName, username, photoUrl, city, countryCode: cc, timezone, activeStartHour: start, activeEndHour: end, deletedAt: null },
       });
       existing ? updated++ : created++;
     }

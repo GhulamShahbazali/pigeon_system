@@ -7,32 +7,76 @@ const PIGEON_NAMES = [
 ];
 
 const rand = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
-const lock = () => Math.floor(Math.random() * 100000);
 
-/** Keyless, topical images via LoremFlickr (Flickr by tag). `lock` keeps a URL stable. */
-const img = (tags: string, w = 800, h = 600) =>
-  `https://loremflickr.com/${w}/${h}/${tags}?lock=${lock()}`;
-
-const CAPTIONS = [
-  'Morning toss done — birds looked sharp today 🕊️',
-  'New kit settling in nicely. Form is building for the season.',
-  'That young blue hen is turning into a real racer MashaAllah.',
-  'Loft cleaned, feed dialled in. Race week discipline 💪',
-  'Sunset training fly — this is why we love the sport.',
-  'Fresh ring numbers in. Who else is prepping for the derby?',
-  'Homed in strong headwind today. Proud of this team.',
-  '400km race this weekend — duaon mein yaad rakhna 🤲',
-  'Perfect trap today, every bird in under a minute.',
-  'Breeding pair of the year. Bloodline is everything.',
-  'Clear sky, light wind — ideal toss conditions.',
-  'Patience + good feed + clean water = winning birds.',
-  'Velvet cock back first again. Consistency is key.',
-  'Young bird training going well, loft full of energy.',
-  'Race basket packed. May the fastest home birds win 🏁',
+/**
+ * Curated PIGEON photos on the Unsplash CDN (keyless, stable). Every ID below was
+ * fetched and visually verified to show an actual pigeon / racing pigeon / loft bird
+ * — no stray animals. (LoremFlickr was dropped: it now returns HTTP 401, so its URLs
+ * rendered as broken images; and random Unsplash IDs turned out not to be pigeons.)
+ * The feed is pigeon-only to match the product: kabootar bazi.
+ */
+const UNSPLASH_PHOTO_IDS = [
+  '1534695941753-73cf13435eb4', '1641144355850-e7991d050bdc', '1513099335611-0fd3bca7131c',
+  '1592964377969-dc564e4c1599', '1514446194108-aa408d4d61d9', '1742659722918-e925e7877725',
+  '1723302641915-ad18f40f2203', '1611172444539-823c575d298e', '1518157770830-df40b281672e',
+  '1540382658444-5f53c7f12ac3', '1679243984878-b836be465a37', '1607417190565-630353c3d223',
+  '1554226114-04bd78f87c24', '1697989120456-5fb3b24749fb', '1692652966645-d05118429bbd',
 ];
 
-const POST_TAGS = ['pigeon', 'pigeon,loft', 'racing,pigeon', 'pigeon,sky', 'dove,bird', 'pigeon,flock'];
-const COVER_TAGS = ['pigeon,sky', 'racing,pigeon', 'pigeon,flight', 'bird,sky'];
+/** Direct Unsplash CDN image, resized/cropped server-side. */
+const img = (id: string, w = 800, h = 600) =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=70`;
+
+const postImage = () => img(rand(UNSPLASH_PHOTO_IDS));
+const coverImage = () => img(rand(UNSPLASH_PHOTO_IDS), 1200, 600);
+
+// Multilingual pigeon posts — each has its own topic/"title" lead so no two read
+// the same. English, Urdu (script + roman) and Arabic. Topics are strictly pigeon:
+// medicine (named meds), feed, health, racing, breeding, desi/high-flyer/low-flyer.
+// Every entry is unique; pickPost() also avoids repeating the last several captions.
+const CAPTIONS = [
+  // ── Medicine / health (named meds — believable kabootar baazi guidance) ──
+  '💊 Canker (zakham) se bachao: har 3 hafte Ronidazole ka course zaroori hai. Ignore mat karo.',
+  '💊 Worms ke liye mahine mein ek baar Ivermectin ya Levamisole — andar ka parasite speed kha jata hai.',
+  '💊 Respiratory infection? Tylosin + Doxycycline ka 5-din course, phir probiotic se gut recover karao.',
+  '💊 Coccidiosis ke liye ESB3 / Amprolium — garmi mein paani zyada ganda hota hai, ehtiyat lazmi.',
+  '💊 Race week pe electrolytes + glucose paani mein. Dehydration sab se bara dushman hai.',
+  '💊 Paika / canker ki pehchan: moun mein zard dana. Foran Metronidazole do, dusron se alag rakho.',
+  '🧪 Multivitamin + B-complex hafte mein 2 din — feather aur stamina dono behtar.',
+  '🧄 Qudrati nuskha: lehsun (garlic) + sfesh (apple cider vinegar) paani mein, immunity ka kaam karta hai.',
+  '🌿 Oregano oil aur probiotic — antibiotic ke baad gut flora wapas, bina inke birds susti dikhate hain.',
+  'Pigeon health tip: calcium + grit box hamesha loft mein rakho. Haddi aur egg-shell mazboot.',
+  'Health first — بیمار کبوتر کو فوراً الگ کریں، باقی ریوڑ کو کینکر اور کرم کی دوائی دیں۔',
+  'دواؤں کا شیڈول: ہر مہینے کرم کش، ہر 3 ہفتے کینکر، ریس سے پہلے ملٹی وٹامن اور الیکٹرولائٹس۔',
+  'الوقاية خير من العلاج: جرعة ديدان شهرية، وعلاج الكنكر كل ثلاثة أسابيع، وفيتامينات قبل السباق.',
+  // ── Feed / loft ──
+  '🌾 Race mix: 40% barley, jo, maash, bajra + thora oil seed. Energy slow-release milti hai.',
+  '🌾 Moulting season mein protein barhao — sunflower aur high-protein pellets, naye par jaldi aate hain.',
+  'Loft saaf, hawadar aur sukha — 70% bimariyan sirf gandi loft se aati hain. Roz safai.',
+  'لوفٹ کی صفائی مکمل، خوراک سیٹ — ریس ویک کا ڈسپلن شروع 💪',
+  'العلف المتوازن سر البطولة: شعير، ذرة، وبذور زيتية مع حصى ومعادن.',
+  // ── Racing / toss ──
+  '🕊️ Subah ki toss zabardast rahi — poora kit sharp aur tight udta raha.',
+  '🏁 400km race is weekend. Birds basket mein, dua mein yaad rakhna 🤲',
+  '🏆 Aaj Chotu sab se pehle wapas aaya, MashaAllah — 1180 mpm ki speed!',
+  'تیز ہوا کے خلاف آج زبردست واپسی، ٹیم پر فخر ہے 🕊️',
+  'سباق ٤٠٠ كم نهاية الأسبوع، بالتوفيق للجميع 🏁',
+  // ── Breeding / bloodline ──
+  '🥚 Breeding jori of the year set ho gayi — bloodline hi asal daulat hai.',
+  'Janglor x Teddy cross ke squeakers — ummeed hai is season ke champion yahi hon.',
+  'نئی نسل تیار ہو رہی ہے ماشاءاللہ، والدین کی لائن شاندار ہے۔',
+  // ── Desi pigeons (kabootar baazi — teeli, golden, madras) ──
+  '🇵🇰 Desi kabootar ka apna maza hai — teeli, golden, madras. Asli shauq wale samajhte hain.',
+  'Desi baazi: aaj chhat pe 45 minute ka uraan, poora ghola ek saath — dil khush ho gaya.',
+  'دیسی کبوتر بازی کا الگ ہی نشہ ہے — ٹیڈی، گولڈن، لکھے — صبح کی اُڑان لاجواب۔',
+  // ── High flyer ──
+  '🔝 High flyer kit aaj 3 ghante 20 minute asman pe — buland parwaz, nazar se ojhal!',
+  'High flyers ke liye light feed aur sabr — jitna halka pet, utni oonchi aur lambi uraan.',
+  'عالي الطيران حلّق أكثر من ٣ ساعات اليوم — قمة اللياقة والتحمل.',
+  // ── Low flyer / homer ──
+  '⏱️ Low flyer homer ki baat alag — speed aur direction, seedha loft wapas. Racing ki jaan.',
+  'Low flyer training: short tosses rozana barhao, bird distance aur homing dono seekhta hai.',
+];
 
 const TITLE_PREFIX = ['Valley', 'Royal', 'Falcon', 'Shaheen', 'Desert', 'Coastal', 'National', 'Champions', 'Golden', 'City'];
 const TITLE_SUFFIX = ['Cup', 'Open', 'Derby', 'Classic', 'Championship', 'Race', 'Challenge', 'Trophy'];
@@ -55,8 +99,21 @@ const COUNTRY_CODES = Object.keys(COUNTRIES);
 
 @Injectable()
 export class ContentProvider implements IContentProvider {
+  /** Last few captions handed out, so the feed never shows the same text twice in a row. */
+  private readonly recentCaptions: string[] = [];
+
   pickPost(): BotPost {
-    return { caption: rand(CAPTIONS), imageUrl: img(rand(POST_TAGS)) };
+    // Pick a caption that isn't one of the last few used (avoids the "same post
+    // twice" problem). Falls back after a few tries if the pool is tiny.
+    let caption = rand(CAPTIONS);
+    for (let i = 0; i < 6 && this.recentCaptions.includes(caption); i++) caption = rand(CAPTIONS);
+    this.recentCaptions.push(caption);
+    if (this.recentCaptions.length > Math.min(12, CAPTIONS.length - 1)) this.recentCaptions.shift();
+
+    // ~70% of posts carry a photo, ~30% are text-only — mirrors a real feed and
+    // reads better than every single post having an image.
+    const withImage = Math.random() < 0.7;
+    return { caption, imageUrl: withImage ? postImage() : null };
   }
 
   pickTournament(): BotTournament {
@@ -76,7 +133,7 @@ export class ContentProvider implements IContentProvider {
       scheduleType,
       city,
       countryCode: cc,
-      coverUrl: img(rand(COVER_TAGS), 1200, 600),
+      coverUrl: coverImage(),
       flyTime: rand(['05:30', '06:00', '06:30', '07:00']),
       endTime: rand(['17:00', '18:00', '18:30', '19:00']),
       numDays,
@@ -101,7 +158,7 @@ export class ContentProvider implements IContentProvider {
   pools() {
     return {
       captions: CAPTIONS.length,
-      postImages: POST_TAGS.length,
+      postImages: UNSPLASH_PHOTO_IDS.length,
       tournamentTitles: TITLE_PREFIX.length * TITLE_SUFFIX.length,
       cities: Object.values(COUNTRIES).reduce((n, c) => n + c.cities.length, 0),
       countries: COUNTRY_CODES,

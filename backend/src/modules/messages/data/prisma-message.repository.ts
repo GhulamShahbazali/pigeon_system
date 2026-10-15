@@ -10,6 +10,7 @@ type SendInput = {
   type: 'text' | 'voice' | 'image' | 'video';
   body?: string;
   mediaUrl?: string;
+  mediaDurationSeconds?: number;
 };
 
 function pairKey(a: string, b: string): string {
@@ -80,7 +81,12 @@ export class PrismaMessageRepository {
       let mediaId: string | undefined;
       if (input.mediaUrl && input.type !== 'text') {
         const media = await tx.messageMedia.create({
-          data: { kind: input.type as any, r2Key: input.mediaUrl, url: input.mediaUrl },
+          data: {
+            kind: input.type as any,
+            r2Key: input.mediaUrl,
+            url: input.mediaUrl,
+            durationSeconds: input.mediaDurationSeconds ?? null,
+          },
         });
         mediaId = media.id;
       }
@@ -120,6 +126,24 @@ export class PrismaMessageRepository {
     });
   }
 
+  /** Batch-fetch user cards (avoids N+1 when enriching the inbox). */
+  usersByIds(ids: string[]) {
+    if (ids.length === 0) return Promise.resolve([] as any[]);
+    return this.prisma.user.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, displayName: true, username: true, photoUrl: true },
+    });
+  }
+
+  /** Batch-fetch messages by id (for inbox last-message previews). */
+  messagesByIds(ids: string[]) {
+    if (ids.length === 0) return Promise.resolve([] as any[]);
+    return this.prisma.message.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, type: true, body: true },
+    });
+  }
+
   async requests(userId: string) {
     return this.prisma.conversation.findMany({
       where: { status: 'pending', deletedAt: null, initiatorId: { not: userId }, participants: { some: { userId } } },
@@ -144,6 +168,25 @@ export class PrismaMessageRepository {
       where: { conversationId, userId },
       data: { lastReadMessageId: uptoMessageId, lastReadAt: new Date() },
     });
+  }
+
+  async markDelivered(conversationId: string, userId: string, uptoMessageId: string): Promise<void> {
+    await this.prisma.conversationParticipant.updateMany({
+      where: { conversationId, userId },
+      data: { lastDeliveredMessageId: uptoMessageId },
+    });
+  }
+
+  /** The OTHER participant's read/delivered pointers — for rendering my sent-ticks. */
+  async otherPointers(conversationId: string, userId: string) {
+    const other = await this.prisma.conversationParticipant.findFirst({
+      where: { conversationId, userId: { not: userId } },
+      select: { lastReadMessageId: true, lastDeliveredMessageId: true },
+    });
+    return {
+      lastReadMessageId: other?.lastReadMessageId ?? null,
+      lastDeliveredMessageId: other?.lastDeliveredMessageId ?? null,
+    };
   }
 
   async deleteMessage(id: string, userId: string): Promise<void> {

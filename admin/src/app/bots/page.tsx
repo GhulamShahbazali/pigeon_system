@@ -105,6 +105,8 @@ function OverviewTab() {
       </div>
       <div className="grid g4" style={{ marginTop: 16 }}>
         <Stat k="Tournaments" v={data.today.tournaments} />
+        <Stat k="Records" v={data.today.records} />
+        <Stat k="Live now" v={data.live_records_now} />
       </div>
     </>
   );

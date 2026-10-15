@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PigeonFly — Tournament Winner (Hi-Fi)</title>
+<link rel="stylesheet" href="../assets/pigeonfly-ui.css">
+<style>
+  /* ---- winner celebration ---- */
+  .champ{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;
+    background:radial-gradient(120% 90% at 50% -10%,#2F6BFF 0%,#1E49B8 46%,#0B1020 100%);}
+  .champ .tophud{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 2px;color:#fff;position:relative;z-index:6;}
+  .champ .tophud .tt{font-size:13px;font-weight:800;letter-spacing:-.02em;}
+  .donepill{font-size:10px;font-weight:800;letter-spacing:.06em;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 10px;border-radius:20px;}
+
+  .champ .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 20px 18px;position:relative;z-index:6;text-align:center;}
+  .crownrow{display:flex;align-items:center;gap:8px;color:#FFD66B;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin:4px 0 12px;}
+  .crownrow svg{width:18px;height:18px;}
+
+  .winwrap{position:relative;margin-bottom:6px;}
+  .winwrap .ring{width:140px;height:140px;border-radius:50%;padding:5px;background:conic-gradient(from 200deg,#FFE08A,#E6A100,#FFD66B,#B87400,#FFE08A);box-shadow:0 18px 50px rgba(255,195,60,.45);animation:spin 8s linear infinite;}
+  .winwrap .ph{width:100%;height:100%;border-radius:50%;object-fit:cover;background:linear-gradient(145deg,#8FB4FF,#2F6BFF);display:flex;align-items:center;justify-content:center;color:#fff;font-size:44px;font-weight:800;border:4px solid #0B1020;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .trophybadge{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,#FFD66B,#E6A100);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.3);border:3px solid #0B1020;}
+  .trophybadge svg{width:24px;height:24px;color:#0B1020;}
+
+  .winname{color:#fff;font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:16px;}
+  .winmeta{color:rgba(255,255,255,.72);font-size:12.5px;font-weight:600;margin-top:3px;}
+  .bigavg{margin-top:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:18px;padding:12px 22px;backdrop-filter:blur(6px);}
+  .bigavg b{display:block;color:#fff;font-size:30px;font-weight:800;letter-spacing:-.04em;}
+  .bigavg small{color:rgba(255,255,255,.65);font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  .retline{color:rgba(255,255,255,.8);font-size:12px;font-weight:700;margin-top:9px;}
+
+  .contactcard{align-self:stretch;margin-top:16px;background:#fff;border-radius:18px;padding:13px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 18px 40px rgba(0,0,0,.28);}
+  .contactcard .num{flex:1;text-align:left;} .contactcard .num small{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:block;}
+  .contactcard .num b{font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--ink);}
+  .cbtn{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+  .cbtn.call{background:var(--brand);} .cbtn.wa{background:#25D366;}
+  .cbtn svg{width:20px;height:20px;}
+
+  .sharebtn{align-self:stretch;margin-top:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);color:#fff;border-radius:15px;padding:13px;text-align:center;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:9px;}
+  .sharebtn svg{width:18px;height:18px;}
+
+  .podium{align-self:stretch;margin-top:16px;display:flex;gap:9px;align-items:flex-end;}
+  .pcol{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:11px 6px 10px;text-align:center;color:#fff;}
+  .pcol .pa{width:40px;height:40px;border-radius:50%;margin:0 auto 7px;border:2px solid rgba(255,255,255,.5);object-fit:cover;background:linear-gradient(145deg,#8FB4FF,#2F6BFF);}
+  .pcol .rk{font-size:15px;font-weight:800;} .pcol .nm{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pcol .av{font-size:11px;font-weight:800;color:#FFD66B;margin-top:2px;}
+  .pcol.g2{padding-bottom:16px;} .pcol.g1{padding-bottom:26px;background:rgba(255,214,107,.16);border-color:rgba(255,214,107,.4);}
+
+  /* confetti */
+  .confetti{position:absolute;inset:0;overflow:hidden;z-index:4;pointer-events:none;}
+  .confetti i{position:absolute;top:-16px;width:9px;height:14px;opacity:.95;border-radius:2px;animation:fall linear infinite;}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1;}100%{transform:translateY(680px) rotate(680deg);opacity:.9;}}
+
+  /* popper burst (top corners) */
+  .popper{position:absolute;top:44px;width:0;height:0;z-index:5;}
+  .popper.l{left:14px;} .popper.r{right:14px;}
+  .popper b{position:absolute;width:8px;height:8px;border-radius:2px;animation:burst 1.6s ease-out infinite;}
+  @keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--x),var(--y)) scale(.3);opacity:0;}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="dove" viewBox="0 0 24 24"><path d="M2.6 13.4c4.7.5 8.2-1 10.6-4.5.7-1 2.2-.8 2.3.5.1 1-.5 1.9-1.4 2.6 1.9.2 3.5-.5 5-1.9-.2 3.3-2.6 6-6.1 6.8l.9 3.3-4.4-2.3c-3.3-.3-6-2.2-6.9-4.6Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></symbol>
+<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A2.5 2.5 0 0 0 6.5 9H7M17 5h3v1.5A2.5 2.5 0 0 1 17.5 9H17M9.5 21h5M12 14v7"/></symbol>
+<symbol id="phone" viewBox="0 0 24 24"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 14l2 5v2a2 2 0 0 1-2 2A16 16 0 0 1 3 7a2 2 0 0 1 2-4z"/></symbol>
+<symbol id="wa" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.7 13.7L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path d="M8.6 8.1c.15-.4.3-.4.5-.4h.4c.15 0 .35 0 .5.4l.6 1.4c.07.17.02.33-.08.5l-.4.5c-.12.15-.17.28 0 .5.3.45.7.95 1.2 1.3.45.3.63.27.8.17l.5-.4c.17-.15.33-.1.5 0l1.2.75c.17.1.27.25.27.42 0 .25-.17.85-.77 1.2-.5.35-1.35.45-2.55-.1a6.8 6.8 0 0 1-2.7-2.4c-.5-.75-.85-1.6-.85-2.4 0-.7.35-1.1.45-1.3z" fill="#fff" stroke="none"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 13.3 7.4 4.1M15.7 6.6 8.3 10.7"/></symbol>
+<symbol id="signal" viewBox="0 0 24 24"><path d="M3 15h2v4H3zM8 11h2v8H8zM13 7h2v12h-2zM18 3h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5" fill="currentColor" stroke="none"/><rect x="21" y="10" width="2" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="modhead">
+    <div class="logomark"><svg style="width:26px;height:26px;color:#fff"><use href="#trophy"/></svg></div>
+    <div>
+      <div class="crumb">Module 3 · Mobile</div>
+      <h1>Tournament Winner</h1>
+      <div class="sub">Auto-finishes <b>1 hour after end time</b> → champion reveal with confetti · winner photo · contact + WhatsApp</div>
+    </div>
+  </div>
+  <div class="flowmap">
+    <b>Flow:</b> last day's results in <span class="ar">→</span> <b>end time + 1 hour</b> <span class="ar">→</span> tournament status = <b>completed</b> <span class="ar">→</span> this <b>winner celebration</b> opens (party-popper + confetti). 1st position shows big with photo, overall average, and the organizer/winner <b>contact + WhatsApp</b>. Share to brag 🎉
+  </div>
+
+  <div class="screens">
+
+  <!-- 1 WINNER (with photo) -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="champ">
+          <!-- confetti -->
+          <div class="confetti">
+            <i style="left:6%;background:#FFD66B;animation-duration:2.6s;animation-delay:.0s"></i>
+            <i style="left:14%;background:#2F6BFF;animation-duration:3.1s;animation-delay:.4s"></i>
+            <i style="left:22%;background:#12B76A;animation-duration:2.3s;animation-delay:.8s"></i>
+            <i style="left:30%;background:#F04438;animation-duration:3.4s;animation-delay:.2s"></i>
+            <i style="left:38%;background:#fff;animation-duration:2.8s;animation-delay:1.1s"></i>
+            <i style="left:46%;background:#FFD66B;animation-duration:2.5s;animation-delay:.6s"></i>
+            <i style="left:54%;background:#6D4CE6;animation-duration:3.2s;animation-delay:.1s"></i>
+            <i style="left:62%;background:#2F6BFF;animation-duration:2.7s;animation-delay:.9s"></i>
+            <i style="left:70%;background:#12B76A;animation-duration:3.0s;animation-delay:.5s"></i>
+            <i style="left:78%;background:#F04438;animation-duration:2.4s;animation-delay:1.3s"></i>
+            <i style="left:86%;background:#FFD66B;animation-duration:3.3s;animation-delay:.3s"></i>
+            <i style="left:94%;background:#fff;animation-duration:2.9s;animation-delay:.7s"></i>
+            <i style="left:10%;background:#6D4CE6;animation-duration:3.5s;animation-delay:1.6s"></i>
+            <i style="left:50%;background:#F04438;animation-duration:2.2s;animation-delay:1.9s"></i>
+            <i style="left:90%;background:#2F6BFF;animation-duration:3.1s;animation-delay:1.4s"></i>
+          </div>
+          <!-- poppers -->
+          <div class="popper l"><b style="--x:38px;--y:70px;background:#FFD66B;animation-delay:0s"></b><b style="--x:60px;--y:30px;background:#12B76A;animation-delay:.3s"></b><b style="--x:20px;--y:60px;background:#F04438;animation-delay:.6s"></b></div>
+          <div class="popper r"><b style="--x:-38px;--y:70px;background:#2F6BFF;animation-delay:.2s"></b><b style="--x:-60px;--y:30px;background:#FFD66B;animation-delay:.5s"></b><b style="--x:-20px;--y:60px;background:#6D4CE6;animation-delay:.8s"></b></div>
+
+          <div class="tophud"><div class="gbtn" style="background:rgba(255,255,255,.14)"><svg class="i s" style="color:#fff"><use href="#x"/></svg></div><div class="tt">Valley Cup 2026</div><div class="donepill">COMPLETED</div></div>
+
+          <div class="body">
+            <div class="crownrow"><svg><use href="#trophy"/></svg> Champion <svg><use href="#trophy"/></svg></div>
+            <div class="winwrap">
+              <div class="ring"><div class="ph grain mesh-sky"></div></div>
+              <div class="trophybadge"><svg><use href="#trophy"/></svg></div>
+            </div>
+            <div class="winname">Bilal Raza</div>
+            <div class="winmeta">@bilalraza · Lahore, PK · 1st of 24</div>
+            <div class="bigavg"><b class="num">6:48</b><small>Overall average</small></div>
+            <div class="retline">🕊️ 9 / 11 pigeons returned</div>
+
+            <div class="contactcard">
+              <div class="cbtn call"><svg><use href="#phone"/></svg></div>
+              <div class="num"><small>Winner contact</small><b class="num">+92 300 1234567</b></div>
+              <div class="cbtn wa"><svg><use href="#wa"/></svg></div>
+            </div>
+            <div class="sharebtn"><svg><use href="#share"/></svg> Share result</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>1 · Champion reveal</b><span class="tag">confetti 🎉</span><span>photo + overall avg + contact / WhatsApp</span></div>
+  </div>
+
+  <!-- 2 PODIUM + no-photo fallback -->
+  <div class="slot">
+    <div class="device"><div class="scr"><div class="island"></div>
+      <div class="sbar"><span class="num">9:41</span><span class="rt"><svg><use href="#signal"/></svg><svg><use href="#batt"/></svg></span></div>
+      <div class="view">
+        <div class="champ">
+          <div class="confetti">
+            <i style="left:12%;background:#FFD66B;animation-duration:2.8s"></i>
+            <i style="left:28%;background:#2F6BFF;animation-duration:3.2s;animation-delay:.5s"></i>
+            <i style="left:44%;background:#12B76A;animation-duration:2.4s;animation-delay:.9s"></i>
+            <i style="left:60%;background:#F04438;animation-duration:3.0s;animation-delay:.3s"></i>
+            <i style="left:76%;background:#fff;animation-duration:2.6s;animation-delay:1.2s"></i>
+            <i style="left:90%;background:#6D4CE6;animation-duration:3.4s;animation-delay:.7s"></i>
+          </div>
+          <div class="tophud"><div class="gbtn" style="background:rgba(255,255,255,.14)"><svg class="i s" style="color:#fff"><use href="#back"/></svg></div><div class="tt">Desert Classic</div><div class="donepill">COMPLETED</div></div>
+          <div class="body">
+            <div class="crownrow"><svg><use href="#trophy"/></svg> Final Podium <svg><use href="#trophy"/></svg></div>
+
+            <!-- winner without a photo → initials fallback -->
+            <div class="winwrap">
+              <div class="ring"><div class="ph">KA</div></div>
+              <div class="trophybadge"><svg><use href="#trophy"/></svg></div>
+            </div>
+            <div class="winname">Kashif Ali</div>
+            <div class="winmeta">@kashif.loft · Karachi, PK · 1st of 18</div>
+            <div class="bigavg"><b class="num">7:05</b><small>Overall average</small></div>
+
+            <div class="podium">
+              <div class="pcol g2"><div class="pa mesh-dusk"></div><div class="rk">🥈 2</div><div class="nm">Usman T.</div><div class="av num">6:40</div></div>
+              <div class="pcol g1"><div class="pa mesh-sky"></div><div class="rk">🥇 1</div><div class="nm">Kashif A.</div><div class="av num">7:05</div></div>
+              <div class="pcol g2"><div class="pa mesh-dawn"></div><div class="rk">🥉 3</div><div class="nm">Imran S.</div><div class="av num">6:12</div></div>
+            </div>
+
+            <div class="contactcard">
+              <div class="cbtn call"><svg><use href="#phone"/></svg></div>
+              <div class="num"><small>Winner contact</small><b class="num">+92 321 7654321</b></div>
+              <div class="cbtn wa"><svg><use href="#wa"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="cap"><b>2 · Podium (no-photo fallback)</b><span>top-3 · initials when no photo · contact</span></div>
+  </div>
+
+  </div>
+
+  <div class="note">
+    <b>Backend trigger (to build).</b> A delayed job fires at <b>last day's <code>end_time</code> + 1 hour</b> → sets the tournament <code>status = completed</code>, locks standings, computes the winner (highest overall average), and pushes a <code>tournament.completed</code> event + FCM so followers/participants see this screen. The winner's <b>contact</b> is the number already stored on the tournament/participant; <b>WhatsApp</b> deep-links to it; the <b>photo</b> is the participant photo (initials fallback when none). Confetti + party-poppers are client-side (shown once per completion).
+  </div>
+</div>
+</body>
+</html>

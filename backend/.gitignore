@@ -6,3 +6,9 @@ dist/
 !.env.production.example
 secrets/
 *.log
+
+# Uploaded chat media (served from project uploads/ folder)
+uploads/*
+!uploads/media/
+uploads/media/*
+!uploads/media/.gitkeep

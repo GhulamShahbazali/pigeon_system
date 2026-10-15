@@ -7,6 +7,7 @@ Facebook-style public feed (also the Home feed). Like / share / view / follow / 
 | Method · Path | Auth | Body → | Notes |
 |---------------|------|--------|-------|
 | `GET /v1/feed?tab=for_you\|following` | session | cursor → `{ data:[post] }` | Home feed; `BlockFilter` + hidden + soft-delete filtered; counts via sockets |
+| `GET /v1/users/{id}/posts` | session | `?limit` → `{ data:[post] }` | a single author's posts, newest first, with the viewer's `is_liked` annotated (batched). Powers the profile "Posts" list (own or another user) |
 | `GET /v1/posts/{id}` | session | → `{ post }` | records dedup view |
 | `POST /v1/posts` | session | `{ content?, image_upload_id? }` → `201 {post}` | rate 60/h; profanity backstop; `post.new`→`feed:global`. Idempotency-Key |
 | `PATCH /v1/posts/{id}` | session | `{ content?, image_upload_id? }` → `{post}` | author only |

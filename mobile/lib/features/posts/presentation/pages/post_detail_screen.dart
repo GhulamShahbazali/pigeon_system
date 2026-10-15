@@ -1,27 +1,41 @@
 import 'package:flutter/material.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/pigeon_watermark.dart';
+import '../../data/posts_repository.dart';
 import '../widgets/post_options_sheet.dart';
 
 class PostDetailScreen extends StatefulWidget {
+  final String? postId;
   final String authorName;
+  final String authorHandle;
+  final String? authorPhotoUrl;
+  final String? authorId;
   final String timeAgo;
   final String content;
+  final String? imageUrl;
   final int likes;
   final int shares;
   final String views;
+  final bool isLiked;
 
   const PostDetailScreen({
     super.key,
-    this.authorName = 'Ahmed Loft',
-    this.timeAgo = '2h ago · Public',
-    this.content = 'Morning kit flew beautifully today. 18 birds, all back by noon. Proud of the young Shaheen — first one home.',
-    this.likes = 214,
-    this.shares = 12,
-    this.views = '1.3k',
+    this.postId,
+    this.authorName = 'Flyer',
+    this.authorHandle = '@flyer',
+    this.authorPhotoUrl,
+    this.authorId,
+    this.timeAgo = 'Recently',
+    this.content = '',
+    this.imageUrl,
+    this.likes = 0,
+    this.shares = 0,
+    this.views = '0',
+    this.isLiked = false,
   });
 
   @override
@@ -29,14 +43,32 @@ class PostDetailScreen extends StatefulWidget {
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
-  bool _isLiked = false;
+  late bool _isLiked;
   late int _likeCount;
   bool _isFollowing = false;
+  final PostsRepository _postsRepo = sl<PostsRepository>();
 
   @override
   void initState() {
     super.initState();
+    _isLiked = widget.isLiked;
     _likeCount = widget.likes;
+  }
+
+  void _toggleLike() {
+    final nextState = !_isLiked;
+    setState(() {
+      _isLiked = nextState;
+      _likeCount += nextState ? 1 : -1;
+    });
+
+    if (widget.postId != null && widget.postId!.isNotEmpty) {
+      if (nextState) {
+        _postsRepo.likePost(widget.postId!);
+      } else {
+        _postsRepo.unlikePost(widget.postId!);
+      }
+    }
   }
 
   @override
@@ -79,8 +111,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 children: [
-                  const AppAvatar(
-                    text: 'A',
+                  AppAvatar(
+                    text: widget.authorName,
+                    imageUrl: widget.authorPhotoUrl,
                     size: 42,
                     gradient: AppColors.avatarBlue,
                   ),
@@ -91,13 +124,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       children: [
                         Text(widget.authorName, style: AppTextStyles.bodyBold),
                         const SizedBox(height: 2),
-                        Text(widget.timeAgo, style: AppTextStyles.caption.copyWith(color: AppColors.mut)),
+                        Text(
+                          '${widget.authorHandle} · ${widget.timeAgo}',
+                          style: AppTextStyles.caption.copyWith(color: AppColors.mut),
+                        ),
                       ],
                     ),
                   ),
                   AppButton(
                     text: _isFollowing ? 'Following' : 'Follow',
                     variant: _isFollowing ? AppButtonVariant.soft : AppButtonVariant.primary,
+                    isFullWidth: false,
+                    height: 38,
                     onPressed: () => setState(() => _isFollowing = !_isFollowing),
                   ),
                 ],
@@ -105,31 +143,70 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
 
             // Content text
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Text(
-                widget.content,
-                style: AppTextStyles.body.copyWith(color: AppColors.ink, height: 1.45),
-              ),
-            ),
-
-            // Media Preview
-            Container(
-              height: 220,
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: AppColors.heroMeshSky,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Center(
-                child: PigeonWatermark(
-                  width: 108,
-                  height: 108,
-                  color: Color(0xE6FFFFFF),
+            if (widget.content.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Text(
+                  widget.content,
+                  style: AppTextStyles.body.copyWith(color: AppColors.ink, height: 1.45),
                 ),
               ),
-            ),
+
+            // Media Preview — show actual image if available
+            if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.soft,
+                ),
+                child: Image.network(
+                  widget.imageUrl!,
+                  height: 240,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) => progress == null
+                      ? child
+                      : Container(
+                          height: 240,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(gradient: AppColors.heroMeshSky),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 26,
+                              height: 26,
+                              child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                  errorBuilder: (context, error, stack) => Container(
+                    height: 240,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(gradient: AppColors.heroMeshSky),
+                    child: const Center(
+                      child: PigeonWatermark(width: 108, height: 108, color: Color(0xE6FFFFFF)),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                height: 180,
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.heroMeshSky,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(
+                  child: PigeonWatermark(
+                    width: 90,
+                    height: 90,
+                    color: Color(0xE6FFFFFF),
+                  ),
+                ),
+              ),
 
             // Action counts row
             Container(
@@ -145,12 +222,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isLiked = !_isLiked;
-                        _likeCount += _isLiked ? 1 : -1;
-                      });
-                    },
+                    onTap: _toggleLike,
                     child: Row(
                       children: [
                         Icon(
@@ -159,7 +231,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           color: _isLiked ? AppColors.danger : AppColors.sub,
                         ),
                         const SizedBox(width: 8),
-                        Text('$_likeCount', style: AppTextStyles.bodyBold.copyWith(color: _isLiked ? AppColors.danger : AppColors.sub)),
+                        Text(
+                          '$_likeCount',
+                          style: AppTextStyles.bodyBold.copyWith(
+                            color: _isLiked ? AppColors.danger : AppColors.sub,
+                          ),
+                        ),
                       ],
                     ),
                   ),

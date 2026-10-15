@@ -25,15 +25,16 @@ export class PrismaSocialRepository implements ISocialRepository {
 
   private async toView(user: any, viewerId: string): Promise<ProfileView | null> {
     if (!user) return null;
-    const [follow, block, tournamentCount] = await Promise.all([
+    const [follow, block, tournamentCount, postCount] = await Promise.all([
       this.prisma.follow.findUnique({
         where: { followerId_followeeId: { followerId: viewerId, followeeId: user.id } },
         select: { id: true },
       }),
       this.blockExistsEitherWay(viewerId, user.id),
       this.prisma.tournament.count({ where: { organizerId: user.id, deletedAt: null } }),
+      this.prisma.post.count({ where: { authorId: user.id, deletedAt: null } }),
     ]);
-    return { user, isFollowing: !!follow, isBlocked: block, tournamentCount };
+    return { user, isFollowing: !!follow, isBlocked: block, tournamentCount, postCount };
   }
 
   async findProfileById(id: string, viewerId: string): Promise<ProfileView | null> {

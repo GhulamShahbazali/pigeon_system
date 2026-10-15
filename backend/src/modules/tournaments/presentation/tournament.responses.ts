@@ -11,6 +11,7 @@ export function toCard(t: any) {
     num_days: t.numDays,
     pigeon_count: t.pigeonCount,
     status: t.status,
+    is_live: t.isLive ?? false,
     like_count: t.likeCount,
     view_count: t.viewCount,
     follower_count: t.followerCount,
@@ -27,6 +28,9 @@ export function toDetail(t: any) {
     description: t.description,
     organizer_contact: t.organizerContact,
     overall_avg_seconds: t.overallAvgSeconds,
+    is_following: t.isFollowing ?? false,
+    is_liked: t.isLiked ?? false,
+    is_organizer: t.isOrganizer ?? false,
     days: (t.days ?? []).map((d: any) => ({
       id: d.id,
       day_number: d.dayNumber,

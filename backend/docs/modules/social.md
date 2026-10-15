@@ -8,7 +8,7 @@
 **Routes**
 | Method · Path | Notes |
 |---|---|
-| `GET /v1/users/:id` · `GET /v1/users/by-username/:username` | public profile + `is_following`/`is_blocked`/`tournament_count` |
+| `GET /v1/users/:id` · `GET /v1/users/by-username/:username` | public profile + `is_following`/`is_blocked`/`tournament_count`/`post_count` (drives the mobile profile screen) |
 | `PATCH /v1/me` | edit own profile |
 | `POST`/`DELETE /v1/users/:id/follow` | follow/unfollow; counters atomic in txn |
 | `POST`/`DELETE /v1/users/:id/block` | block removes follow both ways; counters fixed in txn |

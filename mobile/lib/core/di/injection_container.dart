@@ -8,6 +8,8 @@ import '../../features/records/data/records_repository.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/settings/data/user_repository.dart';
 import '../../features/chat/data/chat_repository.dart';
+import '../../features/home/data/discovery_repository.dart';
+import '../../features/notifications/data/notifications_repository.dart';
 import '../localization/locale_cubit.dart';
 
 final sl = GetIt.instance;
@@ -37,6 +39,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<RecordsRepository>(() => RecordsRepository(sl<ApiClient>()));
   sl.registerLazySingleton<UserRepository>(() => UserRepository(sl<ApiClient>()));
   sl.registerLazySingleton<ChatRepository>(() => ChatRepository(sl<ApiClient>()));
+  sl.registerLazySingleton<DiscoveryRepository>(() => DiscoveryRepository(sl<ApiClient>()));
+  sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepository(sl<ApiClient>()));
 
   // 5. Localization
   sl.registerLazySingleton<LocaleCubit>(() => LocaleCubit(storageService));

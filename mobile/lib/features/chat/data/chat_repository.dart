@@ -38,6 +38,27 @@ class ChatRepository {
     );
   }
 
+  /// Pending message requests — conversations where I'm the recipient and the
+  /// sender's first message hasn't been accepted yet.
+  Future<Result<List<ConversationModel>>> getRequests() {
+    return _api.get<List<ConversationModel>>(
+      '/conversations/requests',
+      fromJson: (data) => (data as List)
+          .map((e) => ConversationModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  /// Accept a request → both sides can message freely.
+  Future<Result<void>> acceptRequest(String conversationId) {
+    return _api.post<void>('/conversations/$conversationId/accept');
+  }
+
+  /// Decline/delete a request.
+  Future<Result<void>> declineRequest(String conversationId) {
+    return _api.delete<void>('/conversations/$conversationId/request');
+  }
+
   /// Fetch a user's profile (name + photo) — used when opening a chat directly.
   Future<Result<Map<String, dynamic>>> getUser(String userId) {
     return _api.get<Map<String, dynamic>>(

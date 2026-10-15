@@ -51,12 +51,77 @@ export class NotificationsService {
   }
 
   // ---- reads ----
+  /**
+   * Feed hydrated for display: each row carries its actors (name + photo) and a
+   * short entity preview (tournament title, post snippet, record date, or the
+   * followed user's name). Batched lookups — no N+1.
+   */
   async feed(recipientId: string, limit: number) {
-    return this.prisma.notification.findMany({
+    const rows = await this.prisma.notification.findMany({
       where: { recipientId },
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: { actors: true },
+    });
+
+    // Actors (and any 'user' entity) in one batched user lookup.
+    const userIds = new Set<string>();
+    for (const r of rows) {
+      for (const a of r.actors) userIds.add(a.actorId);
+      if (r.entityType === 'user') userIds.add(r.entityId);
+    }
+    const users = userIds.size
+      ? await this.prisma.user.findMany({
+          where: { id: { in: [...userIds] } },
+          select: { id: true, displayName: true, username: true, photoUrl: true },
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const idsOf = (t: string) => [
+      ...new Set(rows.filter((r) => r.entityType === t).map((r) => r.entityId)),
+    ];
+    const tIds = idsOf('tournament');
+    const pIds = idsOf('post');
+    const rIds = idsOf('record');
+    const [tours, posts, recs] = await Promise.all([
+      tIds.length
+        ? this.prisma.tournament.findMany({ where: { id: { in: tIds } }, select: { id: true, title: true } })
+        : Promise.resolve([] as { id: string; title: string }[]),
+      pIds.length
+        ? this.prisma.post.findMany({ where: { id: { in: pIds } }, select: { id: true, content: true } })
+        : Promise.resolve([] as { id: string; content: string | null }[]),
+      rIds.length
+        ? this.prisma.personalRecord.findMany({ where: { id: { in: rIds } }, select: { id: true, recordDate: true } })
+        : Promise.resolve([] as { id: string; recordDate: Date }[]),
+    ]);
+    const tMap = new Map(tours.map((t) => [t.id, t.title]));
+    const pMap = new Map(posts.map((p) => [p.id, (p.content ?? '').slice(0, 60)]));
+    const rMap = new Map(recs.map((r) => [r.id, r.recordDate]));
+
+    return rows.map((r) => {
+      const actors = r.actors
+        .map((a) => userMap.get(a.actorId))
+        .filter((u): u is NonNullable<typeof u> => !!u);
+      let entityTitle: string | null = null;
+      if (r.entityType === 'tournament') entityTitle = tMap.get(r.entityId) ?? null;
+      else if (r.entityType === 'post') entityTitle = pMap.get(r.entityId) || null;
+      else if (r.entityType === 'record') {
+        const d = rMap.get(r.entityId);
+        entityTitle = d ? d.toISOString().slice(0, 10) : null;
+      } else if (r.entityType === 'user') {
+        entityTitle = userMap.get(r.entityId)?.displayName ?? null;
+      }
+      return {
+        id: r.id,
+        type: r.type,
+        entityType: r.entityType,
+        entityId: r.entityId,
+        isRead: r.isRead,
+        createdAt: r.createdAt,
+        actors,
+        entityTitle,
+      };
     });
   }
 

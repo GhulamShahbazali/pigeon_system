@@ -13,6 +13,9 @@ class NotificationModel {
   final String? entityId;
   final bool isRead;
   final int actorCount;
+  final String? firstActorName;
+  final String? firstActorPhoto;
+  final String? entityTitle;
   final DateTime createdAt;
 
   NotificationModel({
@@ -22,42 +25,71 @@ class NotificationModel {
     this.entityId,
     required this.isRead,
     required this.actorCount,
+    this.firstActorName,
+    this.firstActorPhoto,
+    this.entityTitle,
     required this.createdAt,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    final actors = json['actor_ids'];
+    final actorsRaw = json['actors'];
+    final actors = actorsRaw is List ? actorsRaw : const [];
+    final firstActor = actors.isNotEmpty && actors.first is Map ? actors.first as Map : null;
+    final entity = json['entity'] is Map ? json['entity'] as Map : null;
+    // Fallback to actor_ids length when the hydrated actors list is absent.
+    final count = actors.isNotEmpty
+        ? actors.length
+        : (json['actor_ids'] is List ? (json['actor_ids'] as List).length : 0);
     return NotificationModel(
       id: json['id']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
       entityType: json['entity_type']?.toString(),
       entityId: json['entity_id']?.toString(),
       isRead: json['is_read'] == true,
-      actorCount: actors is List ? actors.length : 0,
+      actorCount: count,
+      firstActorName: firstActor?['display_name']?.toString(),
+      firstActorPhoto: firstActor?['photo_url']?.toString(),
+      entityTitle: entity?['title']?.toString(),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '')?.toLocal() ??
           DateTime.now(),
     );
   }
 
+  /// "Ahmed Loft", "Ahmed Loft + 3 others", or "Someone".
+  String get _who {
+    if (firstActorName == null || firstActorName!.isEmpty) {
+      return actorCount > 1 ? '$actorCount people' : 'Someone';
+    }
+    if (actorCount > 1) return '$firstActorName + ${actorCount - 1} others';
+    return firstActorName!;
+  }
+
   /// Human-readable label derived from the notification type (the feed does not
   /// yet hydrate actor names — that needs a backend change).
   String get title {
-    final who = actorCount > 1 ? '$actorCount people' : 'Someone';
+    final who = _who;
+    final where = entityTitle != null && entityTitle!.isNotEmpty
+        ? '"${entityTitle!}"'
+        : null;
     switch (type) {
       case 'new_follower':
         return '$who started following you';
       case 'tournament_created':
-        return 'Someone you follow created a new tournament';
+        return where != null ? '$who created $where' : '$who created a new tournament';
       case 'participant_added':
-        return 'A participant was added to a tournament you follow';
+        return where != null
+            ? 'A participant was added to $where'
+            : 'A participant was added to a tournament you follow';
       case 'tournament_day_results':
-        return 'New day results were posted in a tournament you follow';
+        return where != null
+            ? 'New day results in $where'
+            : 'New day results in a tournament you follow';
       case 'content_like':
-        return '$who liked your content';
+        return '$who liked your post';
       case 'record_live_started':
-        return 'Someone you follow is flying live now';
+        return '$who is flying live now';
       case 'message_request':
-        return 'Someone sent you a message request';
+        return '$who sent you a message request';
       case 'moderation':
         return 'PigeonFly Team: an update about your content';
       default:

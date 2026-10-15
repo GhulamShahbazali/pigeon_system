@@ -15,14 +15,23 @@ export class NotificationsController {
   async feed(@CurrentUser() u: AuthUser, @Query('limit') limit?: string) {
     const rows = await this.svc.feed(u.id, n(limit));
     return {
-      data: rows.map((r: any) => ({
+      data: rows.map((r) => ({
         id: r.id,
         type: r.type,
         entity_type: r.entityType,
         entity_id: r.entityId,
         is_read: r.isRead,
-        actor_ids: r.actors.map((a: any) => a.actorId),
         created_at: r.createdAt.toISOString(),
+        actors: r.actors.map((a) => ({
+          id: a.id,
+          display_name: a.displayName,
+          username: a.username,
+          photo_url: a.photoUrl,
+        })),
+        actor_ids: r.actors.map((a) => a.id),
+        entity: r.entityTitle
+          ? { type: r.entityType, id: r.entityId, title: r.entityTitle }
+          : null,
       })),
     };
   }

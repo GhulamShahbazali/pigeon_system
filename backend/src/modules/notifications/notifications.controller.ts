@@ -32,6 +32,7 @@ export class NotificationsController {
         entity: r.entityTitle
           ? { type: r.entityType, id: r.entityId, title: r.entityTitle }
           : null,
+        data: r.data ?? null,
       })),
     };
   }

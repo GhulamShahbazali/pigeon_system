@@ -438,6 +438,10 @@ model Notification {
   entityId     String              @map("entity_id")
   isRead       Boolean             @default(false) @map("is_read")
   isAggregated Boolean             @default(false) @map("is_aggregated")
+  // Optional granular detail that can't be re-derived from entity_id alone
+  // (e.g. the participant name / pigeon landing time / contact for a tournament
+  // update, whose entity_id is the tournament). Rendered app-side + in push.
+  data         Json?
   createdAt    DateTime            @default(now()) @map("created_at")
   actors       NotificationActor[]
 

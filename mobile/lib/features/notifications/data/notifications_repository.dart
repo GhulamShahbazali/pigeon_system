@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/result/result.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_strings.dart';
 
 /// One notification row. The backend feed returns a compact shape
-/// (`id, type, entity_type, entity_id, is_read, actor_ids, created_at`); the
-/// human text/icon are derived here from `type`.
+/// (`id, type, entity_type, entity_id, is_read, actors, entity, data,
+/// created_at`); the human text/icon are derived here from `type` + `data`.
+/// `data` carries the granular detail that `entity_id` alone can't convey
+/// (participant name, pigeon name, landing time, contact, tournament title).
 class NotificationModel {
   final String id;
   final String type;
@@ -17,6 +20,11 @@ class NotificationModel {
   final String? firstActorPhoto;
   final String? entityTitle;
   final DateTime createdAt;
+  // Granular detail (from `data`)
+  final String? participantName;
+  final String? pigeonName;
+  final DateTime? landingTime;
+  final String? contactNo;
 
   NotificationModel({
     required this.id,
@@ -29,6 +37,10 @@ class NotificationModel {
     this.firstActorPhoto,
     this.entityTitle,
     required this.createdAt,
+    this.participantName,
+    this.pigeonName,
+    this.landingTime,
+    this.contactNo,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -36,10 +48,13 @@ class NotificationModel {
     final actors = actorsRaw is List ? actorsRaw : const [];
     final firstActor = actors.isNotEmpty && actors.first is Map ? actors.first as Map : null;
     final entity = json['entity'] is Map ? json['entity'] as Map : null;
+    final data = json['data'] is Map ? json['data'] as Map : null;
     // Fallback to actor_ids length when the hydrated actors list is absent.
     final count = actors.isNotEmpty
         ? actors.length
         : (json['actor_ids'] is List ? (json['actor_ids'] as List).length : 0);
+    // Tournament title: the hydrated entity title, else the copy kept in data.
+    final title = entity?['title']?.toString() ?? data?['tournament_title']?.toString();
     return NotificationModel(
       id: json['id']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
@@ -49,53 +64,65 @@ class NotificationModel {
       actorCount: count,
       firstActorName: firstActor?['display_name']?.toString(),
       firstActorPhoto: firstActor?['photo_url']?.toString(),
-      entityTitle: entity?['title']?.toString(),
+      entityTitle: title,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '')?.toLocal() ??
           DateTime.now(),
+      participantName: data?['participant_name']?.toString(),
+      pigeonName: data?['pigeon_name']?.toString(),
+      landingTime: DateTime.tryParse(data?['landing_time']?.toString() ?? '')?.toLocal(),
+      contactNo: data?['contact_no']?.toString(),
     );
   }
 
-  /// "Ahmed Loft", "Ahmed Loft + 3 others", or "Someone".
-  String get _who {
-    if (firstActorName == null || firstActorName!.isEmpty) {
-      return actorCount > 1 ? '$actorCount people' : 'Someone';
+  /// "Ahmed Loft", "Ahmed Loft + 3 others", or "Someone" — localized.
+  String _localizedWho(AppStrings s) {
+    final name = firstActorName;
+    if (name == null || name.isEmpty) {
+      return actorCount > 1 ? s.peopleCount(actorCount) : s.someoneLabel;
     }
-    if (actorCount > 1) return '$firstActorName + ${actorCount - 1} others';
-    return firstActorName!;
+    if (actorCount > 1) return s.andOthers(name, actorCount - 1);
+    return name;
   }
 
-  /// Human-readable label derived from the notification type (the feed does not
-  /// yet hydrate actor names — that needs a backend change).
-  String get title {
-    final who = _who;
-    final where = entityTitle != null && entityTitle!.isNotEmpty
-        ? '"${entityTitle!}"'
-        : null;
+  /// Landing time as local HH:MM, or null.
+  String? get _landingHhmm {
+    final t = landingTime;
+    if (t == null) return null;
+    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Granular, localized headline for the row. Carries the specifics the
+  /// backend now sends in `data` (who joined, which pigeon landed and when).
+  String localizedTitle(AppStrings s) {
+    final who = _localizedWho(s);
     switch (type) {
       case 'new_follower':
-        return '$who started following you';
+        return s.notifNewFollower(who);
       case 'tournament_created':
-        return where != null ? '$who created $where' : '$who created a new tournament';
+        return s.notifTournamentCreated(who, entityTitle);
       case 'participant_added':
-        return where != null
-            ? 'A participant was added to $where'
-            : 'A participant was added to a tournament you follow';
+        return s.notifParticipantAdded(participantName, entityTitle);
       case 'tournament_day_results':
-        return where != null
-            ? 'New day results in $where'
-            : 'New day results in a tournament you follow';
+        return s.notifDayResults(participantName, pigeonName, _landingHhmm, entityTitle);
       case 'content_like':
-        return '$who liked your post';
+        return s.notifContentLike(who, entityType == 'record');
       case 'record_live_started':
-        return '$who is flying live now';
+        return s.notifLiveNow(who);
       case 'message_request':
-        return '$who sent you a message request';
+        return s.notifMessageRequest(who);
       case 'moderation':
-        return 'PigeonFly Team: an update about your content';
+        return s.notifModeration;
       default:
-        return 'New activity';
+        return s.notifGeneric;
     }
   }
+
+  /// Optional secondary line — the participant's contact number on a day-result
+  /// (so a follower can reach the loft). Null when there's nothing extra to show.
+  String? get detailLine =>
+      (type == 'tournament_day_results' && contactNo != null && contactNo!.isNotEmpty)
+          ? contactNo
+          : null;
 
   IconData get icon {
     switch (type) {
@@ -133,13 +160,13 @@ class NotificationModel {
     }
   }
 
-  String get timeAgo {
+  String localizedTimeAgo(AppStrings s) {
     final diff = DateTime.now().difference(createdAt);
-    if (diff.inMinutes < 1) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return s.timeJustNow;
+    if (diff.inMinutes < 60) return s.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return s.timeHoursAgo(diff.inHours);
+    if (diff.inDays == 1) return s.timeYesterday;
+    if (diff.inDays < 7) return s.timeDaysAgo(diff.inDays);
     return '${createdAt.day}/${createdAt.month}';
   }
 }

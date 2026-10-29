@@ -51,6 +51,7 @@
 | T1 | Who can create a tournament | **Any user** | ✅ |
 | T2 | Who can edit / update / delete a tournament | **Only its creator (owner)** | ✅ |
 | T3 | Who can add / edit / remove participants | **Only the owner** | ✅ |
+| T3b | When can participants be added | **Only before the tournament starts** — once the start date (T14) is reached the roster is **locked**; no new participant may be added after it's underway (enforced client + server). Editing/removing existing participants is unaffected | ✅ |
 | T4 | Visibility | **Public** — any user can view any tournament | ✅ |
 | T5 | SuperAdmin override | SuperAdmin can edit/delete any tournament from the web panel | ✅ |
 

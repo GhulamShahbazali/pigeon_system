@@ -49,10 +49,11 @@ export class AddParticipantUseCase {
     const participant = await this.repo.addParticipant(input);
     await this.cache.del(standingsKey(input.tournamentId)); // new participant appears in standings
 
-    await this.queue.add(QUEUES.followerFanout, 'fanout', {
-      actorId,
+    // Notify the organizer's followers AND everyone following this tournament.
+    await this.queue.add(QUEUES.tournamentFanout, 'fanout', {
+      tournamentId: input.tournamentId,
+      organizerId: actorId,
       type: 'participant_added',
-      entityType: 'tournament',
       entityId: input.tournamentId,
     });
 
@@ -83,10 +84,11 @@ export class RecordFlightUseCase {
         standings,
       });
 
-      await this.queue.add(QUEUES.followerFanout, 'fanout', {
-        actorId,
+      // Notify the organizer's followers AND everyone following this tournament.
+      await this.queue.add(QUEUES.tournamentFanout, 'fanout', {
+        tournamentId: input.tournamentId,
+        organizerId: actorId,
         type: 'tournament_day_results',
-        entityType: 'tournament',
         entityId: input.tournamentId,
       });
 

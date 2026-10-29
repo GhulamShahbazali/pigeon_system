@@ -23,11 +23,24 @@ const UNSPLASH_PHOTO_IDS = [
   '1554226114-04bd78f87c24', '1697989120456-5fb3b24749fb', '1692652966645-d05118429bbd',
 ];
 
+// Pigeon-medicine / pills photos for medicine-themed posts, so the feed isn't
+// only racing-pigeon shots. (Candidate Unsplash ids — confirm on device; any that
+// don't load fall back to the post's text + the app's image error placeholder.)
+const MEDICINE_PHOTO_IDS = [
+  '1584308666744-24d5c474f2ae', '1587854692152-cbe660dbde88', '1550572017-edd951aa8f7f',
+  '1631549916768-4119b2e514cd', '1471864190281-a93a3070b6de', '1583947215259-38e31be8751f',
+];
+
 /** Direct Unsplash CDN image, resized/cropped server-side. */
 const img = (id: string, w = 800, h = 600) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=70`;
 
-const postImage = () => img(rand(UNSPLASH_PHOTO_IDS));
+/** Medicine/health captions lead with a pill/health emoji or name a med. */
+const isMedicineCaption = (c: string): boolean =>
+  /💊|🧪|🧄|🌿|Ronidazole|Ivermectin|Levamisole|Tylosin|Doxycycline|Amprolium|Metronidazole|دوا|العلاج/i.test(c);
+
+const postImageFor = (caption: string) =>
+  isMedicineCaption(caption) ? img(rand(MEDICINE_PHOTO_IDS)) : img(rand(UNSPLASH_PHOTO_IDS));
 const coverImage = () => img(rand(UNSPLASH_PHOTO_IDS), 1200, 600);
 
 // Multilingual pigeon posts — each has its own topic/"title" lead so no two read
@@ -113,7 +126,7 @@ export class ContentProvider implements IContentProvider {
     // ~70% of posts carry a photo, ~30% are text-only — mirrors a real feed and
     // reads better than every single post having an image.
     const withImage = Math.random() < 0.7;
-    return { caption, imageUrl: withImage ? postImage() : null };
+    return { caption, imageUrl: withImage ? postImageFor(caption) : null };
   }
 
   pickTournament(): BotTournament {

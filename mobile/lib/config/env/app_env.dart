@@ -6,7 +6,9 @@ class AppEnv {
 
   /// Your Mac machine local Wi-Fi IP address.
   /// Used for real physical devices (Android via Wi-Fi/USB & iOS).
-  static const String machineIp = '192.168.0.101';
+  /// NOTE: this changes when the router/DHCP reassigns — re-check with
+  /// `ipconfig getifaddr en0` on the Mac and update here if login times out.
+  static const String machineIp = '192.168.1.12';
 
   static String get baseUrl {
     // Web: runs inside Chrome on this machine
@@ -14,12 +16,13 @@ class AppEnv {
       return 'http://localhost:3000/v1';
     }
 
-    // Android:
-    // If USB connected or port reversed via adb (`adb reverse tcp:3000 tcp:3000`),
-    // localhost:3000 connects directly at 0ms latency without Wi-Fi drops.
-    // If running over Wi-Fi, 192.168.0.101 works.
+    // Android physical device over Wi-Fi: use the Mac's LAN IP so no
+    // `adb reverse` is required (phone + Mac must be on the same Wi-Fi).
+    // If the connection is refused the ApiClient falls back to 127.0.0.1,
+    // which works when the port IS reversed over USB
+    // (`adb reverse tcp:3000 tcp:3000`).
     if (Platform.isAndroid) {
-      return 'http://127.0.0.1:3000/v1';
+      return 'http://$machineIp:3000/v1';
     }
 
     // iOS Real Device needs machineIp, Simulator can use localhost.

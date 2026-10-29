@@ -44,6 +44,7 @@ export interface TournamentSummary {
   organizerId: string;
   pigeonCount: number;
   status: string;
+  startDate: Date;
 }
 
 export interface ITournamentRepository {

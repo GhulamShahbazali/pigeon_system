@@ -117,7 +117,9 @@ export class BotActivityService {
       : t.participantNames;
     const participantIds: string[] = [];
     for (const name of names) {
-      const p = await this.addParticipant.execute(botId, { tournamentId: id, name } as any).catch(() => null);
+      const p = await this.addParticipant
+        .execute(botId, { tournamentId: id, name } as any, { allowAfterStart: true })
+        .catch(() => null);
       if (p && p.ok) participantIds.push((p.value as any).id);
     }
 

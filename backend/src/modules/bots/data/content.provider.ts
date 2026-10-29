@@ -9,13 +9,30 @@ const PIGEON_NAMES = [
 const rand = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
 
 /**
- * Curated PIGEON photos on the Unsplash CDN (keyless, stable). Every ID below was
- * fetched and visually verified to show an actual pigeon / racing pigeon / loft bird
- * — no stray animals. (LoremFlickr was dropped: it now returns HTTP 401, so its URLs
- * rendered as broken images; and random Unsplash IDs turned out not to be pigeons.)
- * The feed is pigeon-only to match the product: kabootar bazi.
+ * DESI (height / high-flyer) kabootar photos — the app's MAIN breed (kabootar
+ * baazi), so these should dominate the feed (~95% of photo posts + most covers).
+ *
+ * Unsplash has almost no South-Asian high-flyer shots, so this pool is meant to
+ * be filled with YOUR OWN stable image URLs — e.g. your Cloudflare R2 bucket, or
+ * any public https image. Each entry may be a full `https://…` URL OR a bare
+ * Unsplash photo id (`1534…-73cf…`). While this list is empty the feed falls
+ * back to the generic/racing pool below, so nothing ever breaks.
+ *
+ *   const DESI_PHOTO_URLS = [
+ *     'https://<your-r2-public-host>/desi/highflyer-01.jpg',
+ *     'https://<your-r2-public-host>/desi/golden-teeli-02.jpg',
+ *   ];
  */
-const UNSPLASH_PHOTO_IDS = [
+const DESI_PHOTO_URLS: string[] = [
+  // ← paste 4–8 desi high-flyer image URLs here
+];
+
+/**
+ * Generic / racing-homer pigeon photos (Unsplash CDN, keyless, stable; each id
+ * was visually verified to show a real pigeon). Kept deliberately as the MINOR
+ * share — racing is only ~2–4% of the feed — and as the safe fallback for desi.
+ */
+const RACING_PHOTO_IDS = [
   '1534695941753-73cf13435eb4', '1641144355850-e7991d050bdc', '1513099335611-0fd3bca7131c',
   '1592964377969-dc564e4c1599', '1514446194108-aa408d4d61d9', '1742659722918-e925e7877725',
   '1723302641915-ad18f40f2203', '1611172444539-823c575d298e', '1518157770830-df40b281672e',
@@ -23,25 +40,43 @@ const UNSPLASH_PHOTO_IDS = [
   '1554226114-04bd78f87c24', '1697989120456-5fb3b24749fb', '1692652966645-d05118429bbd',
 ];
 
-// Pigeon-medicine / pills photos for medicine-themed posts, so the feed isn't
-// only racing-pigeon shots. (Candidate Unsplash ids — confirm on device; any that
-// don't load fall back to the post's text + the app's image error placeholder.)
+// Pigeon-medicine / pills photos for medicine-themed posts. Full URLs or bare
+// Unsplash ids (confirm on device; any that don't load fall back to the post's
+// text + the app's image error placeholder).
 const MEDICINE_PHOTO_IDS = [
   '1584308666744-24d5c474f2ae', '1587854692152-cbe660dbde88', '1550572017-edd951aa8f7f',
   '1631549916768-4119b2e514cd', '1471864190281-a93a3070b6de', '1583947215259-38e31be8751f',
 ];
 
+// Share of NON-medicine photo posts that use a racing shot (the rest are desi).
+// Keeps racing in the 2–4% band the product wants. Only applied once DESI_PHOTO_URLS
+// is populated — until then desi falls back to the racing pool anyway.
+const RACING_SHARE = 0.03;
+
 /** Direct Unsplash CDN image, resized/cropped server-side. */
 const img = (id: string, w = 800, h = 600) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=70`;
+
+/** Accept either a full https URL (served as-is) or a bare Unsplash id. */
+const resolve = (idOrUrl: string, w = 800, h = 600) =>
+  idOrUrl.startsWith('http') ? idOrUrl : img(idOrUrl, w, h);
 
 /** Medicine/health captions lead with a pill/health emoji or name a med. */
 const isMedicineCaption = (c: string): boolean =>
   /💊|🧪|🧄|🌿|Ronidazole|Ivermectin|Levamisole|Tylosin|Doxycycline|Amprolium|Metronidazole|دوا|العلاج/i.test(c);
 
-const postImageFor = (caption: string) =>
-  isMedicineCaption(caption) ? img(rand(MEDICINE_PHOTO_IDS)) : img(rand(UNSPLASH_PHOTO_IDS));
-const coverImage = () => img(rand(UNSPLASH_PHOTO_IDS), 1200, 600);
+const postImageFor = (caption: string) => {
+  if (isMedicineCaption(caption)) return resolve(rand(MEDICINE_PHOTO_IDS));
+  // Desi dominates; racing appears only ~RACING_SHARE of the time. When the desi
+  // pool is empty we fall back to the racing pool so the feed still shows photos.
+  const hasDesi = DESI_PHOTO_URLS.length > 0;
+  const useRacing = !hasDesi || Math.random() < RACING_SHARE;
+  return resolve(rand(useRacing ? RACING_PHOTO_IDS : DESI_PHOTO_URLS));
+};
+const coverImage = () => {
+  const pool = DESI_PHOTO_URLS.length ? DESI_PHOTO_URLS : RACING_PHOTO_IDS;
+  return resolve(rand(pool), 1200, 600);
+};
 
 // Multilingual pigeon posts — each has its own topic/"title" lead so no two read
 // the same. English, Urdu (script + roman) and Arabic. Topics are strictly pigeon:
@@ -171,7 +206,7 @@ export class ContentProvider implements IContentProvider {
   pools() {
     return {
       captions: CAPTIONS.length,
-      postImages: UNSPLASH_PHOTO_IDS.length,
+      postImages: DESI_PHOTO_URLS.length + RACING_PHOTO_IDS.length + MEDICINE_PHOTO_IDS.length,
       tournamentTitles: TITLE_PREFIX.length * TITLE_SUFFIX.length,
       cities: Object.values(COUNTRIES).reduce((n, c) => n + c.cities.length, 0),
       countries: COUNTRY_CODES,

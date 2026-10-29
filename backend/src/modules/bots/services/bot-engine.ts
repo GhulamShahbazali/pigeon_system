@@ -92,6 +92,8 @@ export class BotEngine implements OnModuleDestroy {
     await this.runFollows(config, awake);
     await this.maybeTournament(config, awake);
     await this.maybeRecord(config, awake);
+    await this.maybeRecordLanding(config);
+    await this.maybeTournamentUpdate(config);
   }
 
   // ── streams ────────────────────────────────────────────────────────────────
@@ -182,6 +184,35 @@ export class BotEngine implements OnModuleDestroy {
       const id = await this.activity.doRecord(bot.id);
       if (id) this.logger.log(`Bot ${bot.id} went live with record ${id}`);
     }
+  }
+
+  /**
+   * Gradual landings: every so often, add ONE more pigeon to some already-live
+   * bot record that isn't full yet, so the "Live now" counts tick up over time
+   * instead of jumping to the final count at go-live. ~2 landings/min on average.
+   * Operates on the whole bot roster (a live record keeps filling regardless of
+   * whether its owner is inside an awake window right now).
+   */
+  private async maybeRecordLanding(config: BotConfig): Promise<void> {
+    const ids = this.rosterCache.map((b) => b.id);
+    if (ids.length === 0) return;
+    const p = Math.min(1, 2 * (config.tickIntervalSec / 60));
+    if (Math.random() >= p) return;
+    await this.activity.doLiveRecordTick(ids);
+  }
+
+  /**
+   * Gradual tournament updates: ~2–3 per 5 minutes (≈0.5/min) a random active
+   * bot tournament gets one update — a new participant (if it hasn't started) or
+   * one more landed pigeon on a running day — so standings and rosters evolve
+   * live instead of being fully populated the moment the tournament is created.
+   */
+  private async maybeTournamentUpdate(config: BotConfig): Promise<void> {
+    const ids = this.rosterCache.map((b) => b.id);
+    if (ids.length === 0) return;
+    const p = Math.min(1, 0.5 * (config.tickIntervalSec / 60));
+    if (Math.random() >= p) return;
+    await this.activity.doTournamentTick(ids);
   }
 
   // ── helpers ──────────────────────────────────────────────────────────────

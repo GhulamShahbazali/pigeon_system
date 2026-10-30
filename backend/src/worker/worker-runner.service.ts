@@ -40,9 +40,18 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     const role = process.env.PROCESS_ROLE ?? 'api';
-    if (role !== 'worker' && role !== 'scheduler') return;
+    // Run in the dedicated worker/scheduler processes, OR embedded in the API
+    // process for the all-in-one dev default (WORKERS_EMBEDDED / SCHEDULER_ENABLED).
+    const embedded =
+      process.env.WORKERS_EMBEDDED === 'true' || process.env.SCHEDULER_ENABLED === 'true';
+    if (role !== 'worker' && role !== 'scheduler' && !embedded) return;
 
-    this.wireEmitter();
+    // A dedicated worker/scheduler process has no HTTP gateway, so it needs a
+    // server-less Socket.io emitter on the Redis adapter. When embedded in the
+    // API process the real gateway already wired EmitService — don't overwrite it.
+    if (role === 'worker' || role === 'scheduler') {
+      this.wireEmitter();
+    }
 
     const concurrency = Number(process.env.WORKER_CONCURRENCY ?? 10);
     this.spawn(QUEUES.pushSend, (j) => this.pushSend.handle(j as any), concurrency);
@@ -51,7 +60,9 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
     this.spawn(QUEUES.tournamentFanout, (j) => this.tournamentFanout.handle(j as any), 3);
     this.spawn(QUEUES.liveRecordAutoEnd, (j) => this.autoEnd.handle(j as any), concurrency);
 
-    this.logger.log(`Workers online for: ${this.workers.map((w) => w.name).join(', ')}`);
+    this.logger.log(
+      `Workers online for: ${this.workers.map((w) => w.name).join(', ')} (role=${role}, embedded=${embedded})`,
+    );
   }
 
   /** Server-less Socket.io instance on the Redis adapter, used only as an emitter. */

@@ -4,12 +4,17 @@
 # search indexes (trigram SQL) · optional seed · starts the chosen process role.
 #
 # Usage:
-#   ./dev.sh                 # api (default) — installs/migrates then `nest start --watch`
-#   ./dev.sh worker          # BullMQ workers
-#   ./dev.sh scheduler       # scheduler + bot engine (exactly one)
+#   ./dev.sh                 # ALL-IN-ONE dev: API + embedded BullMQ workers +
+#                            #   bot engine/scheduler, in one process+terminal.
+#   ./dev.sh --api-only      # just the API (no embedded workers / bot engine)
+#   ./dev.sh worker          # BullMQ workers only (production-like separation)
+#   ./dev.sh scheduler       # scheduler + bot engine only (exactly one)
 #   ./dev.sh --seed          # also seed the bot roster before starting
 #   ./dev.sh --install       # force `npm install`
 #   ./dev.sh --setup-only    # do all prep, don't start the server
+#
+# NOTE: the all-in-one default already runs the bot engine. Do NOT also start a
+# separate `./dev.sh scheduler` alongside it, or the engine + crons run twice.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -20,11 +25,12 @@ warn() { c "1;33" "! $1"; }
 die()  { c "1;31" "✗ $1"; exit 1; }
 
 ROLE="api"
-SEED=false; FORCE_INSTALL=false; SETUP_ONLY=false; FORCE_SYNC=false
+SEED=false; FORCE_INSTALL=false; SETUP_ONLY=false; FORCE_SYNC=false; API_ONLY=false
 PORT="${PORT:-3000}"
 for arg in "$@"; do
   case "$arg" in
     api|worker|scheduler) ROLE="$arg" ;;
+    --api-only) API_ONLY=true ;;
     --seed) SEED=true ;;
     --install) FORCE_INSTALL=true ;;
     --sync) FORCE_SYNC=true ;;
@@ -134,6 +140,18 @@ if $SETUP_ONLY; then ok "setup complete (--setup-only)"; exit 0; fi
 export PROCESS_ROLE="$ROLE"
 export PORT
 [ "$ROLE" = "scheduler" ] && export SCHEDULER_ENABLED=true
+
+# All-in-one dev default: a plain `./dev.sh` (api role) also embeds the bot
+# engine + BullMQ workers in the same process, so one command/terminal brings
+# the whole system up. `SCHEDULER_ENABLED=true` starts the bot engine
+# (BotEngineBootstrap) and the worker runner in the API process. Opt out with
+# `--api-only`, or split into roles for production-like separation.
+if [ "$ROLE" = "api" ] && ! $API_ONLY; then
+  export SCHEDULER_ENABLED=true
+  export WORKERS_EMBEDDED=true
+  info "All-in-one dev: embedding bot engine + workers in the API process"
+fi
+
 [ "$ROLE" = "api" ] && free_port "$PORT"
 info "Starting backend as PROCESS_ROLE=$ROLE (watch mode)…"
 exec npx nest start --watch

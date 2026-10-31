@@ -25,4 +25,6 @@ export const Tournaments = {
   // Public browse endpoint (superadmin session token works); backend caps limit at 50.
   list: (tab: TournamentTab, limit = 50) =>
     api.get<TournamentCard[]>(`/tournaments?tab=${tab}&limit=${limit}`),
+  // SuperAdmin override — soft-delete any tournament (DELETE /admin/tournaments/:id).
+  remove: (id: string) => api.del(`/admin/tournaments/${id}`),
 };

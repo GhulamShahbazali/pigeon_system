@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { EmitService } from '../../shared/socket/emit.service';
 import { RedisService } from '../../shared/redis/redis.service';
+import { NotFoundError } from '../../shared/errors/common-errors';
 
 @Injectable()
 export class ModerationService {
@@ -81,5 +82,17 @@ export class ModerationService {
     ]);
     this.emit.toUser(userId, 'user.suspension_lifted', {});
     await this.log(adminId, 'unsuspend', 'user', userId);
+  }
+
+  /** SuperAdmin override: soft-delete any tournament (T5). Never hard-deletes —
+   *  sets deleted_at, so it drops out of every list but referenced rows survive. */
+  async deleteTournament(adminId: string, id: string, note?: string) {
+    const t = await this.prisma.tournament.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, organizerId: true },
+    });
+    if (!t) throw new NotFoundError('tournament');
+    await this.prisma.tournament.update({ where: { id }, data: { deletedAt: new Date() } });
+    await this.log(adminId, 'remove', 'tournament', id, note);
   }
 }

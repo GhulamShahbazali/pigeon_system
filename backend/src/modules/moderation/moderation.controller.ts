@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
 import { z } from 'zod';
 import { AuthUser, CurrentUser, Roles } from '../../shared/auth/decorators';
 import { ZodValidationPipe } from '../../shared/pipes/zod-validation.pipe';
@@ -67,5 +67,12 @@ export class ModerationController {
   @HttpCode(204)
   unsuspend(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     return this.svc.unsuspend(u.id, id);
+  }
+
+  @Roles('superadmin')
+  @Delete('admin/tournaments/:id')
+  @HttpCode(204)
+  deleteTournament(@CurrentUser() u: AuthUser, @Param('id') id: string) {
+    return this.svc.deleteTournament(u.id, id);
   }
 }

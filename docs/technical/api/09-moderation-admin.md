@@ -20,7 +20,8 @@ User-facing report submit + the **SuperAdmin** web-panel endpoints. Admin routes
 | `POST /v1/admin/users/{id}/unsuspend` | `204` | lift |
 | `GET /v1/admin/posts` · `GET /v1/admin/tournaments` | `{ data, meta }` | browse/moderate all |
 | `POST /v1/admin/posts/{id}/hide\|remove` · `…/tournaments/{id}/…` | `204` | moderate; logs `admin_actions` |
-| `POST /v1/admin/tournaments` · `PATCH` · `DELETE` | — | full CRUD override |
+| `DELETE /v1/admin/tournaments/{id}` | `204` | ✅ **implemented** — SuperAdmin soft-delete any tournament (T5); sets `deleted_at`, logs `admin_actions` (`remove`). 404 if already gone |
+| `POST /v1/admin/tournaments` · `PATCH` | — | rest of the CRUD override (pending) |
 
 **Touches:** sockets `user.suspended`/`user.suspension_lifted`. Queue `push-send` (moderation notices → "PigeonFly Team"). Cron `moderation-cleanup` (expired suspensions auto-lift).
 

@@ -26,8 +26,20 @@ function StatusPill({ t }: { t: TournamentCard }) {
 
 export default function TournamentsPage() {
   const [tab, setTab] = useState<TournamentTab>('all');
-  const { data, error, loading } = useApi<TournamentCard[]>(() => Tournaments.list(tab, 50), [tab]);
+  const { data, error, loading, reload } = useApi<TournamentCard[]>(() => Tournaments.list(tab, 50), [tab]);
+  const [busy, setBusy] = useState<string | null>(null);
   const rows = data ?? [];
+
+  async function remove(t: TournamentCard) {
+    if (!window.confirm(`Delete “${t.title}”? This removes it from the app (soft-delete).`)) return;
+    setBusy(t.id);
+    try {
+      await Tournaments.remove(t.id);
+      await reload();
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <>
@@ -64,6 +76,7 @@ export default function TournamentsPage() {
                 <th className="num">Likes</th>
                 <th className="num">Views</th>
                 <th>Created</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -91,11 +104,21 @@ export default function TournamentsPage() {
                   <td className="num">{t.like_count}</td>
                   <td className="num">{t.view_count}</td>
                   <td className="muted num">{fmtDate(t.created_at)}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button
+                      className="btn ghost sm"
+                      disabled={busy === t.id}
+                      style={{ color: 'var(--danger)', borderColor: '#f6cbc7' }}
+                      onClick={() => remove(t)}
+                    >
+                      {busy === t.id ? '…' : 'Delete'}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="muted" style={{ textAlign: 'center', padding: 28 }}>
+                  <td colSpan={10} className="muted" style={{ textAlign: 'center', padding: 28 }}>
                     No tournaments in “{tab}”.
                   </td>
                 </tr>

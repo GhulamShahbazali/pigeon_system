@@ -17,9 +17,25 @@ export class PushService {
       this.ready = true;
       return true;
     }
-    const keyPath = this.config.get<string>('FIREBASE_ADMIN_SDK_KEY');
-    if (!keyPath || !fs.existsSync(keyPath)) return false;
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(fs.readFileSync(keyPath, 'utf8'))) });
+    const keyVal = this.config.get<string>('FIREBASE_ADMIN_SDK_KEY');
+    if (!keyVal) return false;
+    let cert: any;
+    if (keyVal.trim().startsWith('{')) {
+      try {
+        cert = JSON.parse(keyVal);
+      } catch {
+        return false;
+      }
+    } else if (fs.existsSync(keyVal)) {
+      try {
+        cert = JSON.parse(fs.readFileSync(keyVal, 'utf8'));
+      } catch {
+        return false;
+      }
+    } else {
+      return false;
+    }
+    admin.initializeApp({ credential: admin.credential.cert(cert) });
     this.ready = true;
     return true;
   }
@@ -32,11 +48,29 @@ export class PushService {
       return;
     }
     try {
-      await admin.messaging().sendEachForMulticast({
+      const res = await admin.messaging().sendEachForMulticast({
         tokens: valid,
         notification: { title, body },
         data,
+        android: {
+          priority: 'high',
+          notification: {
+            channelId: 'pigeonfly_notifications',
+            priority: 'high',
+            defaultSound: true,
+            defaultVibrateTimings: true,
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
       });
+      this.logger.log(`FCM multicast sent: ${res.successCount} success, ${res.failureCount} failed`);
+      if (res.failureCount > 0) {
+        for (const resp of res.responses) {
+          if (!resp.success) {
+            this.logger.warn(`FCM send error: ${resp.error?.message} (${resp.error?.code})`);
+          }
+        }
+      }
     } catch (e) {
       this.logger.warn(`FCM send failed: ${(e as Error).message}`);
     }

@@ -56,4 +56,11 @@ export interface IBotState {
   bumpTournamentDayCount(): Promise<number>;
   /** Daily live-record counter (records_per_day). */
   bumpRecordDayCount(): Promise<number>;
+  /**
+   * True (and stamps "now") when at least `intervalSec` has passed since the last
+   * creation of `kind`. Time-based pacing so rare events (tournaments/records) fire
+   * reliably even when the scheduler runs only intermittently — unlike per-tick odds,
+   * which need ~24/7 running to ever hit.
+   */
+  creationDue(kind: 'tournament' | 'record', intervalSec: number): Promise<boolean>;
 }

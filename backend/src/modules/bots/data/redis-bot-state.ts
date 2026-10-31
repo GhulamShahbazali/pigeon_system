@@ -57,4 +57,14 @@ export class RedisBotState implements IBotState {
     if (n === 1) await this.redis.client.expire(key, 36 * 3600);
     return n;
   }
+
+  async creationDue(kind: 'tournament' | 'record', intervalSec: number): Promise<boolean> {
+    const key = `bots:lastcreate:${kind}`;
+    const last = await this.redis.client.get(key);
+    const now = Date.now();
+    if (last && now - Number(last) < intervalSec * 1000) return false;
+    // Stamp now so the next one waits a full interval; keep it comfortably longer.
+    await this.redis.client.set(key, String(now), 'EX', Math.max(Math.ceil(intervalSec * 3), 3600));
+    return true;
+  }
 }

@@ -160,29 +160,35 @@ export class BotEngine implements OnModuleDestroy {
     }
   }
 
-  /** Slow cadence: tournaments_per_day spread probabilistically across ticks. */
+  /**
+   * Steady cadence: one tournament every `86400 / tournaments_per_day` seconds,
+   * paced by a Redis "last created" stamp (not per-tick odds, which only work when
+   * the scheduler runs ~24/7). Catches up: if due when the engine starts, it fires
+   * on the next tick, so tournaments appear reliably even in short/dev runs. Daily
+   * cap still enforced.
+   */
   private async maybeTournament(config: BotConfig, awake: BotRow[]): Promise<void> {
     if (config.tournamentsPerDay <= 0) return;
-    const ticksPerDay = 86400 / config.tickIntervalSec;
-    if (Math.random() >= config.tournamentsPerDay / ticksPerDay) return;
+    const intervalSec = Math.floor(86400 / config.tournamentsPerDay);
+    if (!(await this.state.creationDue('tournament', intervalSec))) return;
     if ((await this.state.bumpTournamentDayCount()) > config.tournamentsPerDay) return;
     const bot = this.pickRandom(awake);
     if (bot) {
       const id = await this.activity.doTournament(bot.id);
-      if (id) this.logger.log(`Bot ${bot.id} created tournament ${id}`);
+      this.logger.log(id ? `Bot ${bot.id} created tournament ${id}` : `Bot ${bot.id} tournament create FAILED`);
     }
   }
 
-  /** Slow cadence: records_per_day live records spread probabilistically. */
+  /** Steady cadence: one live record every `86400 / records_per_day` seconds. */
   private async maybeRecord(config: BotConfig, awake: BotRow[]): Promise<void> {
     if (config.recordsPerDay <= 0) return;
-    const ticksPerDay = 86400 / config.tickIntervalSec;
-    if (Math.random() >= config.recordsPerDay / ticksPerDay) return;
+    const intervalSec = Math.floor(86400 / config.recordsPerDay);
+    if (!(await this.state.creationDue('record', intervalSec))) return;
     if ((await this.state.bumpRecordDayCount()) > config.recordsPerDay) return;
     const bot = this.pickRandom(awake);
     if (bot) {
       const id = await this.activity.doRecord(bot.id);
-      if (id) this.logger.log(`Bot ${bot.id} went live with record ${id}`);
+      this.logger.log(id ? `Bot ${bot.id} went live with record ${id}` : `Bot ${bot.id} record create FAILED`);
     }
   }
 

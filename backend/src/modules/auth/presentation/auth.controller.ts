@@ -15,9 +15,11 @@ import { NotFoundError, UnauthenticatedError } from '../../../shared/errors/comm
 import {
   AdminLoginSchema,
   CompleteSignupSchema,
+  DeviceSchema,
   SessionSchema,
   type AdminLoginDto,
   type CompleteSignupDto,
+  type DeviceDto,
   type SessionDto,
 } from './auth.schemas';
 
@@ -116,6 +118,20 @@ export class AuthController {
     const u = await this.repo.findById(user.id);
     if (!u) throw new NotFoundError('user');
     return toUserResponse(u);
+  }
+
+  @Post('device')
+  async registerDevice(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(DeviceSchema)) body: DeviceDto,
+  ) {
+    const deviceId = await this.repo.upsertDevice(user.id, {
+      deviceId: body.device_id,
+      deviceType: body.device_type,
+      fcmToken: body.fcm_token,
+      appVersion: body.app_version,
+    });
+    return { data: { device_id: deviceId } };
   }
 
   @Delete('session/current')

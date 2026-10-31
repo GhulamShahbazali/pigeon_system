@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/theme/app_theme.dart';
 import 'app/router/app_router.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/data/auth_repository.dart';
+import 'core/notifications/push_notification_service.dart';
 
 import 'core/di/injection_container.dart';
 
@@ -16,6 +18,8 @@ Future<void> main() async {
   // Android reads config from google-services.json via the Google Services plugin.
   try {
     await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await PushNotificationService.init();
   } catch (e) {
     // ignore: avoid_print
     print('Firebase init skipped/failed: $e');
@@ -43,6 +47,7 @@ class PigeonFlyApp extends StatelessWidget {
           return MaterialApp.router(
             title: 'PigeonFly',
             debugShowCheckedModeBanner: false,
+            scaffoldMessengerKey: PushNotificationService.scaffoldMessengerKey,
             theme: AppTheme.lightTheme,
             routerConfig: appRouter,
             locale: lang.locale,

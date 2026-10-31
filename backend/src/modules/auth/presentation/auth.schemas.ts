@@ -6,6 +6,7 @@ export const DeviceSchema = z.object({
   fcm_token: z.string().optional(),
   app_version: z.string().optional(),
 });
+export type DeviceDto = z.infer<typeof DeviceSchema>;
 
 export const SessionSchema = z.object({
   id_token: z.string().min(10),

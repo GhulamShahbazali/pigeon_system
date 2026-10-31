@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/local_storage/secure_storage_service.dart';
+import '../../../core/notifications/push_notification_service.dart';
 import '../../../config/env/app_env.dart';
 
 /// Outcome of a Google sign-in attempt.
@@ -49,13 +50,15 @@ class AuthRepository {
       print('[AuthRepository] Got Firebase idToken (length: ${idToken.length})');
 
       final deviceId = await _storage.getOrCreateDeviceId();
-      print('[AuthRepository] Posting to backend /auth/session...');
+      final fcmToken = await PushNotificationService.getToken();
+      print('[AuthRepository] Posting to backend /auth/session with fcmToken=$fcmToken...');
       final res = await _api.post<Map<String, dynamic>>(
         '/auth/session',
         data: {
           'id_token': idToken,
           'device_id': deviceId,
           'device_type': 'android',
+          'fcm_token': fcmToken,
           'app_version': AppEnv.appVersion,
         },
         fromJson: (d) => (d as Map).cast<String, dynamic>(),
@@ -89,6 +92,7 @@ class AuthRepository {
     required String language,
   }) async {
     final deviceId = await _storage.getOrCreateDeviceId();
+    final fcmToken = await PushNotificationService.getToken();
     final res = await _api.post<Map<String, dynamic>>(
       '/auth/complete-signup',
       data: {
@@ -97,6 +101,7 @@ class AuthRepository {
         'language_code': language,
         'device_id': deviceId,
         'device_type': 'android',
+        'fcm_token': fcmToken,
       },
       fromJson: (d) => (d as Map).cast<String, dynamic>(),
     );
@@ -116,6 +121,8 @@ class AuthRepository {
       //    the first authenticated API call returns 401 and the app signs out then.
       final token = await _storage.getToken();
       if (token != null && token.isNotEmpty && _isTokenValid(token)) {
+        // Asynchronously sync device FCM token so push notifications are active
+        PushNotificationService.syncDeviceToken(api: _api, storage: _storage);
         return const AuthOutcome(AuthOutcomeType.authenticated);
       }
 
@@ -129,12 +136,14 @@ class AuthRepository {
         final idToken = await fbUser.getIdToken();
         if (idToken != null) {
           final deviceId = await _storage.getOrCreateDeviceId();
+          final fcmToken = await PushNotificationService.getToken();
           final res = await _api.post<Map<String, dynamic>>(
             '/auth/session',
             data: {
               'id_token': idToken,
               'device_id': deviceId,
               'device_type': 'android',
+              'fcm_token': fcmToken,
               'app_version': AppEnv.appVersion,
             },
             fromJson: (d) => (d as Map).cast<String, dynamic>(),

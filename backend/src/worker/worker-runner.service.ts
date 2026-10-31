@@ -40,10 +40,12 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     const role = process.env.PROCESS_ROLE ?? 'api';
-    // Run in the dedicated worker/scheduler processes, OR embedded in the API
-    // process for the all-in-one dev default (WORKERS_EMBEDDED / SCHEDULER_ENABLED).
+    const isDev = (process.env.NODE_ENV ?? 'development') !== 'production';
     const embedded =
-      process.env.WORKERS_EMBEDDED === 'true' || process.env.SCHEDULER_ENABLED === 'true';
+      process.env.WORKERS_EMBEDDED === 'true' ||
+      process.env.ENABLE_EMBEDDED_WORKERS === 'true' ||
+      process.env.SCHEDULER_ENABLED === 'true' ||
+      isDev;
     if (role !== 'worker' && role !== 'scheduler' && !embedded) return;
 
     // A dedicated worker/scheduler process has no HTTP gateway, so it needs a
@@ -62,6 +64,7 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log(
       `Workers online for: ${this.workers.map((w) => w.name).join(', ')} (role=${role}, embedded=${embedded})`,
+    );
     );
   }
 

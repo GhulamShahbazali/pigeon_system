@@ -6,10 +6,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    // Managed Postgres (Aiven) adds round-trip latency, and cold connections make
-    // the first queries slow. Raise the interactive-transaction defaults so multi-step
-    // writes don't trip Prisma's 5s cap. Hot paths may still override per-call.
-    super({ transactionOptions: { timeout: 20000, maxWait: 15000 } });
+    let dbUrl = process.env.DATABASE_URL;
+    if (dbUrl && !dbUrl.includes('connection_limit=')) {
+      const sep = dbUrl.includes('?') ? '&' : '?';
+      dbUrl = `${dbUrl}${sep}connection_limit=5&pool_timeout=20`;
+    }
+    super({
+      ...(dbUrl ? { datasources: { db: { url: dbUrl } } } : {}),
+      transactionOptions: { timeout: 20000, maxWait: 15000 },
+    });
   }
 
   async onModuleInit(): Promise<void> {

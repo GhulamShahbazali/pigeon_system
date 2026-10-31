@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useApi } from '@/lib/bots';
 import { Tournaments, type TournamentCard, type TournamentTab } from '@/lib/tournaments';
 
@@ -91,7 +92,9 @@ export default function TournamentsPage() {
                         <div className="ava" style={{ borderRadius: 9 }} />
                       )}
                       <div>
-                        <b>{t.title}</b>
+                        <Link href={`/tournaments/${t.id}`} style={{ fontWeight: 700, color: 'var(--brand-ink)' }}>
+                          {t.title}
+                        </Link>
                         <span>{t.schedule_type === 'alternate_days' ? 'Alternate days' : 'Every day'}</span>
                       </div>
                     </div>

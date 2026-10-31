@@ -21,10 +21,66 @@ export interface TournamentCard {
 
 export type TournamentTab = 'all' | 'ongoing' | 'upcoming' | 'past';
 
+export interface TournamentDay {
+  id: string;
+  day_number: number;
+  date: string;
+}
+
+export interface TournamentDetail extends TournamentCard {
+  rules: string | null;
+  description: string | null;
+  organizer_contact: string | null;
+  overall_avg_seconds: number | null;
+  days: TournamentDay[];
+}
+
+export interface ParticipantRow {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  position: number | null;
+  overall_avg_seconds: number | null;
+  overall_returned_count: number;
+}
+
+export interface Flight {
+  id: string;
+  pigeon_name: string;
+  landing_time: string;
+  duration_seconds: number;
+}
+
+export interface ParticipantDetail {
+  participant: {
+    id: string;
+    name: string;
+    photo_url: string | null;
+    contact_no: string | null;
+    phone: string | null;
+    address: string | null;
+    position: number | null;
+    overall_avg_seconds: number | null;
+    overall_returned_count: number;
+  };
+  days: {
+    day_id: string;
+    day_number: number;
+    date: string;
+    avg_seconds: number | null;
+    returned_count: number;
+    flights: Flight[];
+  }[];
+}
+
 export const Tournaments = {
   // Public browse endpoint (superadmin session token works); backend caps limit at 50.
   list: (tab: TournamentTab, limit = 50) =>
     api.get<TournamentCard[]>(`/tournaments?tab=${tab}&limit=${limit}`),
+  get: (id: string) => api.get<TournamentDetail>(`/tournaments/${id}`),
+  standings: (id: string) => api.get<ParticipantRow[]>(`/tournaments/${id}/participants`),
+  participant: (id: string, pid: string) =>
+    api.get<ParticipantDetail>(`/tournaments/${id}/participants/${pid}`),
   // SuperAdmin override — soft-delete any tournament (DELETE /admin/tournaments/:id).
   remove: (id: string) => api.del(`/admin/tournaments/${id}`),
 };

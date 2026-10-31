@@ -74,6 +74,8 @@ export class AddParticipantUseCase {
       organizerId: actorId,
       type: 'participant_added',
       entityId: input.tournamentId,
+      participantId: (participant as any)?.id,
+      participantName: input.name,
     });
 
     return Ok(participant);
@@ -103,12 +105,16 @@ export class RecordFlightUseCase {
         standings,
       });
 
-      // Notify the organizer's followers AND everyone following this tournament.
+      // Notify the organizer's followers AND everyone following this tournament,
+      // carrying the specifics (which loft's pigeon landed, and when).
       await this.queue.add(QUEUES.tournamentFanout, 'fanout', {
         tournamentId: input.tournamentId,
         organizerId: actorId,
         type: 'tournament_day_results',
         entityId: input.tournamentId,
+        participantId: input.participantId,
+        pigeonName: input.pigeonName,
+        landingTime: input.landingTime.toISOString(),
       });
 
       return Ok(flight);

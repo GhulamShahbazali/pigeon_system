@@ -10,6 +10,12 @@ export interface TournamentFanoutJob {
   type: string;
   /** the tournament id (entity the notification points at) */
   entityId: string;
+  /** Raw specifics the use-case already holds; the processor resolves the rest
+   *  (tournament title, participant name/contact) and builds the stored `data`. */
+  participantId?: string;
+  participantName?: string; // participant_added — already known at enqueue time
+  pigeonName?: string; // tournament_day_results
+  landingTime?: string; // tournament_day_results (ISO)
 }
 
 /**
@@ -29,12 +35,33 @@ export class TournamentFanoutProcessor {
   ) {}
 
   async handle(job: Job<TournamentFanoutJob>): Promise<void> {
-    const { tournamentId, organizerId, type, entityId } = job.data;
+    const { tournamentId, organizerId, type, entityId, participantId, participantName, pigeonName, landingTime } =
+      job.data;
 
-    const [orgFollowers, tourFollowers] = await Promise.all([
+    const [orgFollowers, tourFollowers, tournament, participant] = await Promise.all([
       this.prisma.follow.findMany({ where: { followeeId: organizerId }, select: { followerId: true } }),
       this.prisma.tournamentFollow.findMany({ where: { tournamentId }, select: { userId: true } }),
+      this.prisma.tournament.findUnique({ where: { id: tournamentId }, select: { title: true } }),
+      participantId
+        ? this.prisma.tournamentParticipant.findUnique({
+            where: { id: participantId },
+            select: { name: true, contactNo: true, phone: true },
+          })
+        : Promise.resolve(null),
     ]);
+
+    // Build the granular detail once (same for every recipient of this event).
+    const data: Record<string, any> = {};
+    if (tournament?.title) data.tournament_title = tournament.title;
+    const pName = participant?.name ?? participantName;
+    if (pName) data.participant_name = pName;
+    if (type === 'tournament_day_results') {
+      if (pigeonName) data.pigeon_name = pigeonName;
+      if (landingTime) data.landing_time = landingTime;
+      const contact = participant?.contactNo ?? participant?.phone;
+      if (contact) data.contact_no = contact;
+    }
+    const payload = Object.keys(data).length ? data : undefined;
 
     const recipients = new Set<string>();
     for (const f of orgFollowers) recipients.add(f.followerId);
@@ -49,6 +76,7 @@ export class TournamentFanoutProcessor {
         entityType: 'tournament',
         entityId,
         actorId: organizerId,
+        data: payload,
       });
       total++;
     }

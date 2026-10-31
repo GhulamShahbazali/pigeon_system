@@ -23,7 +23,7 @@
 | # | Ref | Question |
 |---|-----|----------|
 | Q5 | T10/T14 | For **alternate-day** schedules, do day tabs show only flying days, or all calendar days? How are the dates generated from start date + schedule? |
-| Q6 | T15 | **Can a tournament's config be edited after creation**, or is it locked once flights are recorded? |
+| ~~Q6~~ | T15 | ~~**Can a tournament's config be edited after creation**, or is it locked once flights are recorded?~~ → **RESOLVED 2026-10-31:** cosmetic/contact fields (title, description, rules, cover, organizer contact) editable anytime; schedule-defining fields (num_days, schedule_type, start_date, pigeon_count, fly/end time) locked at creation (T15). |
 | ~~Q7~~ | T32/T33 | ~~What triggers a follower notification?~~ → **RESOLVED 2026-10-03:** tournament created · new participant added · flight/day-results added (locked T33). Only per-landing throttling left as a delivery detail. |
 | Q8 | T17 | Is a participant **image required or optional**? (Spec listed it among optional contact fields but also as a core field.) |
 | Q9 | T21 | Is a **participant a real PigeonFly user account**, or just a record the organizer types in? |

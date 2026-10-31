@@ -117,20 +117,16 @@ export class PrismaTournamentRepository implements ITournamentRepository {
   }
 
   async findDetail(id: string, viewerId: string): Promise<any | null> {
-    const t = await this.prisma.tournament.findFirst({
-      where: { id, deletedAt: null },
-      include: {
-        organizer: { select: { id: true, displayName: true, username: true, photoUrl: true, timezone: true } },
-        days: { orderBy: { dayNumber: 'asc' } },
-      },
-    });
-    if (!t) return null;
-    const tz = (t.organizer as any)?.timezone ?? 'Asia/Karachi';
-    const todayStr = getTodayInTimezone(tz);
-    const isLive = t.status === 'active' && (t.days ?? []).some((d: any) => d.date.toISOString().slice(0, 10) === todayStr);
-
-    // Viewer-specific state so the app shows follow/like correctly after reopen.
-    const [follow, like] = await Promise.all([
+    // The tournament and the viewer's follow/like state are independent lookups
+    // (keyed by id + viewerId) — run them together to save two round-trips.
+    const [t, follow, like] = await Promise.all([
+      this.prisma.tournament.findFirst({
+        where: { id, deletedAt: null },
+        include: {
+          organizer: { select: { id: true, displayName: true, username: true, photoUrl: true, timezone: true } },
+          days: { orderBy: { dayNumber: 'asc' } },
+        },
+      }),
       this.prisma.tournamentFollow.findUnique({
         where: { tournamentId_userId: { tournamentId: id, userId: viewerId } },
         select: { id: true },
@@ -140,6 +136,11 @@ export class PrismaTournamentRepository implements ITournamentRepository {
         select: { id: true },
       }),
     ]);
+    if (!t) return null;
+    const tz = (t.organizer as any)?.timezone ?? 'Asia/Karachi';
+    const todayStr = getTodayInTimezone(tz);
+    const isLive = t.status === 'active' && (t.days ?? []).some((d: any) => d.date.toISOString().slice(0, 10) === todayStr);
+
     return { ...t, isLive, isFollowing: !!follow, isLiked: !!like, isOrganizer: t.organizerId === viewerId };
   }
 
@@ -452,17 +453,22 @@ export class PrismaTournamentRepository implements ITournamentRepository {
       },
     });
 
-    // Re-rank: higher avg = better (descending). Nulls last.
+    // Re-rank: higher avg = better (descending). Nulls last. Only write the rows
+    // whose position actually changed — a single landing usually leaves most of
+    // the order intact, so this avoids N serial UPDATEs on every flight.
     const parts = await tx.tournamentParticipant.findMany({
       where: { tournamentId, deletedAt: null },
-      select: { id: true, overallAvgSeconds: true },
+      select: { id: true, overallAvgSeconds: true, position: true },
     });
     parts.sort(
       (a: any, b: any) => (b.overallAvgSeconds ?? -1) - (a.overallAvgSeconds ?? -1),
     );
     let pos = 1;
     for (const p of parts) {
-      await tx.tournamentParticipant.update({ where: { id: p.id }, data: { position: pos++ } });
+      const newPos = pos++;
+      if (p.position !== newPos) {
+        await tx.tournamentParticipant.update({ where: { id: p.id }, data: { position: newPos } });
+      }
     }
 
     const tAgg = await tx.pigeonFlight.aggregate({

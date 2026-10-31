@@ -43,6 +43,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (n.isRead) return;
     final idx = _items.indexWhere((e) => e.id == n.id);
     if (idx != -1) {
+      // Preserve every display field — only flip isRead.
       setState(() => _items[idx] = NotificationModel(
             id: n.id,
             type: n.type,
@@ -50,7 +51,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             entityId: n.entityId,
             isRead: true,
             actorCount: n.actorCount,
+            firstActorName: n.firstActorName,
+            firstActorPhoto: n.firstActorPhoto,
+            entityTitle: n.entityTitle,
             createdAt: n.createdAt,
+            participantName: n.participantName,
+            pigeonName: n.pigeonName,
+            landingTime: n.landingTime,
+            contactNo: n.contactNo,
           ));
     }
     await _repo.markRead(n.id);
@@ -103,7 +111,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Text(s.noNotifications, style: AppTextStyles.h3),
             const SizedBox(height: 6),
             Text(
-              'Follow tournaments and people to see live updates here.',
+              s.notificationsEmptySubtitle,
               textAlign: TextAlign.center,
               style: AppTextStyles.body.copyWith(color: AppColors.mut),
             ),
@@ -117,12 +125,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: _items.length,
-        itemBuilder: (context, i) => _tile(_items[i]),
+        itemBuilder: (context, i) => _tile(_items[i], s),
       ),
     );
   }
 
-  Widget _tile(NotificationModel n) {
+  Widget _tile(NotificationModel n, AppStrings s) {
     return InkWell(
       onTap: () => _markOne(n),
       child: Container(
@@ -145,9 +153,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(n.title, style: AppTextStyles.body.copyWith(color: AppColors.ink)),
+                  Text(n.localizedTitle(s), style: AppTextStyles.body.copyWith(color: AppColors.ink)),
+                  if (n.detailLine != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(Icons.call_outlined, size: 13, color: AppColors.mut),
+                        const SizedBox(width: 4),
+                        Text(n.detailLine!, style: AppTextStyles.caption.copyWith(color: AppColors.mut)),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 3),
-                  Text(n.timeAgo, style: AppTextStyles.caption.copyWith(color: AppColors.mut)),
+                  Text(n.localizedTimeAgo(s), style: AppTextStyles.caption.copyWith(color: AppColors.mut)),
                 ],
               ),
             ),

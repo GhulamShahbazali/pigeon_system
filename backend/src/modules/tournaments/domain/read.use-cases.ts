@@ -29,7 +29,8 @@ export class TournamentQueries {
   async detail(id: string, viewerId: string) {
     const t = await this.repo.findDetail(id, viewerId);
     if (!t) throw new NotFoundError('tournament');
-    await this.repo.recordView(id, viewerId);
+    // View recording is a side-effect — don't make the viewer wait on the write.
+    void this.repo.recordView(id, viewerId).catch(() => null);
     return t;
   }
 

@@ -14,8 +14,10 @@ class ApiClient {
         Dio(
           BaseOptions(
             baseUrl: AppEnv.baseUrl,
-            connectTimeout: const Duration(seconds: 25),
-            receiveTimeout: const Duration(seconds: 25),
+            // Generous timeouts: the free Render instance can cold-start (~30–50s)
+            // on the first request after it has been idle.
+            connectTimeout: const Duration(seconds: 60),
+            receiveTimeout: const Duration(seconds: 60),
             headers: {
               'Content-Type': 'application/json; charset=utf-8',
               'Accept': 'application/json',
@@ -111,7 +113,9 @@ class ApiClient {
     }
   }
 
-  bool _canFallback() => !kIsWeb;
+  // Only toggle localhost↔LAN-IP for LOCAL dev. On the live backend there is no
+  // localhost to fall back to, so never rewrite the base URL.
+  bool _canFallback() => !kIsWeb && !AppEnv.useLiveBackend;
 
   void _switchBaseUrl() {
     final current = _dio.options.baseUrl;

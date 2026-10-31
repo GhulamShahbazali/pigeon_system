@@ -24,7 +24,8 @@ export class PostUseCases {
 
   async detail(id: string, viewerId: string) {
     const p = await this.repo.getById(id, viewerId);
-    if (p.authorId !== viewerId) await this.repo.view(id, viewerId);
+    // View recording is a side-effect — don't block the response on the write.
+    if (p.authorId !== viewerId) void this.repo.view(id, viewerId).catch(() => null);
     return p;
   }
 

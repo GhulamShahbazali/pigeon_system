@@ -36,7 +36,7 @@ The mobile card shows the **LIVE** tag only when `is_live`, and a green ✓ "com
 | `POST /v1/tournaments` | session | `{ title, rules?, cover_upload_id?, num_days, schedule_type, pigeon_count, fly_time, end_time, start_date, organizer_contact? }` → `201 {tournament}` | one txn: insert tournament + `tournament_days` (dates from schedule) + unique `link_slug`. Idempotency-Key |
 | `PATCH /v1/tournaments/{id}` | session | partial → `{tournament}` | owner-only |
 | `DELETE /v1/tournaments/{id}` | session | `204` | soft delete |
-| `POST /v1/tournaments/{id}/participants` | session | `{ name, photo_upload_id?, contact_no?, phone?, address? }` → `201` | owner-only; → `follower-fanout` (participant_added) |
+| `POST /v1/tournaments/{id}/participants` | session | `{ name, photo_upload_id?, contact_no?, phone?, address? }` → `201` | owner-only; **locked once started** → `422 tournament_started` when the start date is reached (T3b); → `tournament-fanout` (participant_added, carries `participant_name`) |
 | `PATCH` / `DELETE /v1/tournaments/{id}/participants/{pid}` | session | — | owner-only; soft delete |
 | `POST /v1/tournaments/{id}/participants/{pid}/flights` | session | `{ day_id, pigeon_name, landing_time }` → `201 {flight}` | **the core write** — owner-only, **today only** (`day.date == today`). See date gating below |
 | `PATCH /v1/tournaments/{id}/participants/{pid}/flights/{fid}` | session | `{ pigeon_name?, landing_time? }` → `200 {flight}` | owner-only; allowed on **today and past days**; recomputes day & overall stats |

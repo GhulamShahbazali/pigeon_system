@@ -10,6 +10,9 @@ export interface EmitNotificationInput {
   entityType: 'tournament' | 'post' | 'record' | 'user' | 'conversation';
   entityId: string;
   actorId?: string;
+  /** Optional granular detail (participant_name, pigeon_name, landing_time,
+   *  contact_no, tournament_title, …) that entity_id alone can't convey. */
+  data?: Record<string, any>;
 }
 
 @Injectable()
@@ -29,6 +32,7 @@ export class NotificationsService {
         type: input.type,
         entityType: input.entityType,
         entityId: input.entityId,
+        data: input.data ?? undefined,
       },
     });
     if (input.actorId) {
@@ -44,6 +48,7 @@ export class NotificationsService {
       type: input.type,
       entity_type: input.entityType,
       entity_id: input.entityId,
+      data: input.data ?? null,
       created_at: n.createdAt.toISOString(),
     });
     this.emit.toUser(input.recipientId, 'notification.bell_count', { unread_count: unread });
@@ -121,6 +126,7 @@ export class NotificationsService {
         createdAt: r.createdAt,
         actors,
         entityTitle,
+        data: (r.data as Record<string, any> | null) ?? null,
       };
     });
   }

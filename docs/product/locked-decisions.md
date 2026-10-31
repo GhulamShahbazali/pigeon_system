@@ -51,6 +51,7 @@
 | T1 | Who can create a tournament | **Any user** | ✅ |
 | T2 | Who can edit / update / delete a tournament | **Only its creator (owner)** | ✅ |
 | T3 | Who can add / edit / remove participants | **Only the owner** | ✅ |
+| T3b | When can participants be added | **Only before the tournament starts** — once the start date (T14) is reached the roster is **locked**; no new participant may be added after it's underway (enforced client + server). Editing/removing existing participants is unaffected | ✅ |
 | T4 | Visibility | **Public** — any user can view any tournament | ✅ |
 | T5 | SuperAdmin override | SuperAdmin can edit/delete any tournament from the web panel | ✅ |
 
@@ -72,7 +73,7 @@
 | T14d | **Share a participant's record** | the **share icon** opens a dialog to export that participant's day-by-day record as **Excel (.xlsx) · PDF · Text · Image** — each a clean, professional format, then handed to the system share sheet | ✅ |
 | T14e | **Share the whole tournament (link)** | share dialog gives a **shareable link** (copy / share) + export standings (Excel/PDF) | ✅ |
 | T14f | **Smart deep link** | opening a tournament link: **app installed → opens that tournament directly**; **not installed → store (App Store / Google Play) → after install the tournament opens automatically** (deferred deep link) | ✅ |
-| T15 | Can config be edited after creation? | ❓ fully editable / locked once flights recorded | ❓ |
+| T15 | Can config be edited after creation? | **Partly.** Cosmetic/contact fields — **title, description, rules, cover, organizer contact** — are editable **anytime** (owner + SuperAdmin). Schedule-defining fields — **number of days, schedule type, start date, pigeon count, fly/end time** — are **set at creation and locked** (they regenerate days / would invalidate recorded flights); to change them, create a new tournament | ✅ |
 
 ### 2.3 Participants
 

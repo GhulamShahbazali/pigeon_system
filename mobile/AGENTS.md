@@ -146,9 +146,12 @@ Enforced on client AND server. Full product-decision catalog → `../docs/produc
 
 | Env | Base URL |
 |---|---|
-| Dev | `http://localhost:3000` |
+| Dev | `http://localhost:3000` (device: Mac LAN IP / `adb reverse`) |
+| Live (Render) | `https://pigeon-system-backend.onrender.com` — current default (`AppEnv.useLiveBackend = true`) |
 | Staging | `https://api-staging.pigeonfly.app` |
 | Production | `https://api.pigeonfly.app` |
+
+Toggle `AppEnv.useLiveBackend` (`lib/config/env/app_env.dart`): `true` → Render live backend (works on any network); `false` → local dev (`localhost` / `machineIp`).
 
 Auth: app JWT sent as `Authorization: Bearer <token>` header via `AuthInterceptor`.
 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { EmitService } from '../../shared/socket/emit.service';
 import { RedisService } from '../../shared/redis/redis.service';
+import { NotFoundError } from '../../shared/errors/common-errors';
 
 @Injectable()
 export class ModerationService {
@@ -81,5 +82,53 @@ export class ModerationService {
     ]);
     this.emit.toUser(userId, 'user.suspension_lifted', {});
     await this.log(adminId, 'unsuspend', 'user', userId);
+  }
+
+  /** SuperAdmin override: edit a tournament's cosmetic/contact fields only (T15).
+   *  Schedule-defining fields stay locked — they regenerate days / would invalidate
+   *  recorded flights. Only the fields present in `patch` change. */
+  async editTournament(
+    adminId: string,
+    id: string,
+    patch: {
+      title?: string;
+      description?: string | null;
+      rules?: string | null;
+      coverUrl?: string | null;
+      organizerContact?: string | null;
+    },
+  ) {
+    const exists = await this.prisma.tournament.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!exists) throw new NotFoundError('tournament');
+
+    const data: Record<string, unknown> = {};
+    if (patch.title !== undefined) data.title = patch.title;
+    if (patch.description !== undefined) data.description = patch.description;
+    if (patch.rules !== undefined) data.rules = patch.rules;
+    if (patch.coverUrl !== undefined) data.coverUrl = patch.coverUrl;
+    if (patch.organizerContact !== undefined) data.organizerContact = patch.organizerContact;
+
+    const r = await this.prisma.tournament.update({
+      where: { id },
+      data,
+      select: { id: true, title: true, description: true, rules: true, coverUrl: true, organizerContact: true },
+    });
+    await this.log(adminId, 'edit', 'tournament', id);
+    return r;
+  }
+
+  /** SuperAdmin override: soft-delete any tournament (T5). Never hard-deletes —
+   *  sets deleted_at, so it drops out of every list but referenced rows survive. */
+  async deleteTournament(adminId: string, id: string, note?: string) {
+    const t = await this.prisma.tournament.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, organizerId: true },
+    });
+    if (!t) throw new NotFoundError('tournament');
+    await this.prisma.tournament.update({ where: { id }, data: { deletedAt: new Date() } });
+    await this.log(adminId, 'remove', 'tournament', id, note);
   }
 }

@@ -107,6 +107,86 @@ class AppStrings {
   String get notificationsTitle => _t('Notifications', 'اطلاعات', 'सूचनाएँ', 'الإشعارات');
   String get markAll => _t('Mark all', 'سب پڑھا ہوا', 'सभी पढ़ा हुआ', 'تحديد الكل');
   String get noNotifications => _t('No notifications yet', 'ابھی کوئی اطلاع نہیں', 'अभी कोई सूचना नहीं', 'لا إشعارات بعد');
+  String get notificationsEmptySubtitle => _t(
+        'Follow tournaments and people to see live updates here.',
+        'یہاں لائیو اپڈیٹس دیکھنے کے لیے ٹورنامنٹ اور لوگوں کو فالو کریں۔',
+        'यहाँ लाइव अपडेट देखने के लिए टूर्नामेंट और लोगों को फ़ॉलो करें।',
+        'تابِع البطولات والأشخاص لرؤية التحديثات المباشرة هنا.',
+      );
+
+  // Notification sentences (granular + localized). Sub-phrases are localized
+  // first, then slotted into a per-language template.
+  String notifNewFollower(String who) =>
+      _t('$who started following you', '$who نے آپ کو فالو کرنا شروع کیا', '$who ने आपको फ़ॉलो करना शुरू किया', 'بدأ $who بمتابعتك');
+
+  String notifTournamentCreated(String who, String? title) {
+    if (title != null && title.isNotEmpty) {
+      return _t('$who created "$title"', '$who نے "$title" بنایا', '$who ने "$title" बनाया', 'أنشأ $who "$title"');
+    }
+    return _t('$who created a new tournament', '$who نے ایک نیا ٹورنامنٹ بنایا', '$who ने एक नया टूर्नामेंट बनाया', 'أنشأ $who بطولة جديدة');
+  }
+
+  String notifParticipantAdded(String? name, String? title) {
+    final who = (name != null && name.isNotEmpty)
+        ? name
+        : _t('A new participant', 'ایک نیا شریک', 'एक नया प्रतिभागी', 'مشارك جديد');
+    final wh = (title != null && title.isNotEmpty)
+        ? '"$title"'
+        : _t('a tournament you follow', 'ایک ٹورنامنٹ جسے آپ فالو کرتے ہیں', 'आपके फ़ॉलो किए टूर्नामेंट', 'بطولة تتابعها');
+    return _t('$who joined $wh', '$who $wh میں شامل ہوا', '$who $wh में शामिल हुआ', 'انضم $who إلى $wh');
+  }
+
+  String notifDayResults(String? name, String? pigeon, String? at, String? title) {
+    final who = (name != null && name.isNotEmpty)
+        ? name
+        : _t('A loft', 'ایک لوفٹ', 'एक लॉफ़्ट', 'أحد المربّين');
+    final wh = (title != null && title.isNotEmpty)
+        ? '"$title"'
+        : _t('a tournament you follow', 'ایک ٹورنامنٹ جسے آپ فالو کرتے ہیں', 'आपके फ़ॉलो किए टूर्नामेंट', 'بطولة تتابعها');
+    final bird = (pigeon != null && pigeon.isNotEmpty) ? ' "$pigeon"' : '';
+    final when = (at != null && at.isNotEmpty)
+        ? _t(' at $at', ' $at بجے', ' $at बजे', ' عند $at')
+        : '';
+    return _t(
+      "$who's pigeon$bird landed$when in $wh",
+      '$who کا کبوتر$bird$when $wh میں پہنچا',
+      '$who का कबूतर$bird$when $wh में पहुँचा',
+      'وصل حمام $who$bird$when في $wh',
+    );
+  }
+
+  String notifContentLike(String who, bool isRecord) {
+    final what = isRecord
+        ? _t('record', 'ریکارڈ', 'रिकॉर्ड', 'سجلّك')
+        : _t('post', 'پوسٹ', 'पोस्ट', 'منشورك');
+    return _t('$who liked your $what', '$who نے آپ کے $what کو پسند کیا', '$who ने आपके $what को पसंद किया', 'أعجب $who بـ$what');
+  }
+
+  String notifLiveNow(String who) =>
+      _t('$who is flying live now', '$who ابھی لائیو اڑا رہا ہے', '$who अभी लाइव उड़ा रहा है', '$who يطير مباشرةً الآن');
+
+  String notifMessageRequest(String who) =>
+      _t('$who sent you a message request', '$who نے آپ کو پیغام کی درخواست بھیجی', '$who ने आपको संदेश अनुरोध भेजा', 'أرسل لك $who طلب رسالة');
+
+  String get notifModeration => _t(
+        'PigeonFly Team: an update about your content',
+        'پیجن فلائی ٹیم: آپ کے مواد کے بارے میں ایک اپڈیٹ',
+        'पिजनफ्लाई टीम: आपकी सामग्री के बारे में एक अपडेट',
+        'فريق PigeonFly: تحديث بخصوص المحتوى الخاص بك',
+      );
+
+  String get notifGeneric => _t('New activity', 'نئی سرگرمی', 'नई गतिविधि', 'نشاط جديد');
+  String get someoneLabel => _t('Someone', 'کوئی', 'कोई', 'شخص ما');
+  String peopleCount(int n) => _t('$n people', '$n لوگ', '$n लोग', '$n أشخاص');
+  String andOthers(String name, int n) =>
+      _t('$name + $n others', '$name + $n دیگر', '$name + $n अन्य', '$name + $n آخرين');
+
+  // Relative time (notification rows)
+  String get timeJustNow => _t('just now', 'ابھی', 'अभी', 'الآن');
+  String timeMinutesAgo(int m) => _t('${m}m ago', '$m منٹ پہلے', '$m मिनट पहले', 'قبل $m د');
+  String timeHoursAgo(int h) => _t('${h}h ago', '$h گھنٹے پہلے', '$h घंटे पहले', 'قبل $h س');
+  String get timeYesterday => _t('Yesterday', 'کل', 'कल', 'أمس');
+  String timeDaysAgo(int d) => _t('${d}d ago', '$d دن پہلے', '$d दिन पहले', 'قبل $d ي');
 
   // ── Tournament card + My Tournaments ──
   String get byAuthor => _t('by', 'بذریعہ', 'द्वारा', 'بواسطة');

@@ -17,6 +17,7 @@
 | `entity_id` | UUID | Yes | polymorphic target (resolved app-side; cleaned by cron if dangling) |
 | `is_read` | boolean | Yes | default false |
 | `is_aggregated` | boolean | Yes | default false — group "+42 liked" |
+| `data` | jsonb | No | optional granular detail that can't be re-derived from `entity_id` alone — e.g. `participant_name`, `pigeon_name`, `landing_time`, `contact_no`, `tournament_title` for a tournament update (whose `entity_id` is the tournament). Rendered app-side + in push. |
 | `created_at` | timestamp | Yes | |
 
 **Indexes:** `(recipient_id, created_at DESC)` — feed; `(recipient_id)` partial WHERE `is_read=false` — bell count.

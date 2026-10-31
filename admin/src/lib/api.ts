@@ -71,6 +71,7 @@ export const api = {
   patch: <T>(p: string, b: unknown) => apiFetch<T>(p, { method: 'PATCH', body: JSON.stringify(b) }),
   post: <T>(p: string, b?: unknown) =>
     apiFetch<T>(p, { method: 'POST', body: b ? JSON.stringify(b) : undefined }),
+  del: <T>(p: string) => apiFetch<T>(p, { method: 'DELETE' }),
 };
 
 /** Staff login — username + password → stores the returned session token. */

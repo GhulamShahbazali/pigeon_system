@@ -14,6 +14,7 @@
 | `GET /v1/admin/users` | superadmin | search users |
 | `POST /v1/admin/users/:id/suspend` · `/unsuspend` | superadmin | suspend + invalidate sessions |
 | `DELETE /v1/admin/tournaments/:id` | superadmin | soft-delete any tournament (T5) → `deleted_at` + logs `admin_actions` (`remove`) |
+| `PATCH /v1/admin/tournaments/:id` | superadmin | edit cosmetic/contact fields (title, description, rules, cover, organizer contact) per T15 → logs `admin_actions` (`edit`) |
 
 **Suspend:** writes `user_suspensions` + `users.is_suspended` in one txn, deletes `session:{jti}` caches (via `user_sessions:{id}`), emits `user.suspended`. Unsuspend lifts + emits `user.suspension_lifted`.
 **Queues:** none. **Sockets:** `user.suspended`, `user.suspension_lifted`.

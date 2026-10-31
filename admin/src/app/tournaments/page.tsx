@@ -49,6 +49,7 @@ export default function TournamentsPage() {
           <h1>Tournaments</h1>
           <p>Every tournament on the platform — live status, organizer and engagement.</p>
         </div>
+        <Link href="/tournaments/new" className="btn">+ New tournament</Link>
       </div>
 
       <div className="tabs">

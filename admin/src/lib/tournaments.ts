@@ -81,6 +81,34 @@ export const Tournaments = {
   standings: (id: string) => api.get<ParticipantRow[]>(`/tournaments/${id}/participants`),
   participant: (id: string, pid: string) =>
     api.get<ParticipantDetail>(`/tournaments/${id}/participants/${pid}`),
+  // SuperAdmin override — edit cosmetic/contact fields only (T15).
+  update: (id: string, patch: EditTournamentPatch) =>
+    api.patch<{ id: string }>(`/admin/tournaments/${id}`, patch),
   // SuperAdmin override — soft-delete any tournament (DELETE /admin/tournaments/:id).
   remove: (id: string) => api.del(`/admin/tournaments/${id}`),
+  // Create (organizer = the signed-in admin), via the normal create endpoint.
+  create: (body: CreateTournamentBody) => api.post<{ id: string }>(`/tournaments`, body),
 };
+
+/** T15: only cosmetic/contact fields are editable. */
+export interface EditTournamentPatch {
+  title?: string;
+  description?: string | null;
+  rules?: string | null;
+  cover_url?: string | null;
+  organizer_contact?: string | null;
+}
+
+export interface CreateTournamentBody {
+  title: string;
+  description?: string;
+  rules?: string;
+  cover_url?: string;
+  num_days: number;
+  schedule_type: 'every_day' | 'alternate_days';
+  pigeon_count: number;
+  fly_time: string;
+  end_time: string;
+  start_date: string;
+  organizer_contact?: string;
+}

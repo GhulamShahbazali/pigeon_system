@@ -51,6 +51,42 @@ export default function TournamentDetailPage() {
   const [loadingPid, setLoadingPid] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ title: '', description: '', rules: '', cover_url: '', organizer_contact: '' });
+
+  function startEdit() {
+    const d = det.data;
+    if (!d) return;
+    setForm({
+      title: d.title ?? '',
+      description: d.description ?? '',
+      rules: d.rules ?? '',
+      cover_url: d.cover_url ?? '',
+      organizer_contact: d.organizer_contact ?? '',
+    });
+    setEditing(true);
+  }
+
+  async function save() {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    try {
+      // Empty → null (clears the field); backend validates cover_url as a URL when set.
+      await Tournaments.update(id, {
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        rules: form.rules.trim() || null,
+        cover_url: form.cover_url.trim() || null,
+        organizer_contact: form.organizer_contact.trim() || null,
+      });
+      await det.reload();
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function toggleParticipant(pid: string) {
     if (openPid === pid) {
       setOpenPid(null);
@@ -120,15 +156,60 @@ export default function TournamentDetailPage() {
               </p>
               {t.description && <p className="muted" style={{ marginTop: 8 }}>{t.description}</p>}
             </div>
-            <button
-              className="btn ghost sm"
-              disabled={deleting}
-              style={{ color: 'var(--danger)', borderColor: '#f6cbc7' }}
-              onClick={remove}
-            >
-              {deleting ? '…' : 'Delete'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              {!editing && (
+                <button className="btn ghost sm" onClick={startEdit}>Edit</button>
+              )}
+              <button
+                className="btn ghost sm"
+                disabled={deleting}
+                style={{ color: 'var(--danger)', borderColor: '#f6cbc7' }}
+                onClick={remove}
+              >
+                {deleting ? '…' : 'Delete'}
+              </button>
+            </div>
           </div>
+
+          {/* edit form (T15: cosmetic/contact fields only) */}
+          {editing && (
+            <div className="card" style={{ marginBottom: 16 }}>
+              <h3>Edit details</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <label>
+                  <div className="k" style={{ marginBottom: 5 }}>Title</div>
+                  <input className="field" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </label>
+                <div className="grid g2">
+                  <label>
+                    <div className="k" style={{ marginBottom: 5 }}>Organizer contact</div>
+                    <input className="field" value={form.organizer_contact} placeholder="+92…" onChange={(e) => setForm({ ...form, organizer_contact: e.target.value })} />
+                  </label>
+                  <label>
+                    <div className="k" style={{ marginBottom: 5 }}>Cover URL</div>
+                    <input className="field" value={form.cover_url} placeholder="https://…" onChange={(e) => setForm({ ...form, cover_url: e.target.value })} />
+                  </label>
+                </div>
+                <label>
+                  <div className="k" style={{ marginBottom: 5 }}>Description</div>
+                  <textarea className="field" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                </label>
+                <label>
+                  <div className="k" style={{ marginBottom: 5 }}>Rules</div>
+                  <textarea className="field" rows={3} value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} />
+                </label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button className="btn" disabled={saving || !form.title.trim()} onClick={save}>
+                    {saving ? 'Saving…' : 'Save changes'}
+                  </button>
+                  <button className="btn ghost" disabled={saving} onClick={() => setEditing(false)}>Cancel</button>
+                </div>
+                <p className="hint" style={{ color: 'var(--mut)' }}>
+                  Schedule, dates, pigeon count and times are fixed at creation (T15) and can't be edited here.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* stats */}
           <div className="grid g4" style={{ marginBottom: 20 }}>

@@ -77,11 +77,21 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _bootstrap() async {
     _myId = await _storage.getUserId();
+    // Opened by user id only (e.g. from a profile)? Resolve any existing
+    // conversation with that user so messages sent earlier reload on reopen,
+    // instead of showing an empty "Say salam" every time.
+    if (_conversationId == null && widget.otherUserId != null) {
+      final res = await _repo.findConversationWith(widget.otherUserId!);
+      if (mounted && res.isSuccess) {
+        final cid = (res as dynamic).data as String?;
+        if (cid != null && cid.isNotEmpty) _conversationId = cid;
+      }
+    }
     if (_conversationId != null) {
       _socket.subscribeChat(_conversationId!);
       await _loadMessages();
     } else {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
     _socket.onMessageNew(_onIncoming);
     _socket.onChatRead(_onChatRead);

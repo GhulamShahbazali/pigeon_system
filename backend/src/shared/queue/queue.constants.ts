@@ -2,6 +2,7 @@ export const QUEUES = {
   pushSend: 'push-send',
   dmPush: 'dm-push-send',
   followerFanout: 'follower-fanout',
+  tournamentFanout: 'tournament-fanout',
   mediaProcess: 'media-process',
   exportGenerate: 'export-generate',
   liveRecordAutoEnd: 'live-record-auto-end',

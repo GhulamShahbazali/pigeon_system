@@ -31,6 +31,13 @@ class LiveRecordOwnerModel {
       photoUrl: json['photo_url']?.toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'display_name': displayName,
+        'username': username,
+        'photo_url': photoUrl,
+      };
 }
 
 class LiveRecordPreviewModel {
@@ -65,6 +72,16 @@ class LiveRecordPreviewModel {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'total_avg_seconds': totalAvgSeconds,
+        'returned_count': returnedCount,
+        'total_pigeons': totalPigeons,
+        'like_count': likeCount,
+        'view_count': viewCount,
+        'owner': owner?.toJson(),
+      };
 }
 
 class PersonalRecordModel {

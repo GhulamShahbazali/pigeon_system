@@ -3,13 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/bloc/navigation_bloc.dart';
 import '../../../../app/bloc/navigation_event.dart';
+import '../../../../app/bloc/navigation_state.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/network/socket_service.dart';
+import '../../../../core/local_storage/json_cache_service.dart';
+import '../../../records/data/records_repository.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/pigeon_logo.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../home/presentation/widgets/live_now_strip.dart';
 import '../../../posts/data/posts_repository.dart';
 import '../../../posts/presentation/widgets/post_card.dart';
@@ -29,9 +33,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TournamentsRepository _tournamentsRepo = sl<TournamentsRepository>();
   final PostsRepository _postsRepo = sl<PostsRepository>();
+  final RecordsRepository _recordsRepo = sl<RecordsRepository>();
   final SocketService _socket = sl<SocketService>();
+  final JsonCacheService _cache = sl<JsonCacheService>();
+
+  static const int _homeTabIndex = 0;
+  bool _refreshing = false;
 
   List<TournamentCardModel> _tournaments = [];
+  List<LiveRecordPreviewModel> _liveRecords = [];
   List<PostModel> _posts = [];
   final Set<String> _likedPostIds = {};
   final Map<String, int> _postLikeCounts = {};
@@ -60,8 +70,57 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    _init();
     _setupRealtime();
+  }
+
+  /// Stale-while-revalidate: paint last-seen cached content instantly, then
+  /// refresh from the network in the background (like Facebook).
+  Future<void> _init() async {
+    await _loadFromCache();
+    await _loadDashboardData();
+  }
+
+  /// Rebuild the per-post like/view/share maps and subscribe to live counts.
+  void _applyPosts(List<PostModel> posts) {
+    _posts = posts;
+    _likedPostIds.clear();
+    _postLikeCounts.clear();
+    _postViewCounts.clear();
+    _postShareCounts.clear();
+    for (final p in posts) {
+      if (p.isLiked) _likedPostIds.add(p.id);
+      _postLikeCounts[p.id] = p.likeCount;
+      _postViewCounts[p.id] = p.viewCount;
+      _postShareCounts[p.id] = p.shareCount;
+      _socket.subscribePostCounts(p.id);
+    }
+  }
+
+  Future<void> _loadFromCache() async {
+    final t = await _cache.readList('home_tournaments');
+    final l = await _cache.readList('home_live');
+    final p = await _cache.readList('home_posts');
+    if (!mounted) return;
+    setState(() {
+      if (t != null) {
+        _tournaments = t
+            .map((e) => TournamentCardModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      if (l != null) {
+        _liveRecords = l
+            .map((e) => LiveRecordPreviewModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      if (p != null) {
+        _applyPosts(
+          p.map((e) => PostModel.fromJson(Map<String, dynamic>.from(e as Map))).toList(),
+        );
+      }
+      // Anything cached → drop the blocking spinner so content shows immediately.
+      if (t != null || l != null || p != null) _isLoading = false;
+    });
   }
 
   @override
@@ -90,50 +149,73 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDashboardData() async {
-    final tResult = await _tournamentsRepo.getTournaments(tab: 'all');
-    final pResult = await _postsRepo.getFeed(tab: 'for_you', limit: 100);
+    if (mounted) setState(() => _refreshing = true);
+    // Fire the requests together and await them in parallel — they are
+    // independent, so there's no reason to pay the round-trips back-to-back.
+    final tFuture = _tournamentsRepo.getTournaments(tab: 'all');
+    final pFuture = _postsRepo.getFeed(tab: 'for_you', limit: 100);
+    final lFuture = _recordsRepo.getLiveNow();
+    final tResult = await tFuture;
+    final pResult = await pFuture;
+    final lResult = await lFuture;
 
     if (!mounted) return;
 
+    // On failure (e.g. offline) we keep whatever is already shown (cache) — the
+    // content never blanks out.
     setState(() {
+      if (lResult.isSuccess) {
+        _liveRecords = (lResult as dynamic).data as List<LiveRecordPreviewModel>;
+      }
       if (tResult.isSuccess) {
         _tournaments = (tResult as dynamic).data as List<TournamentCardModel>;
       }
       if (pResult.isSuccess) {
-        _posts = (pResult as dynamic).data as List<PostModel>;
-        _likedPostIds.clear();
-        _postLikeCounts.clear();
-        _postViewCounts.clear();
-        _postShareCounts.clear();
-        for (final p in _posts) {
-          if (p.isLiked) _likedPostIds.add(p.id);
-          _postLikeCounts[p.id] = p.likeCount;
-          _postViewCounts[p.id] = p.viewCount;
-          _postShareCounts[p.id] = p.shareCount;
-          // Subscribe to this post's live count room.
-          _socket.subscribePostCounts(p.id);
-        }
+        _applyPosts((pResult as dynamic).data as List<PostModel>);
       }
       _isLoading = false;
+      _refreshing = false;
     });
+
+    // Persist the fresh content for the next cold start (fire-and-forget).
+    if (tResult.isSuccess) {
+      _cache.writeList('home_tournaments', _tournaments.map((e) => e.toJson()).toList());
+    }
+    if (lResult.isSuccess) {
+      _cache.writeList('home_live', _liveRecords.map((e) => e.toJson()).toList());
+    }
+    if (pResult.isSuccess) {
+      _cache.writeList('home_posts', _posts.map((e) => e.toJson()).toList());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.bg,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.brand),
-        ),
-      );
-    }
-
-    return Scaffold(
+    final s = AppStrings.of(context);
+    return BlocListener<NavigationBloc, NavigationState>(
+      // Returning to the Home tab re-pulls the dashboard so the Live-now strip
+      // (and feed/tournaments) reflect what's live right now, not just startup.
+      listenWhen: (prev, curr) =>
+          curr.selectedIndex == _homeTabIndex && prev.selectedIndex != _homeTabIndex,
+      listener: (_, __) => _loadDashboardData(),
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
+        child: Column(
+          children: [
+            // Thin top loader while refreshing in the background — content stays
+            // visible underneath (Facebook-style), no full-screen spinner.
+            if (_refreshing && !_isLoading)
+              const LinearProgressIndicator(
+                minHeight: 2,
+                color: AppColors.brand,
+                backgroundColor: AppColors.soft,
+              )
+            else
+              const SizedBox.shrink(),
+            Expanded(
+              child: RefreshIndicator(
           color: AppColors.brand,
           onRefresh: _loadDashboardData,
           child: CustomScrollView(
@@ -185,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                         child: Row(
                           children: [
-                            Text('① Live now',
+                            Text('① ${s.liveNow}',
                                 style: AppTextStyles.overline.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -201,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 4),
                                 child: Text(
-                                  'See all',
+                                  s.seeAll,
                                   style: AppTextStyles.caption.copyWith(
                                     color: AppColors.brand,
                                     fontWeight: FontWeight.w700,
@@ -214,6 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       LiveNowStrip(
+                        records: _liveRecords,
+                        isLoading: _isLoading,
                         onGoLivePressed: () => context.push('/records/create'),
                         onUserPressed: (recordId) => context.push('/records/live/$recordId'),
                       ),
@@ -230,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: Row(
                       children: [
-                        Text('② Featured tournament',
+                        Text('② ${s.featuredTournament}',
                             style: AppTextStyles.overline.copyWith(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
@@ -243,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .add(const NavigationTabChangedEvent(1));
                           },
                           child: Text(
-                            'Explore all',
+                            s.exploreAll,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.brand,
                               fontWeight: FontWeight.w700,
@@ -290,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 20, vertical: 10),
                         child: Row(
                           children: [
-                            Text('③ Trending tournaments',
+                            Text('③ ${s.trendingTournaments}',
                                 style: AppTextStyles.overline.copyWith(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -303,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .add(const NavigationTabChangedEvent(1));
                               },
                               child: Text(
-                                'See all',
+                                s.seeAll,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.brand,
                                   fontWeight: FontWeight.w700,
@@ -342,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('④ Feed & Community Updates',
+                      Text('④ ${s.feedCommunity}',
                           style: AppTextStyles.overline.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -369,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Share something about your loft…',
+                                  s.shareLoftHint,
                                   style: AppTextStyles.subText
                                       .copyWith(color: AppColors.mut),
                                 ),
@@ -386,7 +470,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               // 6. Posts Feed
-              if (_posts.isEmpty)
+              if (_isLoading && _posts.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.brand),
+                    ),
+                  ),
+                )
+              else if (_posts.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
@@ -396,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Icon(Icons.feed_outlined,
                               color: AppColors.muted, size: 40),
                           const SizedBox(height: 8),
-                          Text('No posts yet in feed',
+                          Text(s.noPostsInFeed,
                               style: AppTextStyles.caption),
                         ],
                       ),
@@ -442,7 +535,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+              ),
+            ),
+          ],
         ),
+      ),
       ),
     );
   }

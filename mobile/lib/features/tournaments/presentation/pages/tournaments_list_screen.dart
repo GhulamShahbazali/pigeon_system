@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../../../../core/local_storage/json_cache_service.dart';
 import '../../data/models/tournament_card_model.dart';
 import '../../data/tournaments_repository.dart';
 import '../widgets/tournament_card.dart';
@@ -25,10 +27,12 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
   ];
   int _selectedSegment = 0;
   bool _isLoading = true;
+  bool _refreshing = false;
   String? _errorMessage;
   List<TournamentCardModel> _tournaments = [];
 
   final TournamentsRepository _repository = sl<TournamentsRepository>();
+  final JsonCacheService _cache = sl<JsonCacheService>();
 
   @override
   void initState() {
@@ -39,37 +43,67 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
   String get _currentTab => _segments[_selectedSegment].tab;
 
   Future<void> _fetchTournaments() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    final tab = _currentTab;
+    // Stale-while-revalidate: show this tab's cached list instantly, then refresh.
+    final cached = await _cache.readList('tournaments_$tab');
+    if (!mounted || tab != _currentTab) return;
+    if (cached != null) {
+      setState(() {
+        _tournaments = cached
+            .map((e) => TournamentCardModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    }
 
-    final result = await _repository.getTournaments(tab: _currentTab);
-    if (!mounted) return;
+    setState(() => _refreshing = true);
+    final result = await _repository.getTournaments(tab: tab);
+    if (!mounted || tab != _currentTab) return;
 
     result.when(
       success: (data) {
         setState(() {
           _tournaments = data;
           _isLoading = false;
+          _refreshing = false;
+          _errorMessage = null;
         });
+        _cache.writeList('tournaments_$tab', data.map((e) => e.toJson()).toList());
       },
       failure: (message, code) {
+        // Offline / error: keep the cached list; only surface an error when we
+        // have nothing to show.
         setState(() {
-          _errorMessage = message;
           _isLoading = false;
+          _refreshing = false;
+          if (_tournaments.isEmpty) _errorMessage = message;
         });
       },
     );
   }
 
+  String _segLabel(String tab, AppStrings s) {
+    switch (tab) {
+      case 'upcoming':
+        return s.tabUpcoming;
+      case 'ongoing':
+        return s.tabOngoing;
+      case 'past':
+        return s.tabPast;
+      default:
+        return s.tabAll;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         title: Text(
-          'Tournaments',
+          s.tournaments,
           style: AppTextStyles.screenTitle,
         ),
         actions: [
@@ -105,11 +139,16 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
                 children: [
                   for (int i = 0; i < _segments.length; i++)
                     _SegmentItem(
-                      title: _segments[i].label,
+                      title: _segLabel(_segments[i].tab, s),
                       isSelected: _selectedSegment == i,
                       onTap: () {
                         if (_selectedSegment != i) {
-                          setState(() => _selectedSegment = i);
+                          setState(() {
+                            _selectedSegment = i;
+                            _isLoading = true;
+                            _tournaments = [];
+                            _errorMessage = null;
+                          });
                           _fetchTournaments();
                         }
                       },
@@ -118,15 +157,21 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
               ),
             ),
           ),
+          if (_refreshing && !_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              color: AppColors.brand,
+              backgroundColor: AppColors.soft,
+            ),
           Expanded(
-            child: _buildBody(),
+            child: _buildBody(s),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.brand,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Tournament', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: Text(s.newTournament, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () async {
           final created = await context.push<bool>('/tournaments/create');
           if (created == true) {
@@ -137,7 +182,7 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -156,7 +201,7 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
               ElevatedButton(
                 onPressed: _fetchTournaments,
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.brand),
-                child: const Text('Try Again', style: TextStyle(color: Colors.white)),
+                child: Text(s.tryAgain, style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -175,18 +220,18 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
               const SizedBox(height: 12),
               Text(
                 _currentTab == 'upcoming'
-                    ? 'No upcoming tournaments.'
+                    ? s.noUpcomingTournaments
                     : _currentTab == 'ongoing'
-                        ? 'No tournaments running right now.'
+                        ? s.noOngoingTournaments
                         : _currentTab == 'past'
-                            ? 'No past tournaments yet.'
-                            : 'No tournaments found.',
+                            ? s.noPastTournaments
+                            : s.noTournaments,
                 style: AppTextStyles.cardTitle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Tournaments organized by users will show up here.',
+                s.tournamentsHint,
                 style: AppTextStyles.caption,
                 textAlign: TextAlign.center,
               ),
@@ -206,7 +251,7 @@ class _TournamentsListScreenState extends State<TournamentsListScreen> {
           final item = _tournaments[index];
           return TournamentCard(
             title: item.title,
-            organizer: item.organizer?.displayName ?? 'Organizer',
+            organizer: item.organizer?.displayName ?? s.organizer,
             days: item.daysDisplay,
             schedule: item.scheduleDisplay,
             pigeons: item.pigeonCount,

@@ -1,29 +1,57 @@
 import 'package:flutter/material.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../data/chat_repository.dart';
+import '../../data/models/chat_models.dart';
 import 'request_detail_screen.dart';
 
-class MessageRequestsScreen extends StatelessWidget {
+class MessageRequestsScreen extends StatefulWidget {
   const MessageRequestsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final requests = [
-      {
-        'name': 'Usman Tariq',
-        'initial': 'U',
-        'grad': AppColors.avatarGreen,
-        'msg': 'Assalam o alaikum, loved your loft!',
-      },
-      {
-        'name': 'Rashid Lofts',
-        'initial': 'R',
-        'grad': AppColors.avatarBlue,
-        'msg': 'Are you joining the Valley Cup?',
-      },
-    ];
+  State<MessageRequestsScreen> createState() => _MessageRequestsScreenState();
+}
 
+class _MessageRequestsScreenState extends State<MessageRequestsScreen> {
+  final ChatRepository _repo = sl<ChatRepository>();
+  List<ConversationModel> _requests = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    final res = await _repo.getRequests();
+    if (!mounted) return;
+    setState(() {
+      if (res.isSuccess) _requests = (res as dynamic).data as List<ConversationModel>;
+      _loading = false;
+    });
+  }
+
+  Future<void> _openRequest(ConversationModel req) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (ctx) => RequestDetailScreen(
+          conversationId: req.id,
+          senderName: req.otherName,
+          senderPhotoUrl: req.otherPhotoUrl,
+          messageContent: req.lastMessagePreview ?? '',
+        ),
+      ),
+    );
+    // Accepted (true) or declined (false) → the request is gone; refresh.
+    if (result != null && mounted) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.card,
       appBar: AppBar(
@@ -37,7 +65,39 @@ class MessageRequestsScreen extends StatelessWidget {
         title: Text('Requests', style: AppTextStyles.h3),
         centerTitle: true,
       ),
-      body: ListView(
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.brand));
+    }
+    if (_requests.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(color: AppColors.soft, shape: BoxShape.circle),
+              child: const Icon(Icons.mark_email_unread_outlined, size: 34, color: AppColors.mut),
+            ),
+            const SizedBox(height: 14),
+            Text('No message requests', style: AppTextStyles.h4),
+            const SizedBox(height: 4),
+            Text('When someone messages you first, it shows up here.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body.copyWith(color: AppColors.mut)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      color: AppColors.brand,
+      onRefresh: _load,
+      child: ListView(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -46,20 +106,10 @@ class MessageRequestsScreen extends StatelessWidget {
               style: AppTextStyles.body.copyWith(color: AppColors.sub, fontSize: 13, height: 1.4),
             ),
           ),
-          const SizedBox(height: 10),
-          ...requests.map((req) {
+          const SizedBox(height: 6),
+          ..._requests.map((req) {
             return InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (ctx) => RequestDetailScreen(
-                      senderName: req['name'] as String,
-                      senderInitial: req['initial'] as String,
-                      messageContent: 'Assalam o alaikum! Loved your loft — the young Shaheen is brilliant. 🕊️',
-                    ),
-                  ),
-                );
-              },
+              onTap: () => _openRequest(req),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: const BoxDecoration(
@@ -68,19 +118,20 @@ class MessageRequestsScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     AppAvatar(
-                      text: req['initial'] as String,
+                      name: req.otherName,
+                      imageUrl: req.otherPhotoUrl,
                       size: 44,
-                      gradient: req['grad'] as LinearGradient,
+                      gradient: AppColors.avatarGreen,
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(req['name'] as String, style: AppTextStyles.bodyBold),
+                          Text(req.otherName, style: AppTextStyles.bodyBold),
                           const SizedBox(height: 3),
                           Text(
-                            req['msg'] as String,
+                            req.lastMessagePreview ?? 'Sent you a message request',
                             style: AppTextStyles.caption.copyWith(color: AppColors.mut),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

@@ -112,7 +112,7 @@ export class PrismaTournamentRepository implements ITournamentRepository {
   async findSummary(id: string): Promise<TournamentSummary | null> {
     return this.prisma.tournament.findFirst({
       where: { id, deletedAt: null },
-      select: { id: true, organizerId: true, pigeonCount: true, status: true },
+      select: { id: true, organizerId: true, pigeonCount: true, status: true, startDate: true },
     });
   }
 

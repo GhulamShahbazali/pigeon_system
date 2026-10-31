@@ -7,6 +7,7 @@ import { EmitService } from '../shared/socket/emit.service';
 import { QUEUES, QueueName } from '../shared/queue/queue.constants';
 import { PushSendProcessor } from '../modules/notifications/push-send.processor';
 import { FollowerFanoutProcessor } from '../modules/notifications/follower-fanout.processor';
+import { TournamentFanoutProcessor } from '../modules/notifications/tournament-fanout.processor';
 import { DmPushProcessor } from '../modules/messages/dm-push.processor';
 import { LiveRecordAutoEndProcessor } from '../modules/records/live-record-auto-end.processor';
 
@@ -32,6 +33,7 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
     private readonly emit: EmitService,
     private readonly pushSend: PushSendProcessor,
     private readonly fanout: FollowerFanoutProcessor,
+    private readonly tournamentFanout: TournamentFanoutProcessor,
     private readonly dmPush: DmPushProcessor,
     private readonly autoEnd: LiveRecordAutoEndProcessor,
   ) {}
@@ -46,6 +48,7 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
     this.spawn(QUEUES.pushSend, (j) => this.pushSend.handle(j as any), concurrency);
     this.spawn(QUEUES.dmPush, (j) => this.dmPush.handle(j as any), concurrency);
     this.spawn(QUEUES.followerFanout, (j) => this.fanout.handle(j as any), 3);
+    this.spawn(QUEUES.tournamentFanout, (j) => this.tournamentFanout.handle(j as any), 3);
     this.spawn(QUEUES.liveRecordAutoEnd, (j) => this.autoEnd.handle(j as any), concurrency);
 
     this.logger.log(`Workers online for: ${this.workers.map((w) => w.name).join(', ')}`);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/records_repository.dart';
 import 'live_record_screen.dart';
 
@@ -42,25 +44,38 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
     );
   }
 
+  Future<void> _createRecord() async {
+    await context.push('/records/create');
+    if (mounted) _load(); // show the newly created record on return
+  }
+
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Text('My Records', style: AppTextStyles.screenTitle),
+        title: Text(s.myRecords, style: AppTextStyles.screenTitle),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
+        onPressed: _createRecord,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(s.newRecord, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
       ),
       body: RefreshIndicator(
         color: AppColors.brand,
         onRefresh: _load,
-        child: _buildBody(),
+        child: _buildBody(s),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -72,19 +87,34 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
         const SizedBox(height: 100),
         const Icon(Icons.format_list_bulleted_rounded, size: 54, color: AppColors.muted),
         const SizedBox(height: 12),
-        Center(child: Text('No records yet', style: AppTextStyles.cardTitle)),
+        Center(child: Text(s.noRecordsYet, style: AppTextStyles.cardTitle)),
         const SizedBox(height: 6),
-        Center(child: Text('Add a record to track your flights.', style: AppTextStyles.caption)),
+        Center(child: Text(s.addRecordHint, style: AppTextStyles.caption)),
+        const SizedBox(height: 20),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: _createRecord,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brand,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 20),
+            label: Text(s.addFirstRecord,
+                style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+          ),
+        ),
       ]);
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 10),
       itemCount: _records.length,
-      itemBuilder: (context, i) => _recordCard(_records[i]),
+      itemBuilder: (context, i) => _recordCard(_records[i], s),
     );
   }
 
-  Widget _recordCard(PersonalRecordModel r) {
+  Widget _recordCard(PersonalRecordModel r, AppStrings s) {
     final isLive = r.isLive;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -110,13 +140,13 @@ class _MyRecordsScreenState extends State<MyRecordsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: AppColors.ok50, borderRadius: BorderRadius.circular(20)),
-                child: Text('LIVE', style: AppTextStyles.captionBold.copyWith(color: AppColors.ok, fontSize: 10)),
+                child: Text(s.live, style: AppTextStyles.captionBold.copyWith(color: AppColors.ok, fontSize: 10)),
               )
             else
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: AppColors.soft, borderRadius: BorderRadius.circular(20)),
-                child: Text(r.privacy == 'live' ? 'ENDED' : 'PRIVATE',
+                child: Text(r.privacy == 'live' ? s.ended : s.privateLabel,
                     style: AppTextStyles.captionBold.copyWith(color: AppColors.mut, fontSize: 10)),
               ),
           ],

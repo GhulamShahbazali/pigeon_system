@@ -9,12 +9,17 @@ import {
 } from './tournament.repository';
 import { Err, Ok, Result } from '../../../shared/result/result';
 import { DomainError } from '../../../shared/errors/domain-error';
-import { ForbiddenError, NotFoundError } from '../../../shared/errors/common-errors';
+import { ForbiddenError, NotFoundError, UnprocessableError } from '../../../shared/errors/common-errors';
 import { EmitService } from '../../../shared/socket/emit.service';
 import { QueueService } from '../../../shared/queue/queue.service';
 import { QUEUES } from '../../../shared/queue/queue.constants';
 import { CacheService } from '../../../shared/cache/cache.service';
 import { standingsKey } from './read.use-cases';
+
+/** Calendar-day comparison helper (UTC midnight), ignoring time-of-day. */
+function _startOfUtcDay(d: Date): number {
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
 
 @Injectable()
 export class CreateTournamentUseCase {
@@ -42,17 +47,32 @@ export class AddParticipantUseCase {
     private readonly cache: CacheService,
     private readonly queue: QueueService,
   ) {}
-  async execute(actorId: string, input: AddParticipantInput): Promise<Result<any>> {
+  async execute(
+    actorId: string,
+    input: AddParticipantInput,
+    opts?: { allowAfterStart?: boolean },
+  ): Promise<Result<any>> {
     const t = await this.repo.findSummary(input.tournamentId);
     if (!t) return Err(new NotFoundError('tournament'));
     if (t.organizerId !== actorId) return Err(new ForbiddenError('Only the organizer can add participants'));
+    // Participants are locked once the tournament has started (its start date
+    // reached) — no new participants may join after it's underway. (The bot
+    // seeder passes allowAfterStart to backfill historical/running tournaments.)
+    if (!opts?.allowAfterStart && t.startDate && _startOfUtcDay(new Date()) >= _startOfUtcDay(t.startDate)) {
+      return Err(
+        new UnprocessableError('The tournament has started — new participants can no longer be added', {
+          participant: 'tournament_started',
+        }),
+      );
+    }
     const participant = await this.repo.addParticipant(input);
     await this.cache.del(standingsKey(input.tournamentId)); // new participant appears in standings
 
-    await this.queue.add(QUEUES.followerFanout, 'fanout', {
-      actorId,
+    // Notify the organizer's followers AND everyone following this tournament.
+    await this.queue.add(QUEUES.tournamentFanout, 'fanout', {
+      tournamentId: input.tournamentId,
+      organizerId: actorId,
       type: 'participant_added',
-      entityType: 'tournament',
       entityId: input.tournamentId,
     });
 
@@ -83,10 +103,11 @@ export class RecordFlightUseCase {
         standings,
       });
 
-      await this.queue.add(QUEUES.followerFanout, 'fanout', {
-        actorId,
+      // Notify the organizer's followers AND everyone following this tournament.
+      await this.queue.add(QUEUES.tournamentFanout, 'fanout', {
+        tournamentId: input.tournamentId,
+        organizerId: actorId,
         type: 'tournament_day_results',
-        entityType: 'tournament',
         entityId: input.tournamentId,
       });
 

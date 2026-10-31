@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/network/socket_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/pigeon_watermark.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../../../../app/bloc/navigation_bloc.dart';
+import '../../../../app/bloc/navigation_state.dart';
 import '../../../records/data/records_repository.dart';
 import '../../../records/presentation/pages/my_records_screen.dart';
 import '../../../posts/data/posts_repository.dart';
@@ -21,13 +26,17 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const int _profileTabIndex = 3;
+
   final UserRepository _userRepo = sl<UserRepository>();
   final TournamentsRepository _tournamentsRepo = sl<TournamentsRepository>();
   final RecordsRepository _recordsRepo = sl<RecordsRepository>();
   final PostsRepository _postsRepo = sl<PostsRepository>();
+  final SocketService _socket = sl<SocketService>();
 
   UserProfileModel? _profile;
   bool _isLoading = true;
+  bool _refreshing = false;
   int _myTournamentsCount = 0;
   int _myRecordsCount = 0;
   int _myPostsCount = 0;
@@ -36,38 +45,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+    // Live refresh: a follow (and other user-room events) arrive on the already
+    // connected socket; re-pull the stats so Followers/Following update in real
+    // time while this screen is visible. (Silent → no full-screen spinner.)
+    _socket.onNotification(_onRealtimeEvent);
   }
 
-  Future<void> _loadProfile() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _socket.off('notification.new');
+    super.dispose();
+  }
 
-    final pResult = await _userRepo.getMyProfile();
-    final tResult = await _tournamentsRepo.getTournaments(tab: 'mine');
-    final rResult = await _recordsRepo.getMyRecords();
-    if (pResult.isSuccess) {
-      _profile = (pResult as dynamic).data as UserProfileModel;
-      final postsResult = await _postsRepo.getUserPosts(_profile!.id);
-      if (postsResult.isSuccess) {
-        _myPostsCount = ((postsResult as dynamic).data as List).length;
+  void _onRealtimeEvent(dynamic _) {
+    if (mounted) _loadProfile(silent: true);
+  }
+
+  /// [silent] = refresh counts in place without the full-screen loader (used for
+  /// live socket updates and tab re-focus); the first load is non-silent.
+  Future<void> _loadProfile({bool silent = false}) async {
+    if (_refreshing) return;
+    _refreshing = true;
+    if (!silent && mounted) setState(() => _isLoading = true);
+
+    try {
+      final pResult = await _userRepo.getMyProfile();
+      final tResult = await _tournamentsRepo.getTournaments(tab: 'mine');
+      final rResult = await _recordsRepo.getMyRecords();
+      if (pResult.isSuccess) {
+        _profile = (pResult as dynamic).data as UserProfileModel;
+        final postsResult = await _postsRepo.getUserPosts(_profile!.id);
+        if (postsResult.isSuccess) {
+          _myPostsCount = ((postsResult as dynamic).data as List).length;
+        }
       }
+
+      if (!mounted) return;
+
+      setState(() {
+        if (tResult.isSuccess) {
+          _myTournamentsCount = ((tResult as dynamic).data as List).length;
+        }
+        if (rResult.isSuccess) {
+          _myRecordsCount = ((rResult as dynamic).data as List).length;
+        }
+        if (!silent) _isLoading = false;
+      });
+    } finally {
+      _refreshing = false;
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      if (tResult.isSuccess) {
-        _myTournamentsCount = ((tResult as dynamic).data as List).length;
-      }
-      if (rResult.isSuccess) {
-        _myRecordsCount = ((rResult as dynamic).data as List).length;
-      }
-      _isLoading = false;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = _profile?.displayName ?? 'Flyer';
+    final s = AppStrings.of(context);
+    final name = _profile?.displayName ?? s.flyer;
     final handle = '@${_profile?.username ?? 'flyer'}';
     final location = _profile?.city ?? 'Lahore, PK';
     final photoUrl = _profile?.photoUrl;
@@ -75,7 +107,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final following = _profile?.followingCount ?? 0;
     final tournaments = _profile?.tournamentCount != 0 ? (_profile?.tournamentCount ?? _myTournamentsCount) : _myTournamentsCount;
 
-    return Scaffold(
+    return BlocListener<NavigationBloc, NavigationState>(
+      // Re-pull stats each time the Profile tab is focused. IndexedStack keeps this
+      // screen alive, so initState alone never refreshes on a tab switch.
+      listenWhen: (prev, curr) =>
+          curr.selectedIndex == _profileTabIndex && prev.selectedIndex != _profileTabIndex,
+      listener: (_, __) => _loadProfile(silent: true),
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       body: RefreshIndicator(
         color: AppColors.brand,
@@ -181,10 +219,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         await context.push('/profile/tournaments');
                         _loadProfile();
                       },
-                      child: _StatItem(number: '$tournaments', label: 'Tournaments'),
+                      child: _StatItem(number: '$tournaments', label: s.tournaments),
                     ),
-                    _StatItem(number: '$followers', label: 'Followers'),
-                    _StatItem(number: '$following', label: 'Following'),
+                    _StatItem(number: '$followers', label: s.followers),
+                    _StatItem(number: '$following', label: s.followingLabel),
                   ],
                 ),
               ),
@@ -193,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Content Rows: My Tournaments, My Posts, My Records
               _ProfileLinkRow(
                 icon: Icons.emoji_events_outlined,
-                title: 'My Tournaments',
+                title: s.myTournaments,
                 count: _myTournamentsCount,
                 onTap: () async {
                   await context.push('/profile/tournaments');
@@ -202,19 +240,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               _ProfileLinkRow(
                 icon: Icons.dynamic_feed_rounded,
-                title: 'My Posts',
+                title: s.myPosts,
                 count: _myPostsCount,
                 onTap: () {
                   final id = _profile?.id;
                   if (id == null) return;
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => MyPostsScreen(userId: id, title: 'My Posts'),
+                    builder: (_) => MyPostsScreen(userId: id, title: s.myPosts),
                   ));
                 },
               ),
               _ProfileLinkRow(
                 icon: Icons.format_list_bulleted_rounded,
-                title: 'My Records',
+                title: s.myRecords,
                 count: _myRecordsCount,
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
@@ -226,6 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

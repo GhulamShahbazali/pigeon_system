@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/records_repository.dart';
 import 'add_record_screen.dart';
 import 'live_record_screen.dart';
@@ -78,6 +79,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -91,7 +93,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Records',
+                    s.recordsTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 23),
                   ),
                   const Spacer(),
@@ -151,7 +153,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                 child: Row(
                   children: [
                     _SegmentItem(
-                      title: 'My records',
+                      title: s.myRecordsTab,
                       isSelected: _selectedTab == 0,
                       onTap: () {
                         if (_selectedTab != 0) {
@@ -161,7 +163,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                       },
                     ),
                     _SegmentItem(
-                      title: 'Live now',
+                      title: s.liveNow,
                       isSelected: _selectedTab == 1,
                       onTap: () {
                         if (_selectedTab != 1) {
@@ -199,16 +201,16 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                                     onPressed: _fetchRecords,
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.brand),
-                                    child: const Text('Try Again',
-                                        style: TextStyle(color: Colors.white)),
+                                    child: Text(s.tryAgain,
+                                        style: const TextStyle(color: Colors.white)),
                                   ),
                                 ],
                               ),
                             ),
                           )
                         : _selectedTab == 0
-                            ? _buildMyRecords()
-                            : _buildLiveNowList(),
+                            ? _buildMyRecords(s)
+                            : _buildLiveNowList(s),
               ),
             ),
           ],
@@ -217,7 +219,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
     );
   }
 
-  Widget _buildMyRecords() {
+  Widget _buildMyRecords(AppStrings s) {
     if (_myRecords.isEmpty) {
       return Center(
         child: Padding(
@@ -227,9 +229,9 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
             children: [
               const Icon(Icons.note_alt_outlined, color: AppColors.muted, size: 48),
               const SizedBox(height: 12),
-              Text('No flight records logged yet', style: AppTextStyles.bodyBold),
+              Text(s.noFlightRecords, style: AppTextStyles.bodyBold),
               const SizedBox(height: 6),
-              Text('Log your loft routine using the + button above.',
+              Text(s.logLoftHint,
                   style: AppTextStyles.caption, textAlign: TextAlign.center),
             ],
           ),
@@ -279,9 +281,9 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("You're live now",
+                        Text(s.youreLive,
                             style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
-                        Text('${liveRecord.returnedCount} of ${liveRecord.totalPigeons} landed',
+                        Text(s.landedOf(liveRecord.returnedCount, liveRecord.totalPigeons),
                             style: AppTextStyles.caption.copyWith(color: AppColors.white90)),
                       ],
                     ),
@@ -293,6 +295,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
 
         ..._myRecords.map((r) {
           return _buildRecordCard(
+            s: s,
             date: r.recordDate,
             isLive: r.isLive,
             flown: r.totalPigeons,
@@ -318,7 +321,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
     );
   }
 
-  Widget _buildLiveNowList() {
+  Widget _buildLiveNowList(AppStrings s) {
     if (_liveNowRecords.isEmpty) {
       return Center(
         child: Padding(
@@ -328,9 +331,9 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
             children: [
               const Icon(Icons.wifi_tethering, color: AppColors.muted, size: 48),
               const SizedBox(height: 12),
-              Text('No flyers live right now', style: AppTextStyles.bodyBold),
+              Text(s.noFlyersLive, style: AppTextStyles.bodyBold),
               const SizedBox(height: 6),
-              Text('When accounts you follow go live with flights, they appear here.',
+              Text(s.noFlyersLiveHint,
                   style: AppTextStyles.caption, textAlign: TextAlign.center),
             ],
           ),
@@ -343,7 +346,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
       itemCount: _liveNowRecords.length,
       itemBuilder: (context, index) {
         final flyer = _liveNowRecords[index];
-        final name = flyer.owner?.displayName ?? 'Flyer';
+        final name = flyer.owner?.displayName ?? s.flyer;
 
         return InkWell(
           onTap: () {
@@ -409,7 +412,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                                 Text(name, style: AppTextStyles.bodyBold),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '${flyer.returnedCount} of ${flyer.totalPigeons} landed',
+                                  s.landedOf(flyer.returnedCount, flyer.totalPigeons),
                                   style: AppTextStyles.caption,
                                 ),
                               ],
@@ -422,7 +425,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'LIVE',
+                              s.live,
                               style: AppTextStyles.captionBold.copyWith(
                                 color: AppColors.ok,
                                 fontSize: 11,
@@ -443,6 +446,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
   }
 
   Widget _buildRecordCard({
+    required AppStrings s,
     required String date,
     required bool isLive,
     required int flown,
@@ -482,7 +486,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'LIVE NOW',
+                          s.liveNowBadge,
                           style: AppTextStyles.overline.copyWith(
                             color: AppColors.ok,
                             fontSize: 10,
@@ -498,7 +502,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'PRIVATE',
+                          s.privateLabel,
                           style: AppTextStyles.overline.copyWith(
                             color: AppColors.muted,
                             fontSize: 10,
@@ -511,14 +515,14 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    _InfoPill(label: 'Pigeons', value: '$flown'),
+                    _InfoPill(label: s.pigeons, value: '$flown'),
                     const SizedBox(width: 8),
-                    _InfoPill(label: 'Fly Time', value: flyTime),
+                    _InfoPill(label: s.flyTimeLabel, value: flyTime),
                     const Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Average', style: AppTextStyles.caption),
+                        Text(s.average, style: AppTextStyles.caption),
                         Text(avg,
                             style: AppTextStyles.bodyBold.copyWith(color: AppColors.brand)),
                       ],

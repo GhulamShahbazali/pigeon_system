@@ -69,15 +69,41 @@ else
   ok "dependencies present (--install to reinstall)"
 fi
 
-# 3-5. DB sync — SKIP when the schema hasn't changed since the last sync.
-#      The network db-push is the slow part, so only run it when needed.
+# 3-5. DB sync — auto-detect ANY change to the DB schema (or index SQL) by
+#      content hash, so a pull / branch switch / edit re-syncs itself without
+#      relying on file mtimes. The network db-push is the slow part, so we only
+#      run it when the fingerprint actually changes.
 STAMP=".dev-last-sync"
+
+# Fingerprint = hash of schema.prisma (+ index SQL). Empty string if no hasher
+# is available, which falls back to the mtime check below.
+db_fingerprint() {
+  local files=(prisma/schema.prisma)
+  [ -f prisma/sql/01-search-indexes.sql ] && files+=(prisma/sql/01-search-indexes.sql)
+  if command -v sha256sum >/dev/null 2>&1; then
+    cat "${files[@]}" | sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    cat "${files[@]}" | shasum -a 256 | awk '{print $1}'
+  else
+    echo ""
+  fi
+}
+
+CUR_FP="$(db_fingerprint)"
+PREV_FP="$([ -f "$STAMP" ] && cat "$STAMP" 2>/dev/null || echo "")"
+
 need_sync=false
 if $FORCE_SYNC; then need_sync=true
-elif [ ! -d node_modules/.prisma/client ]; then need_sync=true   # client missing
-elif [ ! -f "$STAMP" ]; then need_sync=true                      # first run
-elif [ prisma/schema.prisma -nt "$STAMP" ]; then need_sync=true  # schema changed
-elif [ -f prisma/sql/01-search-indexes.sql ] && [ prisma/sql/01-search-indexes.sql -nt "$STAMP" ]; then need_sync=true
+elif [ ! -d node_modules/.prisma/client ]; then need_sync=true            # client missing
+elif [ ! -f "$STAMP" ]; then need_sync=true                               # first run
+elif [ -n "$CUR_FP" ]; then
+  # Content-hash mode: re-sync whenever the schema/index SQL content changes.
+  [ "$CUR_FP" != "$PREV_FP" ] && need_sync=true
+else
+  # Fallback (no hasher): compare file mtimes against the stamp.
+  if [ prisma/schema.prisma -nt "$STAMP" ]; then need_sync=true
+  elif [ -f prisma/sql/01-search-indexes.sql ] && [ prisma/sql/01-search-indexes.sql -nt "$STAMP" ]; then need_sync=true
+  fi
 fi
 
 if $need_sync; then
@@ -90,7 +116,9 @@ if $need_sync; then
     npx prisma db execute --file prisma/sql/01-search-indexes.sql --schema prisma/schema.prisma \
       && ok "search indexes applied" || warn "index step skipped (DB unreachable?) — safe to retry"
   fi
-  touch "$STAMP"
+  # Record the fingerprint (or touch, in fallback mode) so the next run can skip.
+  if [ -n "$CUR_FP" ]; then printf '%s\n' "$CUR_FP" > "$STAMP"; else touch "$STAMP"; fi
+  ok "DB sync complete"
 else
   ok "schema unchanged — skipping DB sync (--sync to force)"
 fi

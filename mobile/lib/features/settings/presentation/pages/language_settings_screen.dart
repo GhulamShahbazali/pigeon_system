@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/locale_cubit.dart';
+import '../../../../core/localization/app_strings.dart';
 
 class LanguageSettingsScreen extends StatelessWidget {
   const LanguageSettingsScreen({super.key});
@@ -19,6 +20,7 @@ class LanguageSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<LocaleCubit, AppLanguage>(
       builder: (context, currentLang) {
+        final s = AppStrings.of(context);
         return Scaffold(
           backgroundColor: AppColors.card,
           appBar: AppBar(
@@ -29,14 +31,14 @@ class LanguageSettingsScreen extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.ink),
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            title: Text('Language', style: AppTextStyles.h3),
+            title: Text(s.language, style: AppTextStyles.h3),
             centerTitle: true,
           ),
           body: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             children: [
               Text(
-                'Choose your app language. Urdu & Arabic display right-to-left.',
+                s.languageSubtitle,
                 style: AppTextStyles.body.copyWith(color: AppColors.sub, fontSize: 13),
               ),
               const SizedBox(height: 16),
@@ -90,7 +92,7 @@ class LanguageSettingsScreen extends StatelessWidget {
                         ),
                         const Spacer(),
                         if (lang.isRtl) ...[
-                          Text('RTL', style: AppTextStyles.captionBold.copyWith(color: AppColors.mut)),
+                          Text(s.rtl, style: AppTextStyles.captionBold.copyWith(color: AppColors.mut)),
                           const SizedBox(width: 8),
                         ],
                         if (isSelected)

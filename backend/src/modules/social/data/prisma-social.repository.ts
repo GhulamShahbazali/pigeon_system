@@ -55,6 +55,7 @@ export class PrismaSocialRepository implements ISocialRepository {
       where: { id: userId },
       data: {
         displayName: input.displayName,
+        username: input.username,
         bio: input.bio,
         city: input.city,
         photoUrl: input.photoUrl,

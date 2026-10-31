@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/local_storage/secure_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../data/posts_repository.dart';
 import '../widgets/post_card.dart';
 
@@ -19,16 +21,31 @@ class MyPostsScreen extends StatefulWidget {
 
 class _MyPostsScreenState extends State<MyPostsScreen> {
   final PostsRepository _repo = sl<PostsRepository>();
+  final SecureStorageService _storage = sl<SecureStorageService>();
   List<PostModel> _posts = [];
   final Set<String> _liked = {};
   final Map<String, int> _likeCounts = {};
   bool _loading = true;
+  bool _isMe = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _resolveIsMe();
+  }
+
+  /// Only the owner of this feed may create a post here, so compare the viewed
+  /// userId against the signed-in user's id (decoded from the session JWT).
+  Future<void> _resolveIsMe() async {
+    final myId = await _storage.getUserId();
+    if (mounted) setState(() => _isMe = myId != null && myId == widget.userId);
+  }
+
+  Future<void> _createPost() async {
+    await context.push('/posts/create');
+    if (mounted) _load(); // reflect the newly created post on return
   }
 
   Future<void> _load() async {
@@ -86,15 +103,24 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         scrolledUnderElevation: 0,
         title: Text(widget.title, style: AppTextStyles.screenTitle),
       ),
+      floatingActionButton: _isMe
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.brand,
+              foregroundColor: Colors.white,
+              onPressed: _createPost,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(AppStrings.of(context).newPost, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+            )
+          : null,
       body: RefreshIndicator(
         color: AppColors.brand,
         onRefresh: _load,
-        child: _buildBody(),
+        child: _buildBody(AppStrings.of(context)),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppStrings s) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
@@ -106,7 +132,24 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         const SizedBox(height: 100),
         const Icon(Icons.dynamic_feed_rounded, size: 54, color: AppColors.muted),
         const SizedBox(height: 12),
-        Center(child: Text('No posts yet', style: AppTextStyles.cardTitle)),
+        Center(child: Text(s.noPostsYet, style: AppTextStyles.cardTitle)),
+        if (_isMe) ...[
+          const SizedBox(height: 20),
+          Center(
+            child: ElevatedButton.icon(
+              onPressed: _createPost,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: Text(s.createFirstPost,
+                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+            ),
+          ),
+        ],
       ]);
     }
     return ListView.separated(

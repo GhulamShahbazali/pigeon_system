@@ -49,6 +49,7 @@ export class MessageUseCases {
     return payload;
   }
 
+  findWith = (uid: string, otherId: string) => this.repo.findWith(uid, otherId);
   accept = (cid: string, uid: string) => this.repo.accept(cid, uid);
   deleteRequest = (cid: string, uid: string) => this.repo.deleteRequest(cid, uid);
 

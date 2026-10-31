@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -53,6 +54,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     super.initState();
     _isLiked = widget.isLiked;
     _likeCount = widget.likes;
+  }
+
+  void _openAuthorProfile() {
+    final id = widget.authorId;
+    if (id != null && id.isNotEmpty) context.push('/user/$id');
   }
 
   void _toggleLike() {
@@ -111,26 +117,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 children: [
-                  AppAvatar(
-                    text: widget.authorName,
-                    imageUrl: widget.authorPhotoUrl,
-                    size: 42,
-                    gradient: AppColors.avatarBlue,
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.authorName, style: AppTextStyles.bodyBold),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.authorHandle} · ${widget.timeAgo}',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.mut),
-                        ),
-                      ],
+                    child: InkWell(
+                      onTap: _openAuthorProfile,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        children: [
+                          AppAvatar(
+                            text: widget.authorName,
+                            imageUrl: widget.authorPhotoUrl,
+                            size: 42,
+                            gradient: AppColors.avatarBlue,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(widget.authorName, style: AppTextStyles.bodyBold),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${widget.authorHandle} · ${widget.timeAgo}',
+                                  style: AppTextStyles.caption.copyWith(color: AppColors.mut),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   AppButton(
                     text: _isFollowing ? 'Following' : 'Follow',
                     variant: _isFollowing ? AppButtonVariant.soft : AppButtonVariant.primary,

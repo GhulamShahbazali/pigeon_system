@@ -1,0 +1,59 @@
+services:
+  # ====================================================
+  # 1. PigeonFly Backend API (NestJS + Socket.io + Workers)
+  # ====================================================
+  - type: web
+    name: pigeonfly-backend
+    runtime: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PROCESS_ROLE
+        value: api
+      - key: ENABLE_EMBEDDED_WORKERS
+        value: "true"
+      - key: SCHEDULER_ENABLED
+        value: "true"
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FIREBASE_ADMIN_SDK_KEY
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        value: pigeonfly-media
+      - key: R2_PUBLIC_BASE_URL
+        value: https://media.pigeonfly.app
+
+  # ====================================================
+  # 2. PigeonFly Admin Panel (Next.js)
+  # ====================================================
+  - type: web
+    name: pigeonfly-admin
+    runtime: node
+    plan: starter
+    rootDir: admin
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_BASE
+        sync: false

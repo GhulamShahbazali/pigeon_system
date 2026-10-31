@@ -31,8 +31,9 @@ export class FollowerFanoutProcessor {
   async handle(job: Job<FollowerFanoutJob>): Promise<void> {
     const { actorId, type, entityType, entityId } = job.data;
     let cursor: string | undefined;
-    let total = 0;
+    const recipientIds = new Set<string>();
 
+    // 1. Social followers of the actor
     for (;;) {
       const page = await this.prisma.follow.findMany({
         where: { followeeId: actorId },
@@ -44,12 +45,38 @@ export class FollowerFanoutProcessor {
       if (page.length === 0) break;
 
       for (const { followerId } of page) {
-        await this.notifications.notify({ recipientId: followerId, type, entityType, entityId, actorId });
-        total++;
+        recipientIds.add(followerId);
       }
       if (page.length < FollowerFanoutProcessor.PAGE) break;
       cursor = page[page.length - 1].followerId;
     }
-    this.logger.log(`Fanned "${type}" (${entityType}:${entityId}) to ${total} follower(s) of ${actorId}`);
+
+    // 2. If entityType is tournament, also notify users who follow this specific tournament
+    if (entityType === 'tournament' && entityId) {
+      const tourneyFollowers = await this.prisma.tournamentFollow.findMany({
+        where: { tournamentId: entityId },
+        select: { userId: true },
+      });
+      for (const tf of tourneyFollowers) {
+        recipientIds.add(tf.userId);
+      }
+    }
+
+    // Never notify the actor themselves
+    if (actorId) {
+      recipientIds.delete(actorId);
+    }
+
+    for (const recipientId of recipientIds) {
+      await this.notifications.notify({
+        recipientId,
+        type,
+        entityType,
+        entityId,
+        actorId,
+      });
+    }
+
+    this.logger.log(`Fanned "${type}" (${entityType}:${entityId}) to ${recipientIds.size} recipient(s) of actor ${actorId}`);
   }
 }

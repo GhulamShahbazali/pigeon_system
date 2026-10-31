@@ -15,9 +15,29 @@ async function bootstrapApi(): Promise<void> {
   app.useStaticAssets(UPLOADS_DIR, { prefix: `${UPLOADS_ROUTE}/` });
   // crossOriginResourcePolicy relaxed so the mobile app can load media cross-origin.
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
   app.enableCors({
-    origin: (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes('*') ||
+        /\.onrender\.com$/.test(new URL(origin).hostname) ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin);
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   });
   app.setGlobalPrefix('v1');
   // Real client IP behind Nginx/LB (so the throttler keys on the user, not the proxy).

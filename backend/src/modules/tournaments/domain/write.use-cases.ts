@@ -15,6 +15,7 @@ import { QueueService } from '../../../shared/queue/queue.service';
 import { QUEUES } from '../../../shared/queue/queue.constants';
 import { CacheService } from '../../../shared/cache/cache.service';
 import { standingsKey } from './read.use-cases';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 /** Calendar-day comparison helper (UTC midnight), ignoring time-of-day. */
 function _startOfUtcDay(d: Date): number {
@@ -181,9 +182,40 @@ export class DeleteFlightUseCase {
 
 @Injectable()
 export class TournamentSocialUseCase {
-  constructor(@Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository) {}
-  follow = (tid: string, uid: string) => this.repo.toggleFollow(tid, uid, true);
+  constructor(
+    @Inject(TOURNAMENT_REPOSITORY) private readonly repo: ITournamentRepository,
+    private readonly notifications: NotificationsService,
+  ) {}
+
+  async follow(tid: string, uid: string): Promise<void> {
+    await this.repo.toggleFollow(tid, uid, true);
+    const summary = await this.repo.findSummary(tid);
+    if (summary && summary.organizerId !== uid) {
+      await this.notifications.notify({
+        recipientId: summary.organizerId,
+        type: 'tournament_follow',
+        entityType: 'tournament',
+        entityId: tid,
+        actorId: uid,
+      });
+    }
+  }
+
   unfollow = (tid: string, uid: string) => this.repo.toggleFollow(tid, uid, false);
-  like = (tid: string, uid: string) => this.repo.toggleLike(tid, uid, true);
+
+  async like(tid: string, uid: string): Promise<void> {
+    await this.repo.toggleLike(tid, uid, true);
+    const summary = await this.repo.findSummary(tid);
+    if (summary && summary.organizerId !== uid) {
+      await this.notifications.notify({
+        recipientId: summary.organizerId,
+        type: 'content_like',
+        entityType: 'tournament',
+        entityId: tid,
+        actorId: uid,
+      });
+    }
+  }
+
   unlike = (tid: string, uid: string) => this.repo.toggleLike(tid, uid, false);
 }

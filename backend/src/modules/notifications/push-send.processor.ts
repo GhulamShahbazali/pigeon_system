@@ -7,6 +7,7 @@ const TITLES: Record<string, string> = {
   tournament_created: 'New tournament',
   participant_added: 'New participant',
   tournament_day_results: 'Day results posted',
+  tournament_follow: 'New tournament follower',
   post_created: 'New post',
   new_follower: 'New follower',
   content_like: 'New like',
@@ -38,7 +39,10 @@ export class PushSendProcessor {
   ) {}
 
   async handle(job: Job<{ notificationId: string }>): Promise<void> {
-    const n = await this.prisma.notification.findUnique({ where: { id: job.data.notificationId } });
+    const n = await this.prisma.notification.findUnique({
+      where: { id: job.data.notificationId },
+      include: { actors: true },
+    });
     if (!n) return;
 
     const prefs = await this.prisma.userNotificationPreferences.findUnique({
@@ -55,6 +59,8 @@ export class PushSendProcessor {
 
     const title = TITLES[n.type] ?? 'PigeonFly';
     const body = await this.buildBody(n);
+
+    this.logger.log(`Dispatching push [${title}] "${body}" to ${tokens.length} device(s)`);
     await this.push.send(tokens, title, body, {
       type: n.type,
       entity_type: n.entityType,

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
 import * as admin from 'firebase-admin';
+import { resolveFirebaseCert } from '../auth/firebase-cert.util';
 
 /** Sends FCM push. No-op (logs) when Firebase isn't configured. */
 @Injectable()
@@ -18,23 +18,8 @@ export class PushService {
       return true;
     }
     const keyVal = this.config.get<string>('FIREBASE_ADMIN_SDK_KEY');
-    if (!keyVal) return false;
-    let cert: any;
-    if (keyVal.trim().startsWith('{')) {
-      try {
-        cert = JSON.parse(keyVal);
-      } catch {
-        return false;
-      }
-    } else if (fs.existsSync(keyVal)) {
-      try {
-        cert = JSON.parse(fs.readFileSync(keyVal, 'utf8'));
-      } catch {
-        return false;
-      }
-    } else {
-      return false;
-    }
+    const cert = resolveFirebaseCert(keyVal);
+    if (!cert) return false;
     admin.initializeApp({ credential: admin.credential.cert(cert) });
     this.ready = true;
     return true;

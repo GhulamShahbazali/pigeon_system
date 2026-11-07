@@ -65,7 +65,6 @@ export class WorkerRunner implements OnModuleInit, OnModuleDestroy {
     this.logger.log(
       `Workers online for: ${this.workers.map((w) => w.name).join(', ')} (role=${role}, embedded=${embedded})`,
     );
-    );
   }
 
   /** Server-less Socket.io instance on the Redis adapter, used only as an emitter. */
